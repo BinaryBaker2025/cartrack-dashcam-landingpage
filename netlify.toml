@@ -4,6 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Public campaign identifiers, an allowlisted endpoint, timeout and public site URL
+  # are configuration, not credentials. Keep scanning enabled for actual secrets.
+  SECRETS_SCAN_OMIT_KEYS = "LEADBYTE_OFFER_ID,LEADBYTE_SID,LEADBYTE_TIMEOUT_MS,LEADBYTE_ENDPOINT,LEADBYTE_CAMPID,NEXT_PUBLIC_SITE_URL"
 
 # Next.js route handlers are packaged automatically by Netlify's OpenNext adapter.
 # Do not add an SPA redirect or output: export; /api/leads needs a server function.

@@ -38,6 +38,16 @@ Browser controls can be bypassed. These checks reduce accidental repeats and som
 
 ## Verification
 
+### Build blocked by secret scanning
+
+If Next.js compilation and function bundling succeed but scanning flags campaign IDs, the endpoint, timeout or public site URL, those configuration variables have been marked as secrets. They are not API credentials. `netlify.toml` narrowly excludes these six keys from value scanning: LEADBYTE_OFFER_ID, LEADBYTE_SID, LEADBYTE_TIMEOUT_MS, LEADBYTE_ENDPOINT, LEADBYTE_CAMPID, NEXT_PUBLIC_SITE_URL. Scanning remains enabled for actual secrets. Never add future API keys, passwords or tokens to this exclusion list.
+
+In the Netlify dashboard you can also edit these variables and clear **Contains secret values**. Keep their existing build/function scopes. Public does not mean the LeadByte request moves to the browser: delivery remains server-side.
+
+The supplied failed-deployment log also shows localhost matching NEXT_PUBLIC_SITE_URL. Replace that with the exact public HTTPS Netlify/custom-domain origin and redeploy. Set DEPLOY_PLATFORM=netlify for per-client rate limiting, and supply CAMPAIGN_OPERATOR_NAME and PRIVACY_CONTACT_EMAIL before enabling live submissions. Remove obsolete DATABASE_URL, CRON_SECRET, LEAD_HASH_SECRET and DATA_RETENTION_DAYS entries. Keep LEADBYTE_ENABLED=false during setup.
+
+Commit and push the updated netlify.toml, then trigger a new deployment after changing dashboard values. A local Next.js build does not run Netlify's secret scanner; the hosted redeploy verifies this fix. See [Netlify's secret-scanning settings](https://docs.netlify.com/build/environment-variables/secrets-controller/).
+
 Local production build and mocked tests do not claim a hosted Netlify deployment was tested. Inspect the adapter build log, deployed form behavior and function logs after importing your repository. No Netlify account has been connected by this task and no real API lead has been sent.
 
 Official references:
