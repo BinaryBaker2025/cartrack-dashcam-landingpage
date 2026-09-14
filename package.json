@@ -1,0 +1,39 @@
+{
+  "name": "cartrack-cameras",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "format": "prettier --write app components lib tests scripts *.ts *.mjs *.json *.md"
+  },
+  "dependencies": {
+    "libphonenumber-js": "1.13.13",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "dotenv": "17.4.2",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^4",
+    "typescript": "6.0.3",
+    "vitest": "5.0.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

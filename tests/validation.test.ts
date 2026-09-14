@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest';
+import { validateLead, cleanPhone, parseCallTime } from '../lib/validation';
+import { captureAttribution } from '../lib/attribution';
+// Synthetic fixture only: mocked tests never contact this number or the live API.
+import { valid } from './fixtures';
+describe('qualification', () => {
+  it('accepts a qualifying lead', () => expect(validateLead(valid).valid).toBe(true));
+  it.each([
+    ['age', 'under_18', 'does_not_qualify_age'],
+    ['vehicle', 'no', 'does_not_have_vehicle'],
+    ['employment', 'unemployed', 'does_not_qualify_employment'],
+    ['income', 'under_10000', 'does_not_qualify_income'],
+  ])('rejects %s=%s locally', (key, value, reason) => {
+    const r = validateLead({ ...valid, [key]: value });
+    expect(r.valid).toBe(false);
+    expect(r.reasons).toContain(reason);
+  });
+  it('requires consent', () =>
+    expect(validateLead({ ...valid, terms: false }).errors.terms).toBeTruthy());
+  it.each(['123', '+442071234567', '0211234567', '0821234567 ext 12'])(
+    'rejects invalid/mobile-ineligible ZA phone %s',
+    (phone) => expect(validateLead({ ...valid, phone }).valid).toBe(false),
+  );
+  it('normalises ZA national mobile', () =>
+    expect(cleanPhone('082 123 4567')).toBe('+27821234567'));
+  it('rejects unknown qualifying selections', () =>
+    expect(validateLead({ ...valid, age: 'yes', income: '50000' }).valid).toBe(false));
+  it('requires alphabetic names', () =>
+    expect(validateLead({ ...valid, firstname: 'Test123' }).valid).toBe(false));
+  it('supports accented multi-part names', () =>
+    expect(validateLead({ ...valid, firstname: 'Tést', lastname: 'O’Testing' }).valid).toBe(true));
+  it('rejects a rolled-over call date', () => expect(parseCallTime('2027-02-31T12:00')).toBeNull());
+  it('rejects past preferred call times', () =>
+    expect(validateLead({ ...valid, preferredtimeofcall: '2020-01-01T09:00' }).valid).toBe(false));
+});
+describe('attribution', () => {
+  it('captures transaction_id', () =>
+    expect(captureAttribution('?transaction_id=abc').transaction_id).toBe('abc'));
+  it('preserves campaign parameters across navigation', () =>
+    expect(captureAttribution('', { transaction_id: 'abc', utm_source: 'source' })).toEqual({
+      transaction_id: 'abc',
+      utm_source: 'source',
+    }));
+  it('captures an untrusted incoming offer only as attribution', () =>
+    expect(captureAttribution('?offer_id=999').offer_id).toBe('999'));
+  it('supports aff_id links and limits keys', () =>
+    expect(captureAttribution('?aff_id=27144&phone=secret')).toEqual({ affiliate_id: '27144' }));
+});

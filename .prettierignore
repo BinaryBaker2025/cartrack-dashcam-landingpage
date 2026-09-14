@@ -1,0 +1,9 @@
+node_modules
+.next
+package-lock.json
+reference.html
+artifacts
+public
+prisma
+test-results
+playwright-report

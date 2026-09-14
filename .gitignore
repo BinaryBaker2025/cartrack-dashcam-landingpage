@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.env
+.env.local
+.env.production
+*.tsbuildinfo
+prisma/*.db*
+test-results/
+playwright-report/
+reference.html
+artifacts/
+.netlify/
