@@ -5,9 +5,10 @@ import { claimSubmission, completeSubmission } from '@/lib/submissions';
 import { submissionConfig } from '@/lib/config';
 import { submitLead } from '@/lib/leadbyte';
 import { digest, log, redactResponse } from '@/lib/logger';
+import { ConfigurationError } from '@/lib/diagnostics';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
-function json(body: unknown, status = 200, headers = {}) {
+function jsonResponse(body: unknown, status = 200, headers = {}) {
   return Response.json(body, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
 }
 const failure = {
@@ -33,6 +34,27 @@ async function readBody(request: Request) {
 }
 export async function POST(request: Request) {
   const requestId = randomUUID();
+  function json(body: Record<string, unknown>, status = 200, headers = {}) {
+    const defaults: Record<number, string> = {
+      400: 'REQUEST_INVALID',
+      403: 'ORIGIN_MISMATCH',
+      415: 'CONTENT_TYPE_INVALID',
+      422: 'VALIDATION_FAILED',
+      429: 'RATE_LIMITED',
+      409: 'SUBMISSION_CONFLICT',
+      503: 'SUBMISSIONS_DISABLED',
+    };
+    const diagnostics = body.diagnostics || { code: defaults[status] || 'REQUEST_OK', requestId };
+    if (status >= 400)
+      log('lead_response_error', {
+        id: requestId,
+        diagnosticCode: (diagnostics as { code: string }).code,
+      });
+    return jsonResponse({ ...body, diagnostics }, status, {
+      'X-Request-ID': requestId,
+      ...headers,
+    });
+  }
   try {
     const { site } = submissionConfig();
     if (
@@ -125,6 +147,13 @@ export async function POST(request: Request) {
     const response = {
       state: result.state,
       message: result.message,
+      diagnostics: {
+        code:
+          result.diagnosticCode || (result.code === 1 ? 'LEADBYTE_SUCCESS' : 'LEADBYTE_REJECTED'),
+        requestId,
+        ...(result.code !== undefined ? { leadByteCode: result.code } : {}),
+        ...(result.upstreamStatus !== undefined ? { upstreamStatus: result.upstreamStatus } : {}),
+      },
       ...(!result.uncertain && result.state === 'temporary_error' ? { retryable: true } : {}),
     };
     const status =
@@ -139,6 +168,8 @@ export async function POST(request: Request) {
     log('leadbyte_result', {
       id: requestId,
       code: result.code,
+      diagnosticCode: response.diagnostics.code,
+      upstreamStatus: result.upstreamStatus,
       response: redactResponse(result.response, [
         input.firstname,
         input.lastname,
@@ -147,8 +178,36 @@ export async function POST(request: Request) {
       ]),
     });
     return json(response, status);
-  } catch {
-    log('lead_request_error', { id: requestId });
-    return json(failure, 503);
+  } catch (error) {
+    const code = error instanceof ConfigurationError ? error.code : 'INTERNAL_ERROR';
+    log('lead_request_error', { id: requestId, diagnosticCode: code });
+    return json({ ...failure, diagnostics: { code, requestId } }, 503);
+  }
+}
+
+// Readiness only: never sends a lead, consumes no rate-limit attempt and reveals no env values.
+export async function GET() {
+  const requestId = randomUUID();
+  try {
+    submissionConfig();
+    const enabled = process.env.LEADBYTE_ENABLED === 'true';
+    return jsonResponse(
+      {
+        ready: enabled,
+        diagnostics: { code: enabled ? 'READY' : 'SUBMISSIONS_DISABLED', requestId },
+      },
+      enabled ? 200 : 503,
+    );
+  } catch (error) {
+    return jsonResponse(
+      {
+        ready: false,
+        diagnostics: {
+          code: error instanceof ConfigurationError ? error.code : 'INTERNAL_ERROR',
+          requestId,
+        },
+      },
+      503,
+    );
   }
 }

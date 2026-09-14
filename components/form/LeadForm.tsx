@@ -5,6 +5,7 @@ import { sessionAttribution } from '@/lib/attribution';
 import { track } from '@/lib/analytics';
 import { submissionKey } from '@/lib/submissionKey';
 import { browserAttempt, browserReceipt, saveBrowserReceipt } from '@/lib/browserState';
+import { reportDiagnostic } from '@/lib/diagnostics';
 type State =
   | 'idle'
   | 'validating'
@@ -98,7 +99,17 @@ export default function LeadForm() {
           attribution: sessionAttribution(),
         }),
       });
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        reportDiagnostic({ code: 'API_NON_JSON_RESPONSE' }, response.status);
+        setState('temporary_error');
+        setMessage('We could not read the server response. Please try again shortly.');
+        track('lead_submit_error');
+        return;
+      }
+      reportDiagnostic(result?.diagnostics, response.status);
       const states: State[] = [
         'success',
         'qualification_failed',
@@ -137,6 +148,7 @@ export default function LeadForm() {
       );
       requestAnimationFrame(() => status.current?.focus());
     } catch {
+      reportDiagnostic({ code: 'BROWSER_REQUEST_FAILED' });
       setState('temporary_error');
       setMessage('We couldn’t confirm your request. Check your connection, then try again.');
       track('lead_submit_error');

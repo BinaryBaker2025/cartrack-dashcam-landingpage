@@ -7,6 +7,8 @@ export type LeadResult = {
   leadId?: string;
   response?: string;
   uncertain?: boolean;
+  diagnosticCode?: string;
+  upstreamStatus?: number;
 };
 export function formatSaDate(date: Date): string {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -47,7 +49,12 @@ export function parseLeadByte(raw: unknown): LeadResult {
     !('response' in raw) ||
     typeof raw.response !== 'string'
   )
-    return { state: 'temporary_error', message: temporary, uncertain: true };
+    return {
+      state: 'temporary_error',
+      message: temporary,
+      uncertain: true,
+      diagnosticCode: 'LEADBYTE_MALFORMED_RESPONSE',
+    };
   const data = raw as { code: number; response: string; leadId?: unknown };
   const base = { code: data.code, response: data.response };
   if (data.code === 1)
@@ -117,10 +124,31 @@ export async function submitLead(
           redirect: 'error',
         });
         if (!response.ok)
-          return { state: 'temporary_error', message: temporary, uncertain: true } as LeadResult;
+          return {
+            state: 'temporary_error',
+            message: temporary,
+            uncertain: true,
+            diagnosticCode: 'LEADBYTE_HTTP_ERROR',
+            upstreamStatus: response.status,
+          } as LeadResult;
         const text = await response.text();
-        if (text.length > 64000) throw new Error('Oversized response');
-        return parseLeadByte(JSON.parse(text));
+        if (text.length > 64000)
+          return {
+            state: 'temporary_error',
+            message: temporary,
+            uncertain: true,
+            diagnosticCode: 'LEADBYTE_RESPONSE_TOO_LARGE',
+          } as LeadResult;
+        try {
+          return parseLeadByte(JSON.parse(text));
+        } catch {
+          return {
+            state: 'temporary_error',
+            message: temporary,
+            uncertain: true,
+            diagnosticCode: 'LEADBYTE_MALFORMED_RESPONSE',
+          } as LeadResult;
+        }
       })(),
       new Promise<LeadResult>((resolve) => {
         timer = setTimeout(() => {
@@ -129,12 +157,18 @@ export async function submitLead(
             state: 'temporary_error',
             message: "We couldn't confirm your request. Please wait before trying again.",
             uncertain: true,
+            diagnosticCode: 'LEADBYTE_TIMEOUT',
           });
         }, timeout);
       }),
     ]);
   } catch {
-    return { state: 'temporary_error', message: temporary, uncertain: true };
+    return {
+      state: 'temporary_error',
+      message: temporary,
+      uncertain: true,
+      diagnosticCode: controller.signal.aborted ? 'LEADBYTE_TIMEOUT' : 'LEADBYTE_NETWORK_ERROR',
+    };
   } finally {
     clearTimeout(timer);
   }

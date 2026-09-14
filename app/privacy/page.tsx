@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { campaignIdentity } from '@/lib/config';
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Privacy notice | CarTrack Cameras',
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 export default function Privacy() {
+  const identity = campaignIdentity();
   return (
     <main className="legal">
       <Link href="/">← Back to your quote</Link>
@@ -44,17 +46,11 @@ export default function Privacy() {
         purchase is required to submit this form.
       </p>
       <h2>Privacy enquiries</h2>
-      <p>
-        {process.env.CAMPAIGN_OPERATOR_NAME ||
-          'Campaign operator details will be published before quote requests open.'}
-      </p>
-      {process.env.PRIVACY_CONTACT_EMAIL && (
+      <p>{identity.name}</p>
+      {identity.email && (
         <p>
           For access, correction, deletion or contact preferences, email{' '}
-          <a href={`mailto:${process.env.PRIVACY_CONTACT_EMAIL}`}>
-            {process.env.PRIVACY_CONTACT_EMAIL}
-          </a>
-          .
+          <a href={`mailto:${identity.email}`}>{identity.email}</a>.
         </p>
       )}
     </main>

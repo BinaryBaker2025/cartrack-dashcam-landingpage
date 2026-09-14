@@ -33,6 +33,7 @@ const handwriting = localFont({
 });
 const indexable = isIndexable();
 export const metadata: Metadata = {
+  icons: { icon: '/assets/cartrack-logo.jpg' },
   metadataBase: new URL(siteUrl()),
   title: 'CarTrack Cameras | Get a Free Quote',
   description:

@@ -113,6 +113,7 @@ it('does not expose vendor response details', async () => {
   expect(await response.json()).toEqual({
     state: 'api_rejected',
     message: 'Check your information',
+    diagnostics: { code: 'LEADBYTE_REJECTED', leadByteCode: -5, requestId: expect.any(String) },
   });
 });
 it('refuses oversized request bodies', async () => {

@@ -17,7 +17,14 @@ export function redactResponse(response: string | undefined, sensitive: string[]
 }
 export function log(
   event: string,
-  data: { id?: string; code?: number; response?: string; reasons?: string[] } = {},
+  data: {
+    id?: string;
+    code?: number;
+    response?: string;
+    reasons?: string[];
+    diagnosticCode?: string;
+    upstreamStatus?: number;
+  } = {},
 ) {
   console.info(JSON.stringify({ time: new Date().toISOString(), event, ...data }));
 }
