@@ -11,7 +11,9 @@ export function campaignIdentity() {
 export function siteUrl() {
   const value =
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : 'https://your-domain.co.za');
+    (process.env.NODE_ENV !== 'production'
+      ? 'http://localhost:3000'
+      : 'https://cartrackdashcam.netlify.app/');
   let url: URL;
   try {
     url = new URL(value);
