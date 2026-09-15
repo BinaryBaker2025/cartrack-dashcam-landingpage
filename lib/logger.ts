@@ -30,6 +30,7 @@ export function log(
     reasons?: string[];
     diagnosticCode?: string;
     upstreamStatus?: number;
+    fetchError?: string;
   } = {},
 ) {
   console.info(JSON.stringify({ time: new Date().toISOString(), event, ...data }));

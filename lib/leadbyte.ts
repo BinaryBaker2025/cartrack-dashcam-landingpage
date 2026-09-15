@@ -13,6 +13,7 @@ export type LeadResult = {
   rawResponse?: string;
   timestamp?: string;
   processTime?: number;
+  fetchError?: string;
 };
 export function formatSaDate(date: Date): string {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -198,12 +199,13 @@ export async function submitLead(
         }, timeout);
       }),
     ]);
-  } catch {
+  } catch (error) {
     return {
       state: 'temporary_error',
       message: temporary,
       uncertain: true,
       diagnosticCode: controller.signal.aborted ? 'LEADBYTE_TIMEOUT' : 'LEADBYTE_NETWORK_ERROR',
+      fetchError: error instanceof Error ? error.name : 'UnknownError',
     };
   } finally {
     clearTimeout(timer);

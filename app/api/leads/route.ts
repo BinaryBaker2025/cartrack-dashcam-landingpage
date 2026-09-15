@@ -185,6 +185,7 @@ export async function POST(request: Request) {
         input.phone,
         input.phone.slice(3),
       ]),
+      fetchError: result.fetchError,
     });
     return json(response, status);
   } catch (error) {
