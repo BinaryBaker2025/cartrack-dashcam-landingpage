@@ -1,6 +1,6 @@
 import { ConfigurationError } from './diagnostics';
 export const OFFER_ID = '3046';
-export const CONSENT_VERSION = '2026-09-14-v1';
+export const CONSENT_VERSION = '2026-09-15-v2';
 // Public operator details supplied by the campaign owner, not API credentials.
 export function campaignIdentity() {
   return {
@@ -13,7 +13,7 @@ export function siteUrl() {
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.NODE_ENV !== 'production'
       ? 'http://localhost:3000'
-      : 'https://cartrackdashcam.netlify.app/');
+      : 'https://unconfigured.invalid');
   let url: URL;
   try {
     url = new URL(value);
@@ -29,7 +29,8 @@ export function submissionConfig() {
   const identity = campaignIdentity();
   if (
     process.env.NODE_ENV === 'production' &&
-    (!site.startsWith('https://') || /localhost|127\.0\.0\.1|your-domain\.co\.za/.test(site))
+    (!site.startsWith('https://') ||
+      /localhost|127\.0\.0\.1|your-domain\.co\.za|unconfigured\.invalid/.test(site))
   )
     throw new ConfigurationError('CONFIG_SITE_URL_REQUIRED');
   if (

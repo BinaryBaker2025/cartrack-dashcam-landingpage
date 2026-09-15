@@ -2,8 +2,36 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { clientAddress, isIndexable } from '../lib/hosting';
 
 beforeEach(() => {
-  for (const name of ['SITE_INDEXABLE', 'CONTEXT', 'VERCEL_ENV', 'VERCEL', 'DEPLOY_PLATFORM'])
+  for (const name of [
+    'SITE_INDEXABLE',
+    'CONTEXT',
+    'VERCEL_ENV',
+    'VERCEL',
+    'DEPLOY_PLATFORM',
+    'DEPLOY_ENV',
+  ])
     vi.stubEnv(name, '');
+});
+it('uses only the Cloudflare client header on Cloudflare', () => {
+  vi.stubEnv('DEPLOY_PLATFORM', 'cloudflare');
+  expect(
+    clientAddress(
+      new Request('https://example.com', {
+        headers: {
+          'cf-connecting-ip': '192.0.2.1',
+          'x-forwarded-for': 'spoofed',
+        },
+      }),
+    ),
+  ).toBe('192.0.2.1');
+});
+it('requires explicit production indexing on Cloudflare', () => {
+  vi.stubEnv('DEPLOY_PLATFORM', 'cloudflare');
+  vi.stubEnv('SITE_INDEXABLE', 'true');
+  vi.stubEnv('DEPLOY_ENV', 'preview');
+  expect(isIndexable()).toBe(false);
+  vi.stubEnv('DEPLOY_ENV', 'production');
+  expect(isIndexable()).toBe(true);
 });
 afterEach(() => {
   vi.unstubAllEnvs();

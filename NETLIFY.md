@@ -1,4 +1,10 @@
-﻿# Netlify setup, no database
+# Superseded by Cloudflare
+
+This is historical Netlify setup documentation. Use [CLOUDFLARE.md](CLOUDFLARE.md) for the current implementation. Retain the existing live Netlify deployment only until Cloudflare cutover is verified.
+
+---
+
+# Netlify setup, no database
 
 The page and `POST /api/leads` deploy together. Netlify's Next.js adapter automatically turns the API route into a Netlify Function. There is no PostgreSQL/Prisma setup, external storage subscription or cleanup cron.
 
@@ -51,6 +57,7 @@ Commit and push the updated netlify.toml, then trigger a new deployment after ch
 Local production build and mocked tests do not claim a hosted Netlify deployment was tested. Inspect the adapter build log, deployed form behavior and function logs after importing your repository. No Netlify account has been connected by this task and no real API lead has been sent.
 
 Official references:
+
 - [Next.js adapter](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/)
 - [Build settings](https://docs.netlify.com/snippets/frameworks/nextjs-config-values/)
 - [Function environment variables](https://docs.netlify.com/build/functions/environment-variables/)

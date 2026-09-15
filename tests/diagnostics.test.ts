@@ -4,12 +4,22 @@ import { submissionConfig } from '../lib/config';
 import { GET } from '../app/api/leads/route';
 import { parseLeadByte, submitLead } from '../lib/leadbyte';
 import { valid } from './fixtures';
+import { checkDatabase } from '../lib/database';
+vi.mock('../lib/database', () => ({ checkDatabase: vi.fn().mockResolvedValue(undefined) }));
+it('readiness fails if the database is unavailable without exposing its error', async () => {
+  production();
+  vi.mocked(checkDatabase).mockRejectedValueOnce(new Error('private database details'));
+  const response = await GET();
+  expect(response.status).toBe(503);
+  expect(JSON.stringify(await response.json())).not.toContain('private database details');
+});
 
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 function production() {
+  vi.stubEnv('LEAD_HASH_SECRET', 'test-only-secret-at-least-32-characters');
   vi.stubEnv('NODE_ENV', 'production');
   vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://example.netlify.app');
   vi.stubEnv('LEADBYTE_ENABLED', 'true');

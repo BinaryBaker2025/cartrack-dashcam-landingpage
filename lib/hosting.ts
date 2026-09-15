@@ -1,11 +1,15 @@
 export function isIndexable() {
   if (process.env.SITE_INDEXABLE !== 'true') return false;
+  if (process.env.DEPLOY_PLATFORM === 'cloudflare') return process.env.DEPLOY_ENV === 'production';
   // Netlify's build context takes precedence, including Deploy Previews.
   if (process.env.CONTEXT) return process.env.CONTEXT === 'production';
   return process.env.VERCEL_ENV === 'production';
 }
 
 export function clientAddress(request: Request) {
+  if (process.env.DEPLOY_PLATFORM === 'cloudflare') {
+    return request.headers.get('cf-connecting-ip')?.trim() || 'unknown';
+  }
   if (process.env.DEPLOY_PLATFORM === 'netlify') {
     return request.headers.get('x-nf-client-connection-ip')?.trim() || 'unknown';
   }

@@ -1,0 +1,8 @@
+NEXTJS_ENV=development
+DEPLOY_PLATFORM=cloudflare
+DEPLOY_ENV=development
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+LEADBYTE_ENABLED=false
+SITE_INDEXABLE=false
+# Generate locally; use the same local value in .env and .dev.vars.
+LEAD_HASH_SECRET=

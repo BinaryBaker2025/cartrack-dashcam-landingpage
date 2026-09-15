@@ -3,7 +3,13 @@ import { TemporaryStore } from '../lib/temporaryStore';
 import { claimSubmission, completeSubmission } from '../lib/submissions';
 import { rateLimit } from '../lib/rateLimit';
 import { browserAttempt, browserReceipt, saveBrowserReceipt } from '../lib/browserState';
+import { createTestDatabase } from './d1Fixture';
+const databaseState = vi.hoisted(() => ({
+  db: null as ReturnType<typeof createTestDatabase> | null,
+}));
+vi.mock('../lib/database', () => ({ database: async () => databaseState.db }));
 beforeEach(() => {
+  databaseState.db = createTestDatabase();
   const storage = new Map<string, string>([
     ['cartrack-temporary-state', JSON.stringify({ attempts: [], receipts: {} })],
   ]);
@@ -13,6 +19,7 @@ beforeEach(() => {
   });
 });
 afterEach(() => {
+  databaseState.db?.sqlite.close();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.useRealTimers();
@@ -24,7 +31,7 @@ it('expires memory entries and rejects capacity overflow', () => {
   expect(store.get('a', 200)).toBeUndefined();
   expect(store.set('b', 2, 400, 201)).toBe(true);
 });
-it('claims only once concurrently within a warm instance and replays results', async () => {
+it('claims only once concurrently in the database and replays results', async () => {
   const key = crypto.randomUUID();
   const results = await Promise.all([claimSubmission(key, 'hash'), claimSubmission(key, 'hash')]);
   expect(results.filter((r) => r.claimed)).toHaveLength(1);
@@ -32,11 +39,11 @@ it('claims only once concurrently within a warm instance and replays results', a
   const replay = await claimSubmission(key, 'hash');
   expect(!replay.claimed && replay.existing.httpStatus).toBe(200);
 });
-it('rate limits per client in temporary server memory', async () => {
-  vi.stubEnv('DEPLOY_PLATFORM', 'netlify');
+it('rate limits per Cloudflare client in the database', async () => {
+  vi.stubEnv('DEPLOY_PLATFORM', 'cloudflare');
   vi.stubEnv('RATE_LIMIT_MAX', '2');
   const req = new Request('https://example.com', {
-    headers: { 'x-nf-client-connection-ip': '192.0.2.88' },
+    headers: { 'cf-connecting-ip': '192.0.2.88' },
   });
   expect((await rateLimit(req)).allowed).toBe(true);
   expect((await rateLimit(req)).allowed).toBe(true);

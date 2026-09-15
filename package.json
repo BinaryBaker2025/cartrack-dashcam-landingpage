@@ -4,15 +4,27 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "setup:local": "node scripts/setup-local.mjs && npm run db:migrate:local",
+    "report": "node scripts/export-report.mjs",
+    "report:daily": "node scripts/query-report.mjs daily",
+    "report:issues": "node scripts/query-report.mjs issues",
+    "reconcile": "node scripts/reconcile-report.mjs",
     "build": "next build",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "preview": "opennextjs-cloudflare preview",
+    "deploy": "node scripts/check-deployment.mjs && npm run build:cloudflare && npm run db:migrate:remote && opennextjs-cloudflare deploy",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv .wrangler/types/cloudflare-env.d.ts",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "node --experimental-sqlite node_modules/vitest/vitest.mjs run",
     "test:e2e": "playwright test",
     "format": "prettier --write app components lib tests scripts *.ts *.mjs *.json *.md"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.6",
     "libphonenumber-js": "1.13.13",
     "next": "16.3.5",
     "react": "19.3.0",
@@ -20,6 +32,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@cloudflare/workers-types": "^5.20260915.1",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22",
@@ -31,7 +44,8 @@
     "prettier": "^3.9.6",
     "tailwindcss": "^4",
     "typescript": "6.0.3",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "wrangler": "^4.131.2"
   },
   "engines": {
     "node": ">=22.12.0"

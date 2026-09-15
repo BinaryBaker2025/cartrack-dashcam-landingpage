@@ -1,7 +1,13 @@
 import { createHmac, randomBytes } from 'node:crypto';
+import { ConfigurationError } from './diagnostics';
 const instanceSalt = randomBytes(32);
 export function digest(value: string) {
-  return createHmac('sha256', instanceSalt).update(value).digest('hex');
+  const secret = process.env.LEAD_HASH_SECRET;
+  if (process.env.NODE_ENV !== 'test' && (!secret || secret.length < 32))
+    throw new ConfigurationError('CONFIG_HASH_SECRET_REQUIRED');
+  return createHmac('sha256', secret || instanceSalt)
+    .update(value)
+    .digest('hex');
 }
 export function maskPhone(phone: string) {
   return phone ? `${phone.slice(0, 3)}******${phone.slice(-3)}` : '';

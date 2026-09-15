@@ -6,6 +6,9 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     '.next/**',
+    '.open-next/**',
+    '.wrangler/**',
+    'cloudflare-env.d.ts',
     'artifacts/**',
     'next-env.d.ts',
     'playwright-report/**',

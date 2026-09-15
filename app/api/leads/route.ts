@@ -3,9 +3,10 @@ import { validateLead } from '@/lib/validation';
 import { rateLimit } from '@/lib/rateLimit';
 import { claimSubmission, completeSubmission } from '@/lib/submissions';
 import { submissionConfig } from '@/lib/config';
-import { submitLead } from '@/lib/leadbyte';
+import { submitLead, type LeadResult } from '@/lib/leadbyte';
 import { digest, log, redactResponse } from '@/lib/logger';
 import { ConfigurationError } from '@/lib/diagnostics';
+import { checkDatabase } from '@/lib/database';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 function jsonResponse(body: unknown, status = 200, headers = {}) {
@@ -113,17 +114,15 @@ export async function POST(request: Request) {
         { state: 'api_rejected', message: 'Please refresh the page and try again.' },
         400,
       );
-    if (process.env.LEADBYTE_ENABLED !== 'true')
-      return json(
-        {
-          state: 'temporary_error',
-          message: 'Quote requests are not available yet. Please try again later.',
-        },
-        503,
-      );
     const key = digest(`submission:${raw.submissionId}`);
     const fingerprint = digest(JSON.stringify(input));
-    const claim = await claimSubmission(key, fingerprint);
+    const claim = await claimSubmission(key, fingerprint, {
+      requestId,
+      input,
+      site,
+      submittedAt: now,
+      attribution: raw.attribution,
+    });
     if (!claim.claimed) {
       if (claim.existing.fingerprint !== fingerprint)
         return json(
@@ -143,7 +142,14 @@ export async function POST(request: Request) {
         409,
       );
     }
-    const result = await submitLead(input, now);
+    const result: LeadResult =
+      process.env.LEADBYTE_ENABLED === 'true'
+        ? await submitLead(input, now)
+        : {
+            state: 'temporary_error' as const,
+            message: 'Quote requests are not available yet. Please try again later.',
+            diagnosticCode: 'SUBMISSIONS_DISABLED',
+          };
     const response = {
       state: result.state,
       message: result.message,
@@ -164,7 +170,10 @@ export async function POST(request: Request) {
           : result.state === 'temporary_error'
             ? 503
             : 422;
-    await completeSubmission(key, response, status);
+    await completeSubmission(key, response, status, {
+      ...result,
+      diagnosticCode: response.diagnostics.code,
+    });
     log('leadbyte_result', {
       id: requestId,
       code: result.code,
@@ -190,6 +199,8 @@ export async function GET() {
   const requestId = randomUUID();
   try {
     submissionConfig();
+    digest('readiness');
+    await checkDatabase();
     const enabled = process.env.LEADBYTE_ENABLED === 'true';
     return jsonResponse(
       {

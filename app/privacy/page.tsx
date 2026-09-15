@@ -21,8 +21,10 @@ export default function Privacy() {
         Your eligibility answers determine whether you meet this campaign’s initial requirements.
         Qualified requests are sent to LeadByte, the campaign’s lead processing service, for
         processing and contact by CarTrack and its campaign service providers. Your full phone
-        number is sent securely to that service. This site does not keep a lead database or log your
-        full mobile number.
+        number is sent securely to that service. We also retain your completed, qualified request in
+        our database, including your name, mobile number, eligibility answers, consent and preferred
+        call time. These records help us report on requests and check delivery against LeadByte. A
+        request may be recorded even if delivery is unavailable or rejected.
       </p>
       <h2>What this site retains</h2>
       <p>
@@ -31,19 +33,23 @@ export default function Privacy() {
         Attribution may include the referring affiliate, transaction ID and UTM campaign parameters.
       </p>
       <p>
-        The server briefly holds pseudonymous request and network identifiers in memory to reduce
-        repeated submissions. Diagnostic logs contain request IDs, outcome codes, redacted response
-        text or qualification categories. No external analytics provider is enabled by default.
+        Our database also records campaign attribution, the submitted details, submission times, the
+        consent notice version and LeadByte delivery results, including reference IDs and rejection
+        reasons. Access to these records and reports is restricted to authorised operators. We use
+        pseudonymous network identifiers to limit repeated requests. Diagnostic logs use request IDs
+        and redacted messages rather than full contact details.
       </p>
       <h2>Retention and your choices</h2>
       <p>
         Browser result records expire after 30 minutes and are removed when the site next accesses
         storage. Session storage generally ends when the tab closes, although browser session
-        restore may preserve it. Server memory records expire within 30 minutes or disappear when
-        the function restarts. Hosting logs follow the operator’s hosting retention settings.
-        CarTrack and its service providers apply their own retention policies to the details they
-        receive. You may decline a call or ask the representative to stop further contact. No
-        purchase is required to submit this form.
+        restore may preserve it. Lead records are retained for reporting and delivery
+        reconciliation; they are not automatically deleted after 30 days. You can contact the
+        operator below about access, correction or deletion. Network rate-limit records expire at
+        the end of their configured window and are removed by daily cleanup. Hosting logs follow the
+        operator’s hosting retention settings. CarTrack and its service providers apply their own
+        retention policies to the details they receive. You may decline a call or ask the
+        representative to stop further contact. No purchase is required to submit this form.
       </p>
       <h2>Privacy enquiries</h2>
       <p>{identity.name}</p>

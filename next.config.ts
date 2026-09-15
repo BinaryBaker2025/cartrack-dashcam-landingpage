@@ -1,5 +1,8 @@
 import type { NextConfig } from 'next';
 import { isIndexable } from './lib/hosting';
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+
+if (process.env.NODE_ENV === 'development') initOpenNextCloudflareForDev();
 const config: NextConfig = {
   turbopack: { root: process.cwd() },
   poweredByHeader: false,

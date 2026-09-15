@@ -9,6 +9,10 @@ export type LeadResult = {
   uncertain?: boolean;
   diagnosticCode?: string;
   upstreamStatus?: number;
+  info?: unknown;
+  rawResponse?: string;
+  timestamp?: string;
+  processTime?: number;
 };
 export function formatSaDate(date: Date): string {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -55,18 +59,34 @@ export function parseLeadByte(raw: unknown): LeadResult {
       uncertain: true,
       diagnosticCode: 'LEADBYTE_MALFORMED_RESPONSE',
     };
-  const data = raw as { code: number; response: string; leadId?: unknown };
-  const base = { code: data.code, response: data.response };
+  const data = raw as {
+    code: number;
+    response: string;
+    leadId?: unknown;
+    info?: unknown;
+    timestamp?: unknown;
+    processTime?: unknown;
+  };
+  const base = {
+    code: data.code,
+    response: data.response,
+    info: data.info,
+    leadId:
+      typeof data.leadId === 'number' || typeof data.leadId === 'string'
+        ? String(data.leadId).slice(0, 80)
+        : undefined,
+    timestamp: typeof data.timestamp === 'string' ? data.timestamp.slice(0, 80) : undefined,
+    processTime:
+      typeof data.processTime === 'number' && Number.isFinite(data.processTime)
+        ? data.processTime
+        : undefined,
+  };
   if (data.code === 1)
     return {
       ...base,
       state: 'success',
       message:
         'Your request has been received. A CarTrack representative may contact you about your quote.',
-      leadId:
-        typeof data.leadId === 'number' || typeof data.leadId === 'string'
-          ? String(data.leadId).slice(0, 80)
-          : undefined,
     };
   if (data.code === -2)
     return {
@@ -123,14 +143,6 @@ export async function submitLead(
           cache: 'no-store',
           redirect: 'error',
         });
-        if (!response.ok)
-          return {
-            state: 'temporary_error',
-            message: temporary,
-            uncertain: true,
-            diagnosticCode: 'LEADBYTE_HTTP_ERROR',
-            upstreamStatus: response.status,
-          } as LeadResult;
         const text = await response.text();
         if (text.length > 64000)
           return {
@@ -138,15 +150,39 @@ export async function submitLead(
             message: temporary,
             uncertain: true,
             diagnosticCode: 'LEADBYTE_RESPONSE_TOO_LARGE',
+            upstreamStatus: response.status,
           } as LeadResult;
+        if (!response.ok) {
+          let parsed: Partial<LeadResult> = {};
+          try {
+            parsed = parseLeadByte(JSON.parse(text));
+          } catch {
+            /* Raw body retained privately. */
+          }
+          return {
+            ...parsed,
+            state: 'temporary_error',
+            message: temporary,
+            uncertain: true,
+            diagnosticCode: 'LEADBYTE_HTTP_ERROR',
+            upstreamStatus: response.status,
+            rawResponse: text,
+          } as LeadResult;
+        }
         try {
-          return parseLeadByte(JSON.parse(text));
+          return {
+            ...parseLeadByte(JSON.parse(text)),
+            rawResponse: text,
+            upstreamStatus: response.status,
+          };
         } catch {
           return {
             state: 'temporary_error',
             message: temporary,
             uncertain: true,
             diagnosticCode: 'LEADBYTE_MALFORMED_RESPONSE',
+            rawResponse: text,
+            upstreamStatus: response.status,
           } as LeadResult;
         }
       })(),

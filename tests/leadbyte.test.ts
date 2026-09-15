@@ -4,6 +4,49 @@ import { submissionConfig } from '../lib/config';
 import { valid } from './fixtures';
 afterEach(() => vi.unstubAllEnvs());
 describe('LeadByte response handling', () => {
+  it('retains vendor reporting fields and raw response for reconciliation', async () => {
+    const raw = JSON.stringify({
+      code: -8,
+      response: 'HLR rejection',
+      leadId: null,
+      info: { status: 'UNDELIV', code: 'EC_UNKNOWN_SUBSCRIBER' },
+      timestamp: '2026-09-15T12:00:00Z',
+      processTime: 0.77,
+    });
+    const result = await submitLead(
+      valid,
+      new Date(),
+      vi.fn().mockResolvedValue(new Response(raw)),
+    );
+    expect(result).toMatchObject({
+      code: -8,
+      response: 'HLR rejection',
+      info: { status: 'UNDELIV', code: 'EC_UNKNOWN_SUBSCRIBER' },
+      timestamp: '2026-09-15T12:00:00Z',
+      processTime: 0.77,
+      rawResponse: raw,
+      upstreamStatus: 200,
+    });
+    expect(result.leadId).toBeUndefined();
+  });
+  it('never reports success for an HTTP error even if its body claims code 1', async () => {
+    const result = await submitLead(
+      valid,
+      new Date(),
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json({ code: 1, response: 'OK', leadId: 123 }, { status: 502 }),
+        ),
+    );
+    expect(result).toMatchObject({
+      state: 'temporary_error',
+      uncertain: true,
+      code: 1,
+      leadId: '123',
+      upstreamStatus: 502,
+    });
+  });
   it.each([
     [1, 'success'],
     [-2, 'duplicate'],

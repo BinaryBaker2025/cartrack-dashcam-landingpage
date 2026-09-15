@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cartrack-dashcam-landingpage",
+  "account_id": "8e5c9c94197c950548bd0e188beb0007",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "cartrack-dashcam-landingpage" }],
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "cartrack_dashcam_landing",
+    "database_id": "f90b223b-d425-45b8-9260-f7b9e30a612c",
+    "migrations_dir": "migrations"
+  }],
+  "triggers": { "crons": ["17 2 * * *"] },
+  "observability": { "enabled": true },
+  "vars": {
+    "DEPLOY_PLATFORM": "cloudflare",
+    "DEPLOY_ENV": "production",
+    "NEXT_PUBLIC_SITE_URL": "https://cartrack-dashcam-landingpage.shariefholt.workers.dev",
+    "SITE_INDEXABLE": "false",
+    "LEADBYTE_ENABLED": "false",
+    "RATE_LIMIT_MAX": "10",
+    "RATE_LIMIT_WINDOW_SECONDS": "600"
+  }
+}
