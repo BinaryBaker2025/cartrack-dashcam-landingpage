@@ -54,6 +54,9 @@ export async function claimSubmission(key: string, fingerprint: string, lead?: L
             vehicle: lead.input.vehicle,
             employment: lead.input.employment,
             income: lead.input.income,
+            ...(lead.input.eligibilityConfirmed !== undefined
+              ? { eligibilityConfirmed: lead.input.eligibilityConfirmed }
+              : {}),
           })
         : null,
       lead ? JSON.stringify(sanitizeAttribution(lead.attribution)) : null,

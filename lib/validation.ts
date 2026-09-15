@@ -6,6 +6,7 @@ export type LeadInput = {
   lastname: string;
   phone: string;
   email?: string;
+  eligibilityConfirmed?: boolean;
   age: string;
   vehicle: string;
   employment: string;
@@ -40,21 +41,27 @@ export function parseCallTime(value: string): Date | null {
 }
 export function validateLead(raw: unknown, now = new Date()) {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  // The compact form fills these values only after the visitor affirms all four facts.
+  // Explicit answers remain authoritative, including a non-qualifying answer.
+  const confirmed = r.eligibilityConfirmed === true;
   const input: LeadInput = {
     firstname: cleanText(r.firstname),
     lastname: cleanText(r.lastname),
     phone: cleanPhone(r.phone),
     ...(r.email !== undefined ? { email: cleanText(r.email, 254) } : {}),
-    age: cleanText(r.age),
-    vehicle: cleanText(r.vehicle),
-    employment: cleanText(r.employment),
-    income: cleanText(r.income),
+    ...(r.eligibilityConfirmed !== undefined ? { eligibilityConfirmed: confirmed } : {}),
+    age: cleanText(r.age ?? (confirmed ? '18_plus' : '')),
+    vehicle: cleanText(r.vehicle ?? (confirmed ? 'yes' : '')),
+    employment: cleanText(r.employment ?? (confirmed ? 'employed' : '')),
+    income: cleanText(r.income ?? (confirmed ? '10000_plus' : '')),
     terms: r.terms === true,
     preferredtimeofcall: cleanText(r.preferredtimeofcall, 30),
     website: cleanText(r.website),
   };
   const errors: FieldErrors = {};
   const reasons: string[] = [];
+  if (r.eligibilityConfirmed !== undefined && !confirmed)
+    errors.eligibilityConfirmed = 'Please confirm that you meet all four requirements.';
   for (const field of ['firstname', 'lastname'] as const) {
     // Letters, combining accents and separators support real multi-part names.
     if (
@@ -98,8 +105,8 @@ export function validateLead(raw: unknown, now = new Date()) {
     ],
     [
       'income',
-      ['under_10000', '10000_19999', '20000_39999', '40000_plus'],
-      ['10000_19999', '20000_39999', '40000_plus'],
+      ['under_10000', '10000_plus', '10000_19999', '20000_39999', '40000_plus'],
+      ['10000_plus', '10000_19999', '20000_39999', '40000_plus'],
       'does_not_qualify_income',
       'This offer requires a monthly income of R10,000 or more.',
     ],

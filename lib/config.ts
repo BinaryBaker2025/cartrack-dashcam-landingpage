@@ -1,6 +1,6 @@
 import { ConfigurationError } from './diagnostics';
 export const OFFER_ID = '3046';
-export const CONSENT_VERSION = '2026-09-15-v3';
+export const CONSENT_VERSION = '2026-09-15-v4';
 // Public operator details supplied by the campaign owner, not API credentials.
 export function campaignIdentity() {
   return {

@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import LeadForm from '@/components/form/LeadForm';
+import QuoteExperience from '@/components/QuoteExperience';
 export default function Home() {
   return (
-    <>
+    <QuoteExperience>
       <a href="#main" className="skip-link">
         Skip to content
       </a>
@@ -100,6 +101,6 @@ export default function Home() {
           <a href="/privacy">Privacy notice</a>
         </nav>
       </footer>
-    </>
+    </QuoteExperience>
   );
 }

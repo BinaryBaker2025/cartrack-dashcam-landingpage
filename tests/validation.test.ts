@@ -4,6 +4,44 @@ import { captureAttribution } from '../lib/attribution';
 // Synthetic fixture only: mocked tests never contact this number or the live API.
 import { valid } from './fixtures';
 describe('qualification', () => {
+  it('fills the four confirmed eligibility fields without inventing an income bracket', () => {
+    const result = validateLead({
+      ...valid,
+      age: undefined,
+      vehicle: undefined,
+      employment: undefined,
+      income: undefined,
+      eligibilityConfirmed: true,
+    });
+    expect(result.valid).toBe(true);
+    expect(result.input).toMatchObject({
+      age: '18_plus',
+      vehicle: 'yes',
+      employment: 'employed',
+      income: '10000_plus',
+      eligibilityConfirmed: true,
+    });
+  });
+  it.each([false, undefined, 'true'])(
+    'does not fill eligibility without boolean confirmation: %s',
+    (eligibilityConfirmed) => {
+      const result = validateLead({
+        ...valid,
+        age: undefined,
+        vehicle: undefined,
+        employment: undefined,
+        income: undefined,
+        eligibilityConfirmed,
+      });
+      expect(result.valid).toBe(false);
+      expect(result.input.age).toBe('');
+    },
+  );
+  it('does not override a non-qualifying answer even when confirmation is checked', () => {
+    const result = validateLead({ ...valid, age: 'under_18', eligibilityConfirmed: true });
+    expect(result.valid).toBe(false);
+    expect(result.input.age).toBe('under_18');
+  });
   it('accepts a qualifying lead', () => expect(validateLead(valid).valid).toBe(true));
   it.each([
     ['age', 'under_18', 'does_not_qualify_age'],

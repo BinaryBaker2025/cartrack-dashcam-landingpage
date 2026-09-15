@@ -1,11 +1,12 @@
 'use client';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { validateLead, type FieldErrors } from '@/lib/validation';
 import { sessionAttribution } from '@/lib/attribution';
 import { track } from '@/lib/analytics';
 import { submissionKey } from '@/lib/submissionKey';
 import { browserAttempt, browserReceipt, saveBrowserReceipt } from '@/lib/browserState';
 import { reportDiagnostic } from '@/lib/diagnostics';
+import { QuoteSuccessContext } from '@/components/QuoteExperience';
 type State =
   | 'idle'
   | 'validating'
@@ -17,7 +18,10 @@ type State =
   | 'temporary_error';
 export default function LeadForm() {
   const [state, setState] = useState<State>('idle');
-  const [step, setStep] = useState<'contact' | 'eligibility'>('contact');
+  const onSuccess = useContext(QuoteSuccessContext);
+  useEffect(() => {
+    if (state === 'success') onSuccess?.();
+  }, [state, onSuccess]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState('');
   const busy = useRef(false);
@@ -51,24 +55,12 @@ export default function LeadForm() {
     setMessage('');
     const form = event.currentTarget;
     const data = new FormData(form);
-    const raw = { ...Object.fromEntries(data), terms: data.get('terms') === 'on' };
+    const raw = {
+      ...Object.fromEntries(data),
+      terms: data.get('terms') === 'on',
+      eligibilityConfirmed: data.get('eligibilityConfirmed') === 'on',
+    };
     const validation = validateLead(raw);
-    if (step === 'contact') {
-      const contactErrors: FieldErrors = {};
-      for (const name of ['firstname', 'lastname', 'phone', 'email'] as const)
-        if (validation.errors[name]) contactErrors[name] = validation.errors[name];
-      setErrors(contactErrors);
-      setState('idle');
-      busy.current = false;
-      if (Object.keys(contactErrors).length) {
-        setMessage('Please check the highlighted fields.');
-        form.querySelector<HTMLElement>(`[name="${Object.keys(contactErrors)[0]}"]`)?.focus();
-      } else {
-        setStep('eligibility');
-        requestAnimationFrame(() => form.querySelector<HTMLElement>('[name="age"]')?.focus());
-      }
-      return;
-    }
     setErrors(validation.errors);
     if (!validation.valid) {
       setState(validation.reasons.length ? 'qualification_failed' : 'idle');
@@ -83,7 +75,6 @@ export default function LeadForm() {
       });
       busy.current = false;
       const firstError = Object.keys(validation.errors)[0];
-      if (['firstname', 'lastname', 'phone', 'email'].includes(firstError)) setStep('contact');
       requestAnimationFrame(() =>
         form.querySelector<HTMLElement>(`[name="${firstError}"]`)?.focus(),
       );
@@ -225,40 +216,9 @@ export default function LeadForm() {
       </div>
     );
   }
-  function select(
-    name: 'age' | 'vehicle' | 'employment' | 'income',
-    label: string,
-    options: [string, string][],
-  ) {
-    return (
-      <div className="field">
-        <label htmlFor={name}>{label}</label>
-        <select
-          name={name}
-          id={name}
-          defaultValue=""
-          required
-          aria-invalid={!!errors[name]}
-          aria-describedby={errors[name] ? `${name}-error` : undefined}
-        >
-          <option value="" disabled>
-            Select an option
-          </option>
-          {options.map(([value, text]) => (
-            <option key={value} value={value}>
-              {text}
-            </option>
-          ))}
-        </select>
-        {fieldError(name)}
-      </div>
-    );
-  }
   return (
     <section className="quote-panel" id="quote" aria-labelledby="quote-title">
-      <h2 id="quote-title">
-        {state === 'success' ? 'Thank you!' : step === 'contact' ? 'Get a Quote' : 'One last step'}
-      </h2>
+      <h2 id="quote-title">{state === 'success' ? 'Thank you!' : 'Get a Quote'}</h2>
       {state === 'success' ? (
         <div className="success-panel" tabIndex={-1} ref={status} role="status">
           <span className="success-mark" aria-hidden="true">
@@ -270,55 +230,32 @@ export default function LeadForm() {
         </div>
       ) : (
         <>
-          {step === 'eligibility' && (
-            <p className="form-intro">Confirm your eligibility and permission to call.</p>
-          )}
           <form onSubmit={submit} onFocus={begin} noValidate aria-busy={state === 'submitting'}>
             <fieldset disabled={locked}>
               <legend className="sr-only">Your details and eligibility</legend>
-              <div className="contact-fields" hidden={step !== 'contact'}>
+              <div className="contact-fields">
                 {input('firstname', 'First name', 'given-name')}
                 {input('lastname', 'Last name', 'family-name')}
                 {input('phone', 'South African mobile number', 'tel')}
                 {input('email', 'Email address', 'email')}
               </div>
-              <div hidden={step !== 'eligibility'}>
-                <button
-                  className="back-to-details"
-                  type="button"
-                  onClick={() => {
-                    setStep('contact');
-                    setErrors({});
-                    setMessage('');
-                    setState('idle');
-                    requestAnimationFrame(() => document.getElementById('firstname')?.focus());
-                  }}
-                >
-                  ← Edit your details
-                </button>
-                <div className="qualification-fields">
-                  {select('age', 'Are you 18 or older?', [
-                    ['18_plus', 'Yes, I am 18 or older'],
-                    ['under_18', 'No, I am under 18'],
-                  ])}
-                  {select('vehicle', 'Do you have access to a vehicle?', [
-                    ['yes', 'Yes'],
-                    ['no', 'No'],
-                  ])}
-                  {select('employment', 'Employment status', [
-                    ['employed', 'Employed'],
-                    ['self_employed', 'Self-employed'],
-                    ['unemployed', 'Unemployed'],
-                    ['retired', 'Retired'],
-                    ['student', 'Student (not employed)'],
-                  ])}
-                  {select('income', 'Monthly income', [
-                    ['under_10000', 'Under R10,000'],
-                    ['10000_19999', 'R10,000 – R19,999'],
-                    ['20000_39999', 'R20,000 – R39,999'],
-                    ['40000_plus', 'R40,000 or more'],
-                  ])}
-                </div>
+              <div className="quote-confirmations">
+                <label className="consent eligibility-consent">
+                  <input
+                    type="checkbox"
+                    name="eligibilityConfirmed"
+                    required
+                    aria-invalid={!!errors.eligibilityConfirmed}
+                    aria-describedby={
+                      errors.eligibilityConfirmed ? 'eligibilityConfirmed-error' : undefined
+                    }
+                  />
+                  <span>
+                    I confirm I am 18 or older, have access to a vehicle, am employed and earn
+                    R10,000 or more per month.
+                  </span>
+                </label>
+                {fieldError('eligibilityConfirmed')}
                 <details className="call-time">
                   <summary>
                     Choose a call time <span>(optional)</span>
@@ -374,9 +311,7 @@ export default function LeadForm() {
                     ? 'CHECKING DETAILS…'
                     : state === 'duplicate'
                       ? 'ALREADY SUBMITTED'
-                      : step === 'contact'
-                        ? 'CALL ME BACK'
-                        : 'CONFIRM & SEND'}
+                      : 'CALL ME BACK'}
               </button>
             </fieldset>
             <div
@@ -388,9 +323,6 @@ export default function LeadForm() {
             >
               {message}
             </div>
-            {step === 'contact' && (
-              <p className="form-note">Next: confirm eligibility and consent.</p>
-            )}
           </form>
         </>
       )}
