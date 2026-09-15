@@ -14,7 +14,7 @@
     "preview": "opennextjs-cloudflare preview",
     "deploy": "node scripts/check-deployment.mjs && npm run build:cloudflare && npm run db:migrate:remote && opennextjs-cloudflare deploy",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv .wrangler/types/cloudflare-env.d.ts",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",

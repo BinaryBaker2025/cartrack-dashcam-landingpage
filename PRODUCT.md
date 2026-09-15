@@ -10,4 +10,4 @@ CarTrack Cameras campaign 3046 for South African adults with access to a vehicle
 
 ## Principles
 
-Preserve the supplied reference layout and accessible assets. No generic redesign, invented claims, stock substitutes or advertised price. Show readable qualification controls and consent before submission. Keyboard access, inline errors and responsive layouts are required. Campaign economics and downstream dispositions are internal only.
+Preserve the supplied reference layout and accessible assets. The latest user-supplied screenshot restores the advertised from-R199/month price, centered logo and compact contact form. No generic redesign, invented claims or stock substitutes. Show readable qualification controls and consent in a second step before submission; never invent contact details or eligibility answers. Keyboard access, inline errors and responsive layouts are required. Campaign economics and downstream dispositions are internal only.

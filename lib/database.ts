@@ -17,7 +17,9 @@ export async function checkDatabase() {
   const db = await database();
   // Check both migrations and binding connectivity without exposing stored data.
   await db.batch([
-    db.prepare('SELECT request_id, delivery_status, leadbyte_code FROM lead_reporting LIMIT 0'),
+    db.prepare(
+      'SELECT request_id, delivery_status, leadbyte_code, email FROM lead_reporting LIMIT 0',
+    ),
     db.prepare('SELECT bucket_key FROM rate_limits LIMIT 0'),
   ]);
 }

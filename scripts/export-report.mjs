@@ -87,7 +87,7 @@ if (options.details) {
     const escapedId = cursorId.replaceAll("'", "''");
     const page =
       query(`SELECT request_id, created_at, completed_at, submitted_at_utc, submitted_date_sa,
-      firstname, lastname, phone1, optinurl, optindate, acceptterms, consent_version,
+      firstname, lastname, email, phone1, optinurl, optindate, acceptterms, consent_version,
       offer_id, campaign_id, supplier_id, preferredtimeofcall, qualification_json,
       attribution_json, affiliate_id, transaction_id, utm_source, utm_campaign, payload_json,
       delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id,

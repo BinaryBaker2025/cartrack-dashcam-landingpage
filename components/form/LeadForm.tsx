@@ -17,6 +17,7 @@ type State =
   | 'temporary_error';
 export default function LeadForm() {
   const [state, setState] = useState<State>('idle');
+  const [step, setStep] = useState<'contact' | 'eligibility'>('contact');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState('');
   const busy = useRef(false);
@@ -52,6 +53,22 @@ export default function LeadForm() {
     const data = new FormData(form);
     const raw = { ...Object.fromEntries(data), terms: data.get('terms') === 'on' };
     const validation = validateLead(raw);
+    if (step === 'contact') {
+      const contactErrors: FieldErrors = {};
+      for (const name of ['firstname', 'lastname', 'phone', 'email'] as const)
+        if (validation.errors[name]) contactErrors[name] = validation.errors[name];
+      setErrors(contactErrors);
+      setState('idle');
+      busy.current = false;
+      if (Object.keys(contactErrors).length) {
+        setMessage('Please check the highlighted fields.');
+        form.querySelector<HTMLElement>(`[name="${Object.keys(contactErrors)[0]}"]`)?.focus();
+      } else {
+        setStep('eligibility');
+        requestAnimationFrame(() => form.querySelector<HTMLElement>('[name="age"]')?.focus());
+      }
+      return;
+    }
     setErrors(validation.errors);
     if (!validation.valid) {
       setState(validation.reasons.length ? 'qualification_failed' : 'idle');
@@ -65,7 +82,11 @@ export default function LeadForm() {
         fields: Object.keys(validation.errors),
       });
       busy.current = false;
-      form.querySelector<HTMLElement>(`[name="${Object.keys(validation.errors)[0]}"]`)?.focus();
+      const firstError = Object.keys(validation.errors)[0];
+      if (['firstname', 'lastname', 'phone', 'email'].includes(firstError)) setStep('contact');
+      requestAnimationFrame(() =>
+        form.querySelector<HTMLElement>(`[name="${firstError}"]`)?.focus(),
+      );
       return;
     }
     const payload = JSON.stringify(validation.input);
@@ -163,22 +184,43 @@ export default function LeadForm() {
       </span>
     ) : null;
   }
-  function input(name: 'firstname' | 'lastname' | 'phone', label: string, autocomplete: string) {
+  function input(
+    name: 'firstname' | 'lastname' | 'phone' | 'email',
+    label: string,
+    autocomplete: string,
+  ) {
     return (
-      <div className="field">
-        <label htmlFor={name}>{label}</label>
-        <input
-          id={name}
-          name={name}
-          type={name === 'phone' ? 'tel' : 'text'}
-          inputMode={name === 'phone' ? 'tel' : 'text'}
-          autoComplete={autocomplete}
-          maxLength={name === 'phone' ? 30 : 80}
-          required
-          aria-invalid={!!errors[name]}
-          aria-describedby={errors[name] ? `${name}-error` : undefined}
-          placeholder={name === 'phone' ? 'e.g. 0XX XXX XXXX' : label}
-        />
+      <div className="field contact-field">
+        <label className="sr-only" htmlFor={name}>
+          {label}
+        </label>
+        <div className={name === 'phone' ? 'phone-input' : undefined}>
+          {name === 'phone' && (
+            <span className="phone-prefix" aria-hidden="true">
+              <svg width="20" height="14" viewBox="0 0 30 20" focusable="false">
+                <path fill="#de3831" d="M0 0h30v10H0z" />
+                <path fill="#002395" d="M0 10h30v10H0z" />
+                <path fill="#fff" d="m0 0 12 7h18v6H12L0 20z" />
+                <path fill="#007a4d" d="m0 0 13 8h17v4H13L0 20z" />
+                <path fill="#ffb612" d="m0 3 11 7L0 17z" />
+                <path fill="#141414" d="m0 5 8 5-8 5z" />
+              </svg>
+              <span>+27</span>
+            </span>
+          )}
+          <input
+            id={name}
+            name={name}
+            type={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
+            inputMode={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
+            autoComplete={autocomplete}
+            maxLength={name === 'phone' ? 30 : name === 'email' ? 254 : 80}
+            required
+            aria-invalid={!!errors[name]}
+            aria-describedby={errors[name] ? `${name}-error` : undefined}
+            placeholder={name === 'phone' ? 'Phone *' : `${label} *`}
+          />
+        </div>
         {fieldError(name)}
       </div>
     );
@@ -214,7 +256,9 @@ export default function LeadForm() {
   }
   return (
     <section className="quote-panel" id="quote" aria-labelledby="quote-title">
-      <h2 id="quote-title">{state === 'success' ? 'Thank you!' : 'Get a Quote'}</h2>
+      <h2 id="quote-title">
+        {state === 'success' ? 'Thank you!' : step === 'contact' ? 'Get a Quote' : 'One last step'}
+      </h2>
       {state === 'success' ? (
         <div className="success-panel" tabIndex={-1} ref={status} role="status">
           <span className="success-mark" aria-hidden="true">
@@ -226,85 +270,103 @@ export default function LeadForm() {
         </div>
       ) : (
         <>
-          <p className="form-intro">Tell us a little about yourself for a free call back.</p>
+          {step === 'eligibility' && (
+            <p className="form-intro">Confirm your eligibility and permission to call.</p>
+          )}
           <form onSubmit={submit} onFocus={begin} noValidate aria-busy={state === 'submitting'}>
             <fieldset disabled={locked}>
               <legend className="sr-only">Your details and eligibility</legend>
-              <div className="name-fields">
+              <div className="contact-fields" hidden={step !== 'contact'}>
                 {input('firstname', 'First name', 'given-name')}
                 {input('lastname', 'Last name', 'family-name')}
+                {input('phone', 'South African mobile number', 'tel')}
+                {input('email', 'Email address', 'email')}
               </div>
-              {input('phone', 'South African mobile number', 'tel')}
-              <div className="qualification-fields">
-                {select('age', 'Are you 18 or older?', [
-                  ['18_plus', 'Yes, I am 18 or older'],
-                  ['under_18', 'No, I am under 18'],
-                ])}
-                {select('vehicle', 'Do you have access to a vehicle?', [
-                  ['yes', 'Yes'],
-                  ['no', 'No'],
-                ])}
-                {select('employment', 'Employment status', [
-                  ['employed', 'Employed'],
-                  ['self_employed', 'Self-employed'],
-                  ['unemployed', 'Unemployed'],
-                  ['retired', 'Retired'],
-                  ['student', 'Student (not employed)'],
-                ])}
-                {select('income', 'Monthly income', [
-                  ['under_10000', 'Under R10,000'],
-                  ['10000_19999', 'R10,000 – R19,999'],
-                  ['20000_39999', 'R20,000 – R39,999'],
-                  ['40000_plus', 'R40,000 or more'],
-                ])}
-              </div>
-              <details className="call-time">
-                <summary>
-                  Choose a call time <span>(optional)</span>
-                </summary>
-                <div className="field">
-                  <label htmlFor="preferredtimeofcall">Preferred time (South African time)</label>
-                  <input
-                    type="datetime-local"
-                    id="preferredtimeofcall"
-                    name="preferredtimeofcall"
-                    aria-describedby="call-time-help preferredtimeofcall-error"
-                    aria-invalid={!!errors.preferredtimeofcall}
-                  />
-                  <small id="call-time-help">
-                    Within the next 30 days. Subject to availability.
-                  </small>
-                  <span id="preferredtimeofcall-error" className="field-error">
-                    {errors.preferredtimeofcall}
-                  </span>
+              <div hidden={step !== 'eligibility'}>
+                <button
+                  className="back-to-details"
+                  type="button"
+                  onClick={() => {
+                    setStep('contact');
+                    setErrors({});
+                    setMessage('');
+                    setState('idle');
+                    requestAnimationFrame(() => document.getElementById('firstname')?.focus());
+                  }}
+                >
+                  ← Edit your details
+                </button>
+                <div className="qualification-fields">
+                  {select('age', 'Are you 18 or older?', [
+                    ['18_plus', 'Yes, I am 18 or older'],
+                    ['under_18', 'No, I am under 18'],
+                  ])}
+                  {select('vehicle', 'Do you have access to a vehicle?', [
+                    ['yes', 'Yes'],
+                    ['no', 'No'],
+                  ])}
+                  {select('employment', 'Employment status', [
+                    ['employed', 'Employed'],
+                    ['self_employed', 'Self-employed'],
+                    ['unemployed', 'Unemployed'],
+                    ['retired', 'Retired'],
+                    ['student', 'Student (not employed)'],
+                  ])}
+                  {select('income', 'Monthly income', [
+                    ['under_10000', 'Under R10,000'],
+                    ['10000_19999', 'R10,000 – R19,999'],
+                    ['20000_39999', 'R20,000 – R39,999'],
+                    ['40000_plus', 'R40,000 or more'],
+                  ])}
                 </div>
-              </details>
-              <div className="honeypot" aria-hidden="true">
-                <label htmlFor="website">Leave this field empty</label>
-                <input name="website" id="website" tabIndex={-1} autoComplete="off" />
+                <details className="call-time">
+                  <summary>
+                    Choose a call time <span>(optional)</span>
+                  </summary>
+                  <div className="field">
+                    <label htmlFor="preferredtimeofcall">Preferred time (South African time)</label>
+                    <input
+                      type="datetime-local"
+                      id="preferredtimeofcall"
+                      name="preferredtimeofcall"
+                      aria-describedby="call-time-help preferredtimeofcall-error"
+                      aria-invalid={!!errors.preferredtimeofcall}
+                    />
+                    <small id="call-time-help">
+                      Within the next 30 days. Subject to availability.
+                    </small>
+                    <span id="preferredtimeofcall-error" className="field-error">
+                      {errors.preferredtimeofcall}
+                    </span>
+                  </div>
+                </details>
+                <div className="honeypot" aria-hidden="true">
+                  <label htmlFor="website">Leave this field empty</label>
+                  <input name="website" id="website" tabIndex={-1} autoComplete="off" />
+                </div>
+                <label className="consent">
+                  <input
+                    type="checkbox"
+                    name="terms"
+                    required
+                    aria-invalid={!!errors.terms}
+                    aria-describedby={errors.terms ? 'terms-error' : undefined}
+                  />
+                  <span>
+                    I accept the{' '}
+                    <a href="/terms" target="_blank" rel="noopener">
+                      terms
+                    </a>{' '}
+                    and{' '}
+                    <a href="/privacy" target="_blank" rel="noopener">
+                      privacy notice
+                    </a>
+                    , and consent to my details being shared with CarTrack and its campaign service
+                    providers so a representative may contact me about CarTrack Cameras.
+                  </span>
+                </label>
+                {fieldError('terms')}
               </div>
-              <label className="consent">
-                <input
-                  type="checkbox"
-                  name="terms"
-                  required
-                  aria-invalid={!!errors.terms}
-                  aria-describedby={errors.terms ? 'terms-error' : undefined}
-                />
-                <span>
-                  I accept the{' '}
-                  <a href="/terms" target="_blank" rel="noopener">
-                    terms
-                  </a>{' '}
-                  and{' '}
-                  <a href="/privacy" target="_blank" rel="noopener">
-                    privacy notice
-                  </a>
-                  , and consent to my details being shared with CarTrack and its campaign service
-                  providers so a representative may contact me about CarTrack Cameras.
-                </span>
-              </label>
-              {fieldError('terms')}
               <button className="cta submit-button" type="submit" disabled={locked}>
                 {state === 'submitting'
                   ? 'SENDING REQUEST…'
@@ -312,7 +374,9 @@ export default function LeadForm() {
                     ? 'CHECKING DETAILS…'
                     : state === 'duplicate'
                       ? 'ALREADY SUBMITTED'
-                      : 'CALL ME BACK'}
+                      : step === 'contact'
+                        ? 'CALL ME BACK'
+                        : 'CONFIRM & SEND'}
               </button>
             </fieldset>
             <div
@@ -324,7 +388,9 @@ export default function LeadForm() {
             >
               {message}
             </div>
-            <p className="form-note">18+ · Vehicle access · Employed · Income R10,000+/month</p>
+            {step === 'contact' && (
+              <p className="form-note">Next: confirm eligibility and consent.</p>
+            )}
           </form>
         </>
       )}

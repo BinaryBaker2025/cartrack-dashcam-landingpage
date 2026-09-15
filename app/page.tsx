@@ -26,9 +26,13 @@ export default function Home() {
           <div className="page-width hero-grid">
             <div className="hero-copy">
               <h1>Protect your vehicle</h1>
-              <p className="hero-campaign">
-                CarTrack <span>Cameras</span>
-              </p>
+              <div className="hero-price" aria-label="From only R199 per month. Terms apply.">
+                <p className="price-intro">from only</p>
+                <p className="price-amount">
+                  <span>R199</span>
+                  <small>pm*</small>
+                </p>
+              </div>
               <div className="hero-rule" />
               <p className="hero-description">
                 Protect your vehicle and capture every moment with Cartrack&apos;s dashcam
@@ -48,6 +52,7 @@ export default function Home() {
             <div className="benefits-grid">
               <Image
                 className="product-image"
+                loading="eager"
                 src="/assets/dashcam-product.jpeg"
                 alt="Driver with a Cartrack dashcam installed on the windscreen"
                 width={519}
@@ -89,7 +94,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="footer">
-        <p>CarTrack Cameras</p>
+        <p>CarTrack Cameras · *From R199 per month. Terms apply.</p>
         <nav aria-label="Legal">
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy notice</a>

@@ -5,6 +5,7 @@ export type LeadInput = {
   firstname: string;
   lastname: string;
   phone: string;
+  email?: string;
   age: string;
   vehicle: string;
   employment: string;
@@ -43,6 +44,7 @@ export function validateLead(raw: unknown, now = new Date()) {
     firstname: cleanText(r.firstname),
     lastname: cleanText(r.lastname),
     phone: cleanPhone(r.phone),
+    ...(r.email !== undefined ? { email: cleanText(r.email, 254) } : {}),
     age: cleanText(r.age),
     vehicle: cleanText(r.vehicle),
     employment: cleanText(r.employment),
@@ -64,6 +66,14 @@ export function validateLead(raw: unknown, now = new Date()) {
         `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
   }
   if (!input.phone) errors.phone = 'Please enter a valid South African mobile number.';
+  // Existing API clients may omit email; the reference quote form collects it.
+  if (
+    r.email !== undefined &&
+    (typeof r.email !== 'string' ||
+      r.email.length > 254 ||
+      !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(input.email || ''))
+  )
+    errors.email = 'Please enter a valid email address.';
   const checks = [
     [
       'age',

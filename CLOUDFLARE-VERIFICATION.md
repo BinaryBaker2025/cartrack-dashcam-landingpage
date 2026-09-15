@@ -1,5 +1,15 @@
 # Cloudflare verification — 15 September 2026
 
+## Reference-layout update — current deployment
+
+Worker version `b5ee4ba7-3320-4e18-be21-f28184de4bed` matches the latest supplied hero reference: centered logo, from-R199/month price, compact contact form and South African phone prefix. Eligibility and explicit consent follow in a second step. Technical campaign fields and timestamps remain server-generated; personal details and qualifying answers are not fabricated.
+
+Email is validated and retained in D1 and detail exports, without adding undocumented fields to the LeadByte payload. Migration `0003_contact_email.sql` passed locally and remotely after a database backup outside the repository. Live `/` returned 200 with the price, email field and phone prefix. Live `/api/leads` returned 200 / `READY`; live delivery remains enabled and the production hash secret survived deployment.
+
+130 unit/API/database tests and 12 browser tests passed, including both form steps, accessibility, eight viewport widths, missing-email validation, consent, attribution and replay protection. ESLint, TypeScript and the complete Cloudflare build passed. Screenshots are in `artifacts/landing-*.png`. No real lead was submitted during verification. The duplicate Wrangler build hook was removed for future deployments. Source changes are local and have not been committed or pushed to GitHub.
+
+The sections below document earlier deployments and operating states.
+
 ## Reporting update — current deployment
 
 Worker version `e4865eff-7d15-4769-a026-f4abea23f29f` adds full lead storage and LeadByte reporting. Migration `0002_lead_reporting.sql` passed on local and remote D1. Lead details, consent, attribution, payload, vendor IDs, codes and results are now retained. Daily cleanup deletes only rate-limit records.

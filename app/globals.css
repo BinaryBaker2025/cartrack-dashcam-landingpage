@@ -82,16 +82,7 @@ button:disabled {
   letter-spacing: -1.5px;
   margin: 0 0 32px;
 }
-.hero-campaign {
-  font-size: clamp(35px, 3.8vw, 54px);
-  font-weight: 700;
-  line-height: 1.14;
-  margin: 0 0 30px;
-  color: var(--orange-text);
-}
-.hero-campaign span {
-  display: block;
-}
+
 .hero-rule {
   width: 82%;
   height: 2px;
@@ -515,14 +506,7 @@ fieldset {
   .hero h1 br {
     display: none;
   }
-  .hero-campaign {
-    font-size: 38px;
-    line-height: 1.15;
-    margin: 0 0 21px;
-  }
-  .hero-campaign span {
-    display: inline;
-  }
+
   .hero-rule {
     width: 86%;
     margin: 0 auto 19px;
@@ -606,38 +590,6 @@ fieldset {
     min-height: 350px;
   }
 }
-.site-header .page-width {
-  text-align: center;
-}
-.brand-logo {
-  margin-inline: auto;
-}
-.site-header {
-  height: 140px;
-  padding-top: 28px;
-}
-.hero h1 {
-  font-size: 48px;
-  letter-spacing: -0.8px;
-  white-space: nowrap;
-}
-.hero-copy {
-  padding-top: 12px;
-}
-.hero-campaign {
-  margin-top: 42px;
-}
-.hero-rule {
-  width: 260px;
-}
-.hero-description {
-  font-size: 21px;
-  max-width: 460px;
-}
-.hero-grid {
-  grid-template-columns: minmax(0, 1fr) 400px;
-  gap: 65px;
-}
 .benefits-intro {
   max-width: 800px;
   margin-bottom: 50px;
@@ -708,10 +660,7 @@ fieldset {
   .hero-copy {
     padding-top: 8px;
   }
-  .hero-campaign {
-    margin-top: 30px;
-    font-size: 38px;
-  }
+
   .hero-rule {
     margin-top: 26px;
   }
@@ -777,5 +726,250 @@ fieldset {
   }
   .form-note {
     font-size: 10px;
+  }
+}
+
+/* Supplied Cartrack reference: airy split hero and compact contact form. */
+.site-header {
+  height: clamp(160px, 11vw, 205px);
+  padding-top: 24px;
+}
+.site-header .page-width {
+  text-align: center;
+}
+.brand-logo {
+  width: clamp(233px, 15.5vw, 290px);
+  height: auto;
+  margin-inline: auto;
+}
+.hero {
+  padding: 0 0 108px;
+}
+.hero-grid {
+  width: min(1352px, calc(100% - 96px));
+  grid-template-columns: minmax(0, 1fr) 464px;
+  gap: clamp(50px, 7vw, 130px);
+  padding-right: 0;
+}
+.hero-copy {
+  padding: 0;
+}
+.hero h1 {
+  color: #111927;
+  font-size: clamp(46px, 3.65vw, 68px);
+  letter-spacing: -1.3px;
+  line-height: 1.15;
+  white-space: nowrap;
+  margin: 0;
+}
+.hero-price {
+  margin-top: 64px;
+}
+.price-intro {
+  font-family: var(--font-handwriting), cursive;
+  font-size: 42px;
+  line-height: 1;
+  margin: 0 0 15px;
+}
+.price-amount {
+  display: flex;
+  align-items: baseline;
+  line-height: 1;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -4px;
+}
+.price-amount > span {
+  font-size: clamp(78px, 5.2vw, 100px);
+  color: #ed702e;
+  text-shadow: 0 3px 2px #0008;
+}
+.price-amount small {
+  font-size: 54px;
+  color: #080808;
+  letter-spacing: -2px;
+}
+.hero-rule {
+  width: 326px;
+  height: 6px;
+  margin: 18px 0 65px;
+}
+.hero-description {
+  font-size: 25px;
+  line-height: 1.42;
+  max-width: 535px;
+  margin: 0;
+}
+.quote-panel {
+  padding: 30px 23px 24px;
+  border: 0;
+  border-radius: 30px;
+  box-shadow:
+    -7px 15px 12px #0009,
+    0 0 12px #00000008;
+  color: #111927;
+}
+.quote-panel h2 {
+  font-size: 32px;
+  line-height: 1.45;
+  margin: 0 0 25px;
+}
+.contact-field {
+  margin: 0 0 17px;
+}
+.contact-field:last-child {
+  margin-bottom: 0;
+}
+.contact-field input {
+  height: 56px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 16px 18px;
+  background: #f4f4f6;
+  font-size: 14px;
+  color: #111927;
+}
+.contact-field input::placeholder {
+  color: #172539;
+  opacity: 1;
+}
+.contact-field input:focus {
+  outline-offset: 0;
+}
+.phone-input {
+  display: flex;
+  align-items: center;
+  background: #efeff2;
+}
+.phone-input input {
+  background: transparent;
+  flex: 1;
+  width: 0;
+}
+.phone-prefix {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  font-size: 14px;
+  flex-shrink: 0;
+  border-right: 1px solid #dedee4;
+}
+.quote-panel .submit-button {
+  margin-top: 52px;
+  width: min(282px, 100%);
+  min-height: 62px;
+  font-size: 23px;
+  color: white;
+  background: #ed702e;
+  font-weight: 700;
+}
+.quote-panel .form-note {
+  font-size: 10px;
+  margin-top: 12px;
+}
+.quote-panel .form-intro {
+  margin-top: -15px;
+}
+.back-to-details {
+  border: 0;
+  background: transparent;
+  padding: 0 0 18px;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.quote-panel [hidden] {
+  display: none;
+}
+.quote-panel .consent {
+  font-size: 12px;
+}
+@media (max-width: 1279px) and (min-width: 768px) {
+  .hero-grid {
+    width: calc(100% - 64px);
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 40px;
+  }
+  .hero h1 {
+    white-space: normal;
+    font-size: 46px;
+  }
+  .hero-description {
+    font-size: 21px;
+  }
+  .price-amount > span {
+    font-size: 80px;
+  }
+  .price-amount small {
+    font-size: 42px;
+  }
+  .hero-rule {
+    width: 280px;
+  }
+}
+@media (max-width: 767px) {
+  .site-header {
+    height: 130px;
+    padding-top: 22px;
+  }
+  .brand-logo {
+    width: 233px;
+  }
+  .hero {
+    padding-bottom: 65px;
+  }
+  .hero-grid {
+    width: calc(100% - 40px);
+    gap: 42px;
+  }
+  .hero-copy {
+    padding: 0;
+  }
+  .hero h1 {
+    white-space: normal;
+    font-size: 40px;
+    margin-inline: auto;
+  }
+  .hero-price {
+    margin-top: 28px;
+  }
+  .price-intro {
+    font-size: 35px;
+    margin-bottom: 12px;
+  }
+  .price-amount {
+    justify-content: center;
+  }
+  .price-amount > span {
+    font-size: 78px;
+  }
+  .price-amount small {
+    font-size: 42px;
+  }
+  .hero-rule {
+    width: 265px;
+    height: 4px;
+    margin: 18px auto 26px;
+  }
+  .hero-description {
+    font-size: 19px;
+    max-width: 355px;
+    margin-inline: auto;
+  }
+  .quote-panel {
+    padding: 26px 20px 22px;
+    border-radius: 25px;
+  }
+  .quote-panel h2 {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+  .contact-field input {
+    font-size: 16px;
+  }
+  .quote-panel .submit-button {
+    margin-top: 32px;
+    font-size: 23px;
   }
 }

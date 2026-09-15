@@ -13,8 +13,8 @@ export default function Privacy() {
       <Link href="/">← Back to your quote</Link>
       <h1>Privacy notice</h1>
       <p>
-        When you request a quote, this site collects your name, South African mobile number,
-        eligibility answers, contact consent and, if provided, preferred call time.
+        When you request a quote, this site collects your name, email address, South African mobile
+        number, eligibility answers, contact consent and, if provided, preferred call time.
       </p>
       <h2>How your details are used</h2>
       <p>
@@ -22,9 +22,9 @@ export default function Privacy() {
         Qualified requests are sent to LeadByte, the campaign’s lead processing service, for
         processing and contact by CarTrack and its campaign service providers. Your full phone
         number is sent securely to that service. We also retain your completed, qualified request in
-        our database, including your name, mobile number, eligibility answers, consent and preferred
-        call time. These records help us report on requests and check delivery against LeadByte. A
-        request may be recorded even if delivery is unavailable or rejected.
+        our database, including your name, email address, mobile number, eligibility answers,
+        consent and preferred call time. These records help us report on requests and check delivery
+        against LeadByte. A request may be recorded even if delivery is unavailable or rejected.
       </p>
       <h2>What this site retains</h2>
       <p>

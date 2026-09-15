@@ -7,7 +7,6 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
   "preview_urls": false,
-  "build": { "command": "npm run build:cloudflare" },
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "cartrack-dashcam-landingpage" }],
   "d1_databases": [
@@ -25,7 +24,7 @@
     "DEPLOY_ENV": "production",
     "NEXT_PUBLIC_SITE_URL": "https://cartrack-dashcam-landingpage.shariefholt.workers.dev",
     "SITE_INDEXABLE": "false",
-    "LEADBYTE_ENABLED": "false",
+    "LEADBYTE_ENABLED": "true",
     "RATE_LIMIT_MAX": "10",
     "RATE_LIMIT_WINDOW_SECONDS": "600",
   },

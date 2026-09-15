@@ -25,8 +25,8 @@ export async function claimSubmission(key: string, fingerprint: string, lead?: L
       (submission_key, fingerprint, created_at, expires_at, consent_version,
        record_version, request_id, firstname, lastname, phone1, optinurl, optindate,
        acceptterms, offer_id, campaign_id, supplier_id, preferredtimeofcall,
-       payload_json, qualification_json, attribution_json, delivery_status)
-     VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       payload_json, qualification_json, attribution_json, delivery_status, email)
+     VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(submission_key) DO NOTHING
      RETURNING submission_key`,
     )
@@ -58,6 +58,7 @@ export async function claimSubmission(key: string, fingerprint: string, lead?: L
         : null,
       lead ? JSON.stringify(sanitizeAttribution(lead.attribution)) : null,
       lead ? 'pending' : 'legacy_unknown',
+      lead?.input.email ?? null,
     )
     .first();
   if (inserted) return { claimed: true as const };

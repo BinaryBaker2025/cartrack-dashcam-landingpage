@@ -106,6 +106,26 @@ it('saves contact, consent, attribution and exact payload before sending, then s
     1,
   );
 });
+it('retains email before delivery without adding it to the documented vendor payload', async () => {
+  state.submit.mockImplementation(async () => {
+    expect(row().email).toBe('visitor@example.com');
+    const payload = JSON.parse(String(row().payload_json));
+    expect(payload).not.toHaveProperty('email');
+    expect(payload).not.toHaveProperty('email1');
+    return { state: 'success', message: 'Received', code: 1 };
+  });
+  expect((await POST(request({ email: 'visitor@example.com' }))).status).toBe(200);
+  expect(state.submit).toHaveBeenCalledTimes(1);
+});
+
+it('rejects invalid email before recording or delivery', async () => {
+  expect((await POST(request({ email: 'invalid' }))).status).toBe(422);
+  expect(state.submit).not.toHaveBeenCalled();
+  expect(state.db!.sqlite.prepare('SELECT COUNT(*) AS count FROM submissions').get()?.count).toBe(
+    0,
+  );
+});
+
 it.each([-9, -8, -7, -6, -5, -4, -3, -2, -19, -17, -16, -15, -14, -13, -12, -11, -100, -10])(
   'records failure code %i with its reporting description',
   async (code) => {

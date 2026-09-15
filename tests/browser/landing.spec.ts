@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-for (const width of [375, 390, 430, 768, 1024, 1280, 1440]) {
+for (const width of [375, 390, 430, 768, 1024, 1280, 1440, 1870]) {
   test(`responsive layout at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
@@ -45,6 +45,7 @@ test('qualified form captures attribution and prevents double click and resubmis
     expect(body.attribution.transaction_id).toBe('browser-test');
     expect(body.attribution.offer_id).toBe('999');
     expect(body).not.toHaveProperty('offer_id');
+    expect(body.email).toBe('test@example.com');
     await new Promise((resolve) => setTimeout(resolve, 150));
     await route.fulfill({
       json: {
@@ -57,15 +58,21 @@ test('qualified form captures attribution and prevents double click and resubmis
   await page.getByLabel('First name', { exact: true }).fill('Test');
   await page.getByLabel('Last name', { exact: true }).fill('Testing');
   await page.getByLabel('South African mobile number').fill('+27821234567');
+  await page.getByLabel('Email address').fill('test@example.com');
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  expect(requests).toBe(0);
+  await expect(page.getByRole('heading', { name: 'One last step' })).toBeVisible();
   await page.getByLabel('Are you 18 or older?').selectOption('18_plus');
   await page.getByLabel('Do you have access to a vehicle?').selectOption('yes');
   await page.getByLabel('Employment status').selectOption('employed');
   await page.getByLabel('Monthly income').selectOption('10000_19999');
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'CALL ME BACK' }).evaluate((button: HTMLButtonElement) => {
-    button.click();
-    button.click();
-  });
+  await page
+    .getByRole('button', { name: 'CONFIRM & SEND' })
+    .evaluate((button: HTMLButtonElement) => {
+      button.click();
+      button.click();
+    });
   await expect(page.getByRole('heading', { name: 'Your request is in.' })).toBeVisible();
   expect(requests).toBe(1);
   await expect(page.getByRole('button', { name: 'CALL ME BACK' })).toHaveCount(0);
@@ -73,12 +80,45 @@ test('qualified form captures attribution and prevents double click and resubmis
   await page.getByLabel('First name', { exact: true }).fill('Test');
   await page.getByLabel('Last name', { exact: true }).fill('Testing');
   await page.getByLabel('South African mobile number').fill('+27821234567');
+  await page.getByLabel('Email address').fill('test@example.com');
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
   await page.getByLabel('Are you 18 or older?').selectOption('18_plus');
   await page.getByLabel('Do you have access to a vehicle?').selectOption('yes');
   await page.getByLabel('Employment status').selectOption('employed');
   await page.getByLabel('Monthly income').selectOption('10000_19999');
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await page.getByRole('button', { name: 'CONFIRM & SEND' }).click();
   await expect(page.getByRole('heading', { name: 'Your request is in.' })).toBeVisible();
   expect(requests).toBe(1);
+});
+
+test('contact step preserves details and requires real eligibility and consent before sending', async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route('**/api/leads', (route) => {
+    requests++;
+    return route.abort();
+  });
+  await page.goto('/');
+  await page.getByLabel('First name', { exact: true }).fill('Test');
+  await page.getByLabel('Last name', { exact: true }).fill('Testing');
+  await page.getByLabel('South African mobile number').fill('0821234567');
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.locator('#email-error')).toBeVisible();
+  await page.getByLabel('Email address').fill('test@example.com');
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.getByLabel('Are you 18 or older?')).toHaveValue('');
+  await expect(page.getByRole('checkbox')).not.toBeChecked();
+  await page.getByRole('button', { name: 'CONFIRM & SEND' }).click();
+  await expect(page.locator('#age-error')).toBeVisible();
+  await expect(page.locator('#terms-error')).toBeVisible();
+  expect(requests).toBe(0);
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+    .analyze();
+  expect(results.violations).toEqual([]);
+  await page.getByRole('button', { name: 'Edit your details' }).click();
+  await expect(page.getByLabel('First name', { exact: true })).toHaveValue('Test');
+  await expect(page.getByLabel('Email address')).toHaveValue('test@example.com');
 });
