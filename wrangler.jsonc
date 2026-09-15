@@ -7,14 +7,17 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
   "preview_urls": false,
+  "build": { "command": "npm run build:cloudflare" },
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "cartrack-dashcam-landingpage" }],
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "cartrack_dashcam_landing",
-    "database_id": "f90b223b-d425-45b8-9260-f7b9e30a612c",
-    "migrations_dir": "migrations"
-  }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cartrack_dashcam_landing",
+      "database_id": "f90b223b-d425-45b8-9260-f7b9e30a612c",
+      "migrations_dir": "migrations",
+    },
+  ],
   "triggers": { "crons": ["17 2 * * *"] },
   "observability": { "enabled": true },
   "vars": {
@@ -24,6 +27,6 @@
     "SITE_INDEXABLE": "false",
     "LEADBYTE_ENABLED": "false",
     "RATE_LIMIT_MAX": "10",
-    "RATE_LIMIT_WINDOW_SECONDS": "600"
-  }
+    "RATE_LIMIT_WINDOW_SECONDS": "600",
+  },
 }
