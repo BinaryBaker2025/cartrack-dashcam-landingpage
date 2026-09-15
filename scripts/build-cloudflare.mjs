@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8'));
+const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/,\s*([}\]])/g, '$1'));
 // Explicit build settings override ignored local Next.js env files.
 const env = {
   ...process.env,

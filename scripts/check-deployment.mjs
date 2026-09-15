@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8'));
+const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/,\s*([}\]])/g, '$1'));
 const db = config.d1_databases.find((entry) => entry.binding === 'DB');
 if (!db?.database_id || db.database_id === '00000000-0000-0000-0000-000000000000')
   throw new Error(

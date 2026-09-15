@@ -49,7 +49,7 @@ OpenNext warns that Windows builds are not fully supported. Use Linux Workers Bu
 
 ## Git deployments
 
-Connect this repository to the `cartrack-dashcam-landingpage` Worker in Workers Builds. Use Node 24, build command `npm ci`, and deploy command `npm run deploy`. Keep the same database ID and runtime settings in version control. Restrict automatic deployment to the production branch. Disable automatic preview branch deployment until a separate staging Worker and database are configured.
+Connect this repository to the `cartrack-dashcam-landingpage` Worker in Workers Builds. Use Node 24, build command `npm ci`, and deploy command `npm run deploy` (not `npx wrangler deploy`). The deploy script validates configuration, builds the OpenNext Worker, applies remote D1 migrations, and deploys the Worker and assets. Keep the same database ID and runtime settings in version control. Restrict automatic deployment to the production branch. Disable automatic preview branch deployment until a separate staging Worker and database are configured.
 
 Do not set a Pages output directory: this is a Worker deployment, not a static Pages export. No Netlify adapter or function is needed for the Cloudflare deployment.
 
