@@ -142,14 +142,25 @@ export async function POST(request: Request) {
         409,
       );
     }
-    const result: LeadResult =
-      process.env.LEADBYTE_ENABLED === 'true'
-        ? await submitLead(input, now)
-        : {
-            state: 'temporary_error' as const,
-            message: 'Quote requests are not available yet. Please try again later.',
-            diagnosticCode: 'SUBMISSIONS_DISABLED',
-          };
+    let result: LeadResult;
+    try {
+      result =
+        process.env.LEADBYTE_ENABLED === 'true'
+          ? await submitLead(input, now)
+          : {
+              state: 'temporary_error' as const,
+              message: 'Quote requests are not available yet. Please try again later.',
+              diagnosticCode: 'SUBMISSIONS_DISABLED',
+            };
+    } catch (error) {
+      if (!(error instanceof ConfigurationError)) throw error;
+      result = {
+        state: 'temporary_error',
+        message: failure.message,
+        uncertain: true,
+        diagnosticCode: error.code,
+      };
+    }
     const response = {
       state: result.state,
       message: result.message,

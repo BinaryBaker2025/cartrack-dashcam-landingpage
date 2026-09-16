@@ -12,6 +12,7 @@ vi.mock('../lib/submissions', () => ({
 }));
 vi.mock('../lib/leadbyte', () => ({ submitLead: mocks.submitLead }));
 import { POST } from '../app/api/leads/route';
+import { ConfigurationError } from '../lib/diagnostics';
 const valid = {
   firstname: 'Test',
   lastname: 'Testing',
@@ -45,6 +46,20 @@ it('accepts valid request without forwarding undocumented attribution', async ()
   );
   expect(response.status).toBe(200);
   expect(mocks.submitLead.mock.calls[0][0]).not.toHaveProperty('offer_id');
+});
+it('records an unexpected LeadByte failure as an uncertain delivery', async () => {
+  mocks.submitLead.mockRejectedValueOnce(new ConfigurationError('CONFIG_ENDPOINT_INVALID'));
+  const response = await POST(request());
+  expect(response.status).toBe(503);
+  expect(mocks.completeSubmission).toHaveBeenCalledWith(
+    expect.any(String),
+    expect.objectContaining({ state: 'temporary_error' }),
+    503,
+    expect.objectContaining({
+      diagnosticCode: 'CONFIG_ENDPOINT_INVALID',
+      uncertain: true,
+    }),
+  );
 });
 it.each([
   ['age', 'under_18'],
