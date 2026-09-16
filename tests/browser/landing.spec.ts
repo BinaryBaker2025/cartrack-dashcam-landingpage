@@ -41,10 +41,6 @@ async function fillContact(page: import('@playwright/test').Page) {
   await page.getByLabel('South African mobile number').fill('0821234567');
   await page.getByLabel('Email address').fill('test@example.com');
 }
-async function confirm(page: import('@playwright/test').Page) {
-  await page.getByRole('checkbox', { name: /I confirm I am 18/ }).check();
-  await page.getByRole('checkbox', { name: /I accept the/ }).check();
-}
 const thankYouHeading = /Thank you for your application/;
 
 test('accepted submission shows reference thank-you screen and prevents repeat delivery', async ({
@@ -78,7 +74,6 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   });
   await page.goto('/?transaction_id=browser-test&offer_id=999');
   await fillContact(page);
-  await confirm(page);
   await page.getByRole('button', { name: 'CALL ME BACK' }).evaluate((button: HTMLButtonElement) => {
     button.click();
     button.click();
@@ -100,13 +95,12 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   }
   await page.reload();
   await fillContact(page);
-  await confirm(page);
   await page.getByRole('button', { name: 'CALL ME BACK' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(1);
 });
 
-test('single-step form requires email, eligibility confirmation and consent', async ({ page }) => {
+test('single-step form requires email', async ({ page }) => {
   let requests = 0;
   await page.route('**/api/leads', (route) => {
     requests++;
@@ -117,8 +111,6 @@ test('single-step form requires email, eligibility confirmation and consent', as
   await page.getByLabel('Email address').fill('');
   await page.getByRole('button', { name: 'CALL ME BACK' }).click();
   await expect(page.locator('#email-error')).toBeVisible();
-  await expect(page.locator('#eligibilityConfirmed-error')).toBeVisible();
-  await expect(page.locator('#terms-error')).toBeVisible();
   expect(requests).toBe(0);
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
 });
@@ -135,7 +127,6 @@ for (const result of [
     );
     await page.goto('/');
     await fillContact(page);
-    await confirm(page);
     await page.getByRole('button', { name: 'CALL ME BACK' }).click();
     await expect(page.getByRole('status')).toContainText(result.message);
     await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);

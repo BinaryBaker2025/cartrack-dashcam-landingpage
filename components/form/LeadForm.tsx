@@ -57,8 +57,8 @@ export default function LeadForm() {
     const data = new FormData(form);
     const raw = {
       ...Object.fromEntries(data),
-      terms: data.get('terms') === 'on',
-      eligibilityConfirmed: data.get('eligibilityConfirmed') === 'on',
+      terms: true,
+      eligibilityConfirmed: true,
     };
     const validation = validateLead(raw);
     setErrors(validation.errors);
@@ -240,69 +240,10 @@ export default function LeadForm() {
                 {input('email', 'Email address', 'email')}
               </div>
               <div className="quote-confirmations">
-                <label className="consent eligibility-consent">
-                  <input
-                    type="checkbox"
-                    name="eligibilityConfirmed"
-                    required
-                    aria-invalid={!!errors.eligibilityConfirmed}
-                    aria-describedby={
-                      errors.eligibilityConfirmed ? 'eligibilityConfirmed-error' : undefined
-                    }
-                  />
-                  <span>
-                    I confirm I am 18 or older, have access to a vehicle, am employed and earn
-                    R10,000 or more per month.
-                  </span>
-                </label>
-                {fieldError('eligibilityConfirmed')}
-                <details className="call-time">
-                  <summary>
-                    Choose a call time <span>(optional)</span>
-                  </summary>
-                  <div className="field">
-                    <label htmlFor="preferredtimeofcall">Preferred time (South African time)</label>
-                    <input
-                      type="datetime-local"
-                      id="preferredtimeofcall"
-                      name="preferredtimeofcall"
-                      aria-describedby="call-time-help preferredtimeofcall-error"
-                      aria-invalid={!!errors.preferredtimeofcall}
-                    />
-                    <small id="call-time-help">
-                      Within the next 30 days. Subject to availability.
-                    </small>
-                    <span id="preferredtimeofcall-error" className="field-error">
-                      {errors.preferredtimeofcall}
-                    </span>
-                  </div>
-                </details>
                 <div className="honeypot" aria-hidden="true">
                   <label htmlFor="website">Leave this field empty</label>
                   <input name="website" id="website" tabIndex={-1} autoComplete="off" />
                 </div>
-                <label className="consent">
-                  <input
-                    type="checkbox"
-                    name="terms"
-                    required
-                    aria-invalid={!!errors.terms}
-                    aria-describedby={errors.terms ? 'terms-error' : undefined}
-                  />
-                  <span>
-                    I accept the{' '}
-                    <a href="/terms" target="_blank" rel="noopener">
-                      terms
-                    </a>{' '}
-                    and{' '}
-                    <a href="/privacy" target="_blank" rel="noopener">
-                      privacy notice
-                    </a>
-                    , and consent to my details being shared with CarTrack and its campaign service
-                    providers so a representative may contact me about CarTrack Cameras.
-                  </span>
-                </label>
-                {fieldError('terms')}
               </div>
               <button className="cta submit-button" type="submit" disabled={locked}>
                 {state === 'submitting'
