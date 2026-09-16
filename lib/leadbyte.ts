@@ -142,7 +142,7 @@ export async function submitLead(
           body: buildPayload(input, site, now),
           signal: controller.signal,
           cache: 'no-store',
-          redirect: 'error',
+          redirect: 'follow',
         });
         const text = await response.text();
         if (text.length > 64000)

@@ -95,6 +95,7 @@ describe('LeadByte response handling', () => {
     expect(String(url)).toContain('campid=DASHCAMS&sid=27144&returnjson=yes');
     expect(options.method).toBe('POST');
     expect(options.headers['Content-Type']).toBe('application/x-www-form-urlencoded');
+    expect(options.redirect).toBe('follow');
     expect(options.body.get('offer_id')).toBe('3046');
     expect(options.body.has('transaction_id')).toBe(false);
   });
