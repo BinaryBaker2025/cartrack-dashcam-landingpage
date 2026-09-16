@@ -24,6 +24,17 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
     .analyze();
   expect(results.violations).toEqual([]);
 });
+test('shows revised pricing and a single disclaimer below the CTA', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByLabel('From as little as R7 per day. Terms apply.')).toBeVisible();
+  await expect(
+    page.getByText(
+      'By submitting this form, I confirm that I am 18 or older, have access to a vehicle and am employed.',
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
+});
 test('invalid submission shows inline messages without a network request', async ({ page }) => {
   let requests = 0;
   await page.route('**/api/leads', (route) => {

@@ -254,6 +254,14 @@ export default function LeadForm() {
                       ? 'ALREADY SUBMITTED'
                       : 'CALL ME BACK'}
               </button>
+              <p className="form-note">
+                By submitting this form, I confirm that I am 18 or older, have access to a vehicle
+                and am employed. I accept the{' '}
+                <a href="/terms">terms</a> and{' '}
+                <a href="/privacy">privacy notice</a>, and consent to my details being shared with
+                the service provider and its authorized partners so that a representative may
+                contact me regarding the requested or future products and services.
+              </p>
             </fieldset>
             <div
               className={`form-status ${message ? 'has-message' : ''}`}
