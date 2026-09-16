@@ -4,7 +4,7 @@
 
 - Account: Shariefholt@gmail.com's Account.
 - Worker: `cartrack-dashcam-landingpage`.
-- URL: https://cartrack-dashcam-landingpage.shariefholt.workers.dev
+- URL: https://cartrack-dashcam.shyincs.com/
 - D1: `cartrack_dashcam_landing`, bound as `DB`; database ID is in `wrangler.jsonc`.
 - `LEAD_HASH_SECRET` is stored as a Worker secret.
 - Live lead delivery and search indexing are disabled, matching the setup state.

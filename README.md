@@ -14,7 +14,7 @@ Use Node 22.13+ (or Node 24). Setup creates ignored `.env.local` and `.dev.vars`
 
 ## Cloudflare deployment
 
-The configured site is [cartrack-dashcam-landingpage.shariefholt.workers.dev](https://cartrack-dashcam-landingpage.shariefholt.workers.dev), using Sharief's Cloudflare account and the existing `cartrack_dashcam_landing` D1 database. Follow [CLOUDFLARE.md](CLOUDFLARE.md) for deployment and operations. A custom domain can be attached later.
+The configured site is [cartrack-dashcam.shyincs.com](https://cartrack-dashcam.shyincs.com/), using Sharief's Cloudflare account and the existing `cartrack_dashcam_landing` D1 database. Follow [CLOUDFLARE.md](CLOUDFLARE.md) for deployment and operations.
 
 ## Request flow and storage
 

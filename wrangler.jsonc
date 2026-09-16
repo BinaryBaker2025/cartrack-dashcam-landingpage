@@ -22,7 +22,7 @@
   "vars": {
     "DEPLOY_PLATFORM": "cloudflare",
     "DEPLOY_ENV": "production",
-    "NEXT_PUBLIC_SITE_URL": "https://cartrack-dashcam-landingpage.shariefholt.workers.dev",
+    "NEXT_PUBLIC_SITE_URL": "https://cartrack-dashcam.shyincs.com",
     "SITE_INDEXABLE": "false",
     "LEADBYTE_ENABLED": "true",
     "RATE_LIMIT_MAX": "10",
