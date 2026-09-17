@@ -76,6 +76,11 @@ it('blocks honeypot bots', async () => {
   expect((await POST(request({ ...valid, website: 'spam' }))).status).toBe(400);
   expect(mocks.submitLead).not.toHaveBeenCalled();
 });
+it('accepts the production site when using either apex or www origin', async () => {
+  vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://bestcardash.com');
+  const response = await POST(request(valid, 'https://www.bestcardash.com'));
+  expect(response.status).toBe(200);
+});
 it('blocks cross-origin submissions', async () =>
   expect((await POST(request(valid, 'https://elsewhere.example'))).status).toBe(403));
 it('rate limits safely', async () => {

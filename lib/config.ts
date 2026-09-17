@@ -24,8 +24,19 @@ export function siteUrl() {
     throw new ConfigurationError('CONFIG_SITE_URL_INVALID');
   return url.origin;
 }
+export function allowedOrigins() {
+  const site = siteUrl();
+  const origin = new URL(site);
+  const hosts = new Set([site]);
+  const apex = origin.hostname.startsWith('www.') ? origin.hostname.slice(4) : origin.hostname;
+  const www = apex === origin.hostname ? `www.${origin.hostname}` : origin.hostname;
+  hosts.add(`https://${apex}`);
+  hosts.add(`https://${www}`);
+  return [...hosts];
+}
 export function submissionConfig() {
   const site = siteUrl();
+  const allowedOriginsList = allowedOrigins();
   const identity = campaignIdentity();
   if (
     process.env.NODE_ENV === 'production' &&
@@ -71,5 +82,5 @@ export function submissionConfig() {
     sid: '27144',
     returnjson: 'yes',
   }).toString();
-  return { endpoint, site };
+  return { endpoint, site, allowedOriginsList };
 }

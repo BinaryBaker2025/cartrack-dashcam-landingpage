@@ -4,7 +4,7 @@
 
 - Account: Shariefholt@gmail.com's Account.
 - Worker: `cartrack-dashcam-landingpage`.
-- URL: https://cartrack-dashcam.shyincs.com/
+- URL: https://bestcardash.com/ (and https://www.bestcardash.com/ are accepted as the same production origin)
 - D1: `cartrack_dashcam_landing`, bound as `DB`; database ID is in `wrangler.jsonc`.
 - `LEAD_HASH_SECRET` is stored as a Worker secret.
 - Live lead delivery and search indexing are disabled, matching the setup state.
@@ -25,7 +25,7 @@ This migration keeps the existing Next.js framework; the installed OpenNext vers
 
 1. Run `npx wrangler login`, then `npx wrangler whoami`. Select the intended account by adding its `account_id` to `wrangler.jsonc` if multiple accounts are available.
 2. Run `npx wrangler d1 create cartrack_dashcam_landing`. Replace the all-zero `database_id` in `wrangler.jsonc` with the returned ID. The binding name stays `DB`. Do not reuse a production database for a preview/staging Worker.
-3. In Cloudflare Workers & Pages, find or create the account's workers.dev subdomain. Add `NEXT_PUBLIC_SITE_URL` to `vars` in `wrangler.jsonc` as `https://cartrack-dashcam-landingpage.<your-subdomain>.workers.dev`, with no trailing slash. Do not invent the account subdomain.
+3. In Cloudflare Workers & Pages, find or create the account's workers.dev subdomain. Add `NEXT_PUBLIC_SITE_URL` to `vars` in `wrangler.jsonc` as `https://bestcardash.com`, with no trailing slash. If a `www` hostname is also used, the app accepts both `https://bestcardash.com` and `https://www.bestcardash.com` as valid production origins.
 4. Generate a production-only hash secret and set it with `npx wrangler secret put LEAD_HASH_SECRET`. Use at least 32 random characters, retain it securely, and keep it stable across deployments. Local setup generates a separate development secret; do not copy that into production. Wrangler may offer to create the Worker when setting its first secret.
 5. Run `npm run deploy`. This validates the database ID and origin, builds the Worker, applies remote migrations, and deploys code, assets and the cleanup schedule. It does not enable live lead delivery.
 6. Open the resulting URL and `/api/leads`. With delivery disabled, readiness should return HTTP 503 and `SUBMISSIONS_DISABLED`; `DATABASE_UNAVAILABLE` or `INTERNAL_ERROR` indicates a binding/migration problem. A missing hash secret returns `CONFIG_HASH_SECRET_REQUIRED`.
