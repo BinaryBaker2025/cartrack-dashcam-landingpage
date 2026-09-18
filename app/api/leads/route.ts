@@ -172,6 +172,7 @@ export async function POST(request: Request) {
         ...(result.code !== undefined ? { leadByteCode: result.code } : {}),
         ...(result.upstreamStatus !== undefined ? { upstreamStatus: result.upstreamStatus } : {}),
       },
+      ...(result.duplicateFields ? { duplicateFields: result.duplicateFields } : {}),
       ...(!result.uncertain && result.state === 'temporary_error' ? { retryable: true } : {}),
     };
     const status =

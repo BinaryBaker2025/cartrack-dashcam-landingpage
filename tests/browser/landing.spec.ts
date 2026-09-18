@@ -126,6 +126,30 @@ test('single-step form requires email', async ({ page }) => {
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
 });
 
+test('duplicate response keeps the form editable and resubmits changed details', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/api/leads', async (route) => {
+    requests++;
+    if (requests === 1) {
+      await route.fulfill({
+        status: 409,
+        json: { state: 'duplicate', message: 'Already submitted.', duplicateFields: ['email'] },
+      });
+      return;
+    }
+    await route.fulfill({ json: { state: 'success', message: 'Accepted' } });
+  });
+  await page.goto('/');
+  await fillContact(page);
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.locator('#email-error')).toHaveText('This detail has already been submitted.');
+  await expect(page.getByLabel('Email address')).toBeEnabled();
+  await page.getByLabel('Email address').fill('different@example.com');
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
+  expect(requests).toBe(2);
+});
+
 for (const result of [
   { status: 409, state: 'duplicate', message: 'Already submitted.' },
   { status: 503, state: 'temporary_error', message: 'Please try again later.' },

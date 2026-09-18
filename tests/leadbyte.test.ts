@@ -56,6 +56,11 @@ describe('LeadByte response handling', () => {
   ])('handles code %s as %s', (code, state) =>
     expect(parseLeadByte({ code, response: code === 1 ? 'OK' : 'Rejected' }).state).toBe(state),
   );
+  it('identifies email as the duplicate field when the vendor reports it', () => {
+    expect(
+      parseLeadByte({ code: -2, response: 'Duplicate email', info: { field: 'email' } }),
+    ).toMatchObject({ state: 'duplicate', duplicateFields: ['email'] });
+  });
   it.each([-9, -8, -7, -6, -4, -19, -17, -16, -15, -14, -13, -12, -11, -10])(
     'handles rejection %s safely',
     (code) => {

@@ -36,11 +36,7 @@ export default function LeadForm() {
       viewed.current = true;
     }
   }, []);
-  const locked =
-    state === 'submitting' ||
-    state === 'validating' ||
-    state === 'success' ||
-    state === 'duplicate';
+  const locked = state === 'submitting' || state === 'validating';
   function begin() {
     if (!started.current) {
       started.current = true;
@@ -140,6 +136,23 @@ export default function LeadForm() {
           : 'Please check your information and try again.',
       );
       if (result.errors) setErrors(result.errors);
+      if (next === 'duplicate') {
+        const duplicateFields = Array.isArray(result.duplicateFields)
+          ? result.duplicateFields.filter(
+              (field: unknown): field is keyof FieldErrors =>
+                ['firstname', 'lastname', 'phone', 'email'].includes(String(field)),
+            )
+          : ['phone'];
+        setErrors((current) => ({
+          ...current,
+          ...Object.fromEntries(
+            duplicateFields.map((field: keyof FieldErrors) => [
+              field,
+              'This detail has already been submitted.',
+            ]),
+          ),
+        }));
+      }
       if (next === 'success' || next === 'duplicate')
         saveBrowserReceipt(
           submission.current.id,
@@ -250,9 +263,7 @@ export default function LeadForm() {
                   ? 'SENDING REQUEST…'
                   : state === 'validating'
                     ? 'CHECKING DETAILS…'
-                    : state === 'duplicate'
-                      ? 'ALREADY SUBMITTED'
-                      : 'CALL ME BACK'}
+                    : 'CALL ME BACK'}
               </button>
               <p className="form-note">
                 By submitting this form, I confirm that I am 18 or older, have access to a vehicle
