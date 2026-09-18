@@ -145,6 +145,8 @@ test('duplicate response keeps the form editable and resubmits changed details',
   await expect(page.locator('#email-error')).toHaveText('This detail has already been submitted.');
   await expect(page.getByLabel('Email address')).toBeEnabled();
   await page.getByLabel('Email address').fill('different@example.com');
+  await expect(page.locator('#email-error')).toHaveCount(0);
+  await expect(page.getByRole('status')).not.toContainText('Already submitted.');
   await page.getByRole('button', { name: 'CALL ME BACK' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(2);

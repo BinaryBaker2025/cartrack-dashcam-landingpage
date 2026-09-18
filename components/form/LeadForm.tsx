@@ -223,6 +223,15 @@ export default function LeadForm() {
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
             placeholder={name === 'phone' ? 'Phone *' : `${label} *`}
+            onChange={() => {
+              if (errors[name])
+                setErrors((current) => {
+                  const next = { ...current };
+                  delete next[name];
+                  return next;
+                });
+              if (message) setMessage('');
+            }}
           />
         </div>
         {fieldError(name)}
