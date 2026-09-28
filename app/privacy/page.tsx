@@ -30,7 +30,8 @@ export default function Privacy() {
       <p>
         Your browser temporarily stores campaign attribution, a submission identifier, attempt times
         and a submission result. These records do not contain your name or mobile number.
-        Attribution may include the referring affiliate, transaction ID and UTM campaign parameters.
+        Attribution may include the referring affiliate, transaction ID, UTM campaign parameters,
+        Microsoft Advertising click ID and campaign, ad group and ad identifiers.
       </p>
       <p>
         Our database also records campaign attribution, the submitted details, submission times, the

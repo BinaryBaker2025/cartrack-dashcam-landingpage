@@ -1,0 +1,42 @@
+{
+  "REPLACE_WITH_ACTUAL_GOOGLE_FORM_ID": {
+    "fields": {
+      "firstname": "FIRST_NAME",
+      "lastname": "LAST_NAME",
+      "email": "EMAIL",
+      "phone": "PHONE_NUMBER"
+    },
+    "answers": {
+      "age": {
+        "columnId": "REPLACE_WITH_AGE_COLUMN_ID",
+        "values": { "REPLACE_WITH_EXACT_YES": "18_plus", "REPLACE_WITH_EXACT_NO": "under_18" }
+      },
+      "vehicle": {
+        "columnId": "REPLACE_WITH_VEHICLE_COLUMN_ID",
+        "values": { "REPLACE_WITH_EXACT_YES": "yes", "REPLACE_WITH_EXACT_NO": "no" }
+      },
+      "employment": {
+        "columnId": "REPLACE_WITH_EMPLOYMENT_COLUMN_ID",
+        "values": {
+          "REPLACE_WITH_EMPLOYED": "employed",
+          "REPLACE_WITH_SELF_EMPLOYED": "self_employed",
+          "REPLACE_WITH_UNEMPLOYED": "unemployed"
+        }
+      },
+      "income": {
+        "columnId": "REPLACE_WITH_INCOME_COLUMN_ID",
+        "values": { "REPLACE_WITH_EXACT_YES": "10000_plus", "REPLACE_WITH_EXACT_NO": "under_10000" }
+      },
+      "contactConsent": {
+        "columnId": "REPLACE_WITH_CONTACT_CONSENT_COLUMN_ID",
+        "values": { "REPLACE_WITH_EXACT_YES": true, "REPLACE_WITH_EXACT_NO": false }
+      },
+      "marketingConsent": {
+        "columnId": "REPLACE_WITH_MARKETING_CONSENT_COLUMN_ID",
+        "values": { "REPLACE_WITH_EXACT_YES": true, "REPLACE_WITH_EXACT_NO": false }
+      }
+    },
+    "consentText": "",
+    "consentVersion": ""
+  }
+}

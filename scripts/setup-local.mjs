@@ -13,6 +13,8 @@ const shared = {
   LEADBYTE_ENABLED: 'false',
   SITE_INDEXABLE: 'false',
   LEAD_HASH_SECRET: secret,
+  GOOGLE_ADS_WEBHOOK_KEY: vars.GOOGLE_ADS_WEBHOOK_KEY || randomBytes(32).toString('hex'),
+  GOOGLE_ADS_FORM_MAPPINGS: vars.GOOGLE_ADS_FORM_MAPPINGS || '{}',
 };
 const serialize = (values) =>
   Object.entries(values)

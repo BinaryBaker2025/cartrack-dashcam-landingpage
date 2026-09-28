@@ -6,3 +6,9 @@ LEADBYTE_ENABLED=false
 SITE_INDEXABLE=false
 # Generate locally; use the same local value in .env and .dev.vars.
 LEAD_HASH_SECRET=
+# Generate a separate random 32+ character local secret. Never use the production key.
+GOOGLE_ADS_WEBHOOK_KEY=
+# Form-ID keyed JSON; see config/google-ads-mappings.example.json and LEAD-PIPELINE.md.
+GOOGLE_ADS_FORM_MAPPINGS={}
+# Separate 32+ character token for authenticated intermediary delivery (MICROSOFT-LEADS.md).
+MICROSOFT_ADS_WEBHOOK_TOKEN=

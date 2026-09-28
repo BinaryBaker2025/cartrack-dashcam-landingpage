@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { validateLead } from '@/lib/validation';
 import { rateLimit } from '@/lib/rateLimit';
-import { claimSubmission, completeSubmission } from '@/lib/submissions';
-import { submissionConfig } from '@/lib/config';
-import { submitLead, type LeadResult } from '@/lib/leadbyte';
-import { digest, log, redactResponse } from '@/lib/logger';
+import { ingestLead, LeadConflict } from '@/lib/leadService';
+import { leadBindings } from '@/lib/leadBindings';
+import { submissionConfig, CONSENT_VERSION } from '@/lib/config';
+import { digest, log } from '@/lib/logger';
 import { ConfigurationError } from '@/lib/diagnostics';
 import { checkDatabase } from '@/lib/database';
+import { microsoftWebsiteDetails } from '@/lib/microsoftAds';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 function jsonResponse(body: unknown, status = 200, headers = {}) {
@@ -114,92 +115,71 @@ export async function POST(request: Request) {
         { state: 'api_rejected', message: 'Please refresh the page and try again.' },
         400,
       );
-    const key = digest(`submission:${raw.submissionId}`);
-    const fingerprint = digest(JSON.stringify(input));
-    const claim = await claimSubmission(key, fingerprint, {
-      requestId,
-      input,
+    const saved = await ingestLead(
+      await leadBindings(),
+      {
+        source: 'WEBSITE',
+        externalLeadId: raw.submissionId,
+        firstname: input.firstname,
+        lastname: input.lastname,
+        email: input.email,
+        phone: input.phone,
+        contactConsent: input.terms,
+        marketingConsent: null,
+        consentVersion: CONSENT_VERSION,
+        consentSource: 'WEBSITE',
+        consentTimestamp: now.toISOString(),
+        submittedAt: now.toISOString(),
+        receivedAt: now.toISOString(),
+        qualification: {
+          age: input.age,
+          vehicle: input.vehicle,
+          employment: input.employment,
+          income: input.income,
+        },
+        preferredtimeofcall: input.preferredtimeofcall,
+        attribution: raw.attribution,
+        eligibilityConfirmed: input.eligibilityConfirmed,
+        ...microsoftWebsiteDetails(raw.attribution),
+      },
       site,
-      submittedAt: now,
-      attribution: raw.attribution,
-    });
-    if (!claim.claimed) {
-      if (claim.existing.fingerprint !== fingerprint)
-        return json(
-          {
-            state: 'api_rejected',
-            message: 'This request has already been used. Please refresh the page.',
-          },
-          409,
-        );
-      if (claim.existing.result)
-        return json(JSON.parse(claim.existing.result), claim.existing.httpStatus || 200);
+    );
+    if (saved.legacyResult) {
+      if (saved.legacyResult.result)
+        return json(JSON.parse(saved.legacyResult.result), saved.legacyResult.http_status || 200);
       return json(
         {
-          state: 'temporary_error',
-          message: 'Your request is still being processed. Please wait before checking again.',
+          ...failure,
+          message:
+            'Your earlier request requires a delivery check. Please wait before trying again.',
         },
         409,
       );
     }
-    let result: LeadResult;
-    try {
-      result =
-        process.env.LEADBYTE_ENABLED === 'true'
-          ? await submitLead(input, now)
-          : {
-              state: 'temporary_error' as const,
-              message: 'Quote requests are not available yet. Please try again later.',
-              diagnosticCode: 'SUBMISSIONS_DISABLED',
-            };
-    } catch (error) {
-      if (!(error instanceof ConfigurationError)) throw error;
-      result = {
-        state: 'temporary_error',
-        message: failure.message,
-        uncertain: true,
-        diagnosticCode: error.code,
-      };
-    }
-    const response = {
-      state: result.state,
-      message: result.message,
-      diagnostics: {
-        code:
-          result.diagnosticCode || (result.code === 1 ? 'LEADBYTE_SUCCESS' : 'LEADBYTE_REJECTED'),
-        requestId,
-        ...(result.code !== undefined ? { leadByteCode: result.code } : {}),
-        ...(result.upstreamStatus !== undefined ? { upstreamStatus: result.upstreamStatus } : {}),
+    if (saved.status === 'not_sent_disabled')
+      return json(
+        { ...failure, message: 'Quote requests are not available yet. Please try again later.' },
+        503,
+      );
+    // Success here means durable receipt, never a claim of affiliate acceptance.
+    return json(
+      {
+        state: 'success',
+        message:
+          'Your request has been received for processing. A representative may contact you about your quote.',
+        diagnostics: { code: 'LEAD_RECEIVED', requestId },
       },
-      ...(!result.uncertain && result.state === 'temporary_error' ? { retryable: true } : {}),
-    };
-    const status =
-      result.state === 'success'
-        ? 200
-        : result.state === 'duplicate'
-          ? 409
-          : result.state === 'temporary_error'
-            ? 503
-            : 422;
-    await completeSubmission(key, response, status, {
-      ...result,
-      diagnosticCode: response.diagnostics.code,
-    });
-    log('leadbyte_result', {
-      id: requestId,
-      code: result.code,
-      diagnosticCode: response.diagnostics.code,
-      upstreamStatus: result.upstreamStatus,
-      response: redactResponse(result.response, [
-        input.firstname,
-        input.lastname,
-        input.phone,
-        input.phone.slice(3),
-      ]),
-      fetchError: result.fetchError,
-    });
-    return json(response, status);
+      200,
+    );
   } catch (error) {
+    if (error instanceof LeadConflict)
+      return json(
+        {
+          state: 'api_rejected',
+          message: 'This request has already been used. Please refresh the page.',
+        },
+        409,
+      );
     const code = error instanceof ConfigurationError ? error.code : 'INTERNAL_ERROR';
     log('lead_request_error', { id: requestId, diagnosticCode: code });
     return json({ ...failure, diagnostics: { code, requestId } }, 503);

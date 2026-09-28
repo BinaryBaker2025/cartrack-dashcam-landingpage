@@ -8,6 +8,8 @@
     "report": "node scripts/export-report.mjs",
     "report:daily": "node scripts/query-report.mjs daily",
     "report:issues": "node scripts/query-report.mjs issues",
+    "report:pipeline": "node scripts/query-report.mjs pipeline",
+    "report:microsoft": "node scripts/query-report.mjs microsoft",
     "reconcile": "node scripts/reconcile-report.mjs",
     "build": "next build",
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
@@ -21,6 +23,7 @@
     "lint": "eslint .",
     "test": "node --experimental-sqlite node_modules/vitest/vitest.mjs run",
     "test:e2e": "playwright test",
+    "test:worker": "node scripts/test-lead-worker.mjs",
     "format": "prettier --write app components lib tests scripts *.ts *.mjs *.json *.md"
   },
   "dependencies": {

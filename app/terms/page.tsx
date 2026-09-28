@@ -28,9 +28,8 @@ export default function Terms() {
         CarTrack Cameras. Any preferred call time is a request and is subject to availability.
       </p>
       <p>
-        A successful submission means the campaign’s lead processing service received your request.
-        CarTrack will explain any applicable product terms and pricing before you decide whether to
-        proceed.
+        A successful submission means we have saved your request for processing. CarTrack will
+        explain any applicable product terms and pricing before you decide whether to proceed.
       </p>
       <h2>Contact preferences</h2>
       <p>

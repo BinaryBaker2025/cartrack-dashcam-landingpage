@@ -162,9 +162,12 @@ export async function submitLead(
           }
           return {
             ...parsed,
-            state: 'temporary_error',
+            state:
+              response.status === 429 || response.status >= 500
+                ? 'temporary_error'
+                : 'api_rejected',
             message: temporary,
-            uncertain: true,
+            uncertain: parsed.code === 1 || parsed.code === -2,
             diagnosticCode: 'LEADBYTE_HTTP_ERROR',
             upstreamStatus: response.status,
             rawResponse: text,

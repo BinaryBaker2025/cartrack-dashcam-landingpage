@@ -14,9 +14,19 @@ Use Node 22.13+ (or Node 24). Setup creates ignored `.env.local` and `.dev.vars`
 
 ## Cloudflare deployment
 
-The configured site is [cartrack-dashcam.shyincs.com](https://cartrack-dashcam.shyincs.com/), using Sharief's Cloudflare account and the existing `cartrack_dashcam_landing` D1 database. Follow [CLOUDFLARE.md](CLOUDFLARE.md) for deployment and operations.
+The configured site is [bestcardash.com](https://bestcardash.com/), using Sharief's Cloudflare account and the existing `cartrack_dashcam_landing` D1 database. Follow [CLOUDFLARE.md](CLOUDFLARE.md) for deployment and operations.
 
-## Request flow and storage
+## Current lead pipeline
+
+Microsoft intermediary lead delivery: see [MICROSOFT-LEADS.md](MICROSOFT-LEADS.md) for
+`POST /api/webhooks/microsoft`, Bearer authentication and the normalized JSON contract.
+
+Bing website campaigns: see [BING-ADS.md](BING-ADS.md) for the destination URL, final URL suffix,
+Microsoft click-ID capture and `npm run report:microsoft`. Google remains available.
+
+See [LEAD-PIPELINE.md](LEAD-PIPELINE.md) for Google webhook configuration, shared website/ads ingestion, Queues, retries, consent mappings and deployment commands. Website success now acknowledges durable receipt; affiliate delivery runs asynchronously.
+
+## Original synchronous flow (historical, migrations 0001?0003)
 
 1. The browser validates eligibility, consent, names, ZA mobile and optional call time. Session storage retains attribution and safe receipts without raw contact fields.
 2. `/api/leads` enforces same-origin JSON requests, body size, honeypot and server validation.
@@ -28,11 +38,11 @@ The configured site is [cartrack-dashcam.shyincs.com](https://cartrack-dashcam.s
 
 The database retains names, normalized phone numbers, qualification/consent details, campaign attribution and delivery results. Read [LEAD-REPORTING.md](LEAD-REPORTING.md) for the schema, status definitions, authenticated exports and LeadByte matching commands. Raw contact information and vendor detail are not exposed in public API responses or diagnostic logs.
 
-Qualified forms are recorded even when delivery is disabled, with status `not_sent_disabled`. Invalid/unqualified/non-consenting submissions are rejected before creating a contact record. No automatic delivery queue or retry is enabled. A timeout can mean LeadByte received the lead: pending/uncertain records must be reconciled before manual redelivery. LeadByte enforces the supplied 90-day duplicate rule; a local record alone is not proof of vendor acceptance or a billable conversion.
+Qualified forms are recorded even when delivery is disabled, with status `not_sent_disabled`. Invalid/unqualified/non-consenting submissions are rejected before creating a contact record. The original implementation had no delivery queue; new submissions now use the pipeline described above. A timeout can mean LeadByte received the lead: pending/uncertain records must be reconciled before manual redelivery. LeadByte enforces the supplied 90-day duplicate rule; a local record alone is not proof of vendor acceptance or a billable conversion.
 
 ## Configuration
 
-`.env.example` lists app settings. For Cloudflare, set public/build-time configuration in Workers Builds and matching runtime values in `wrangler.jsonc`. `NEXT_PUBLIC_SITE_URL` must be the exact HTTPS workers.dev origin, without a path. It affects canonical links and the allowed submission origin. Store `LEAD_HASH_SECRET` as a Worker secret, never a public variable. Keep it stable across deployments.
+`.env.example` lists app settings. For Cloudflare, set public/build-time configuration in Workers Builds and matching runtime values in `wrangler.jsonc`. `NEXT_PUBLIC_SITE_URL` must be the exact production HTTPS origin (`https://bestcardash.com`), without a path or trailing slash. It affects canonical links and the allowed submission origin. Store `LEAD_HASH_SECRET` as a Worker secret, never a public variable. Keep it stable across deployments.
 
 `LEADBYTE_ENABLED=false` and `SITE_INDEXABLE=false` are the deployment defaults. `DEPLOY_PLATFORM=cloudflare` trusts Cloudflare's `CF-Connecting-IP`; `DEPLOY_ENV=production` is also required to enable indexing. Worker preview URLs are disabled. Use a separate Worker/database and disable live delivery for staging.
 

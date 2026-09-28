@@ -93,6 +93,11 @@ if (options.details) {
       delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id,
       leadbyte_response, leadbyte_info_json, leadbyte_raw_response, leadbyte_timestamp,
       leadbyte_process_time, upstream_http_status, http_status, diagnostic_code, delivery_uncertain
+      , source, external_lead_id, source_campaign_id, campaign_name, ad_group_id, ad_id, form_id,
+      processing_status, retry_count, marketing_consent, consent_text, consent_timestamp, consent_source,
+      submitted_at, updated_at, is_test,
+      json_extract(metadata_json, '$.acquisitionSource') AS acquisition_source,
+      json_extract(attribution_json, '$.msclkid') AS msclkid
       FROM lead_reporting WHERE created_at >= ${start} AND created_at < ${end}
       AND (created_at > ${cursor} OR (created_at = ${cursor} AND request_id > '${escapedId}'))
       ORDER BY created_at, request_id LIMIT 250`);

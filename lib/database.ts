@@ -21,5 +21,8 @@ export async function checkDatabase() {
       'SELECT request_id, delivery_status, leadbyte_code, email FROM lead_reporting LIMIT 0',
     ),
     db.prepare('SELECT bucket_key FROM rate_limits LIMIT 0'),
+    db.prepare('SELECT source, processing_status FROM submissions LIMIT 0'),
+    db.prepare('SELECT lead_id FROM lead_outbox LIMIT 0'),
+    db.prepare('SELECT id FROM webhook_events LIMIT 0'),
   ]);
 }

@@ -43,6 +43,35 @@ async function fillContact(page: import('@playwright/test').Page) {
 }
 const thankYouHeading = /Thank you for your application/;
 
+test('Bing click attribution survives navigation and reaches the website lead request', async ({
+  page,
+}) => {
+  const clickId = '0123456789abcdef0123456789abcdef';
+  await page.route('**/api/leads', async (route) => {
+    expect(route.request().postDataJSON().attribution).toMatchObject({
+      msclkid: clickId,
+      utm_source: 'bing',
+      utm_medium: 'cpc',
+      ms_campaign_id: '123',
+      ms_adgroup_id: '456',
+      ms_ad_id: '789',
+    });
+    await route.fulfill({
+      json: { state: 'success', message: 'Received', diagnostics: { code: 'LEAD_RECEIVED' } },
+    });
+  });
+  await page.goto(
+    `/?utm_source=bing&utm_medium=cpc&msclkid=${clickId}&ms_campaign_id=123&ms_adgroup_id=456&ms_ad_id=789`,
+  );
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('cartrack-attribution')))
+    .toContain(clickId);
+  await page.goto('/');
+  await fillContact(page);
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
+});
+
 test('accepted submission shows reference thank-you screen and prevents repeat delivery', async ({
   page,
 }) => {

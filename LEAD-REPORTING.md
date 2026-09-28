@@ -1,5 +1,12 @@
 # Lead records, reporting and LeadByte reconciliation
 
+**Bing website attribution:** Migration 0005 adds `microsoft_ads_leads`. Run
+`npm run report:microsoft` for counts by ad campaign and processing status. Website source
+and consent remain `WEBSITE`; the acquisition channel is recorded separately as `MICROSOFT_ADS`.
+See [BING-ADS.md](BING-ADS.md) for click-ID capture, deployment and measurement limitations.
+
+**Pipeline update:** New website and Google leads use asynchronous delivery. See [LEAD-PIPELINE.md](LEAD-PIPELINE.md) for migration 0004, source/consent fields, audit tables, processing states and retry semantics. `npm run report:pipeline` lists review, retry, failed and stalled records without customer details. The original states below describe historical synchronous submissions; new retryable failures are no longer classified as final rejections.
+
 ## What is saved
 
 Each valid, qualified form submission with consent is written to Cloudflare D1 **before** contacting LeadByte. An atomic submission-token claim prevents double-clicks or replayed requests from creating duplicate lead records or deliveries. The database must accept the record before a lead can be sent.

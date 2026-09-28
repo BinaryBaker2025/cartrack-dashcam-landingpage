@@ -1,10 +1,12 @@
 # Cloudflare deployment
 
+**Current release:** Follow [LEAD-PIPELINE.md](LEAD-PIPELINE.md) first to create both queues, set the Google webhook secret and apply migration 0004 before deploying. This supersedes the older synchronous-flow descriptions below.
+
 ## Configured resources
 
 - Account: Shariefholt@gmail.com's Account.
 - Worker: `cartrack-dashcam-landingpage`.
-- URL: https://cartrack-dashcam.shyincs.com/
+- URL: https://bestcardash.com/
 - D1: `cartrack_dashcam_landing`, bound as `DB`; database ID is in `wrangler.jsonc`.
 - `LEAD_HASH_SECRET` is stored as a Worker secret.
 - Live lead delivery and search indexing are disabled, matching the setup state.
@@ -25,7 +27,7 @@ This migration keeps the existing Next.js framework; the installed OpenNext vers
 
 1. Run `npx wrangler login`, then `npx wrangler whoami`. Select the intended account by adding its `account_id` to `wrangler.jsonc` if multiple accounts are available.
 2. Run `npx wrangler d1 create cartrack_dashcam_landing`. Replace the all-zero `database_id` in `wrangler.jsonc` with the returned ID. The binding name stays `DB`. Do not reuse a production database for a preview/staging Worker.
-3. In Cloudflare Workers & Pages, find or create the account's workers.dev subdomain. Add `NEXT_PUBLIC_SITE_URL` to `vars` in `wrangler.jsonc` as `https://cartrack-dashcam-landingpage.<your-subdomain>.workers.dev`, with no trailing slash. Do not invent the account subdomain.
+3. Ensure the `bestcardash.com` zone is active in the configured Cloudflare account. `wrangler.jsonc` declares `bestcardash.com` as the Worker custom domain and sets `NEXT_PUBLIC_SITE_URL=https://bestcardash.com`. Deployment attaches that domain; confirm it under Worker Settings > Domains & Routes. Keep the origin without a trailing slash.
 4. Generate a production-only hash secret and set it with `npx wrangler secret put LEAD_HASH_SECRET`. Use at least 32 random characters, retain it securely, and keep it stable across deployments. Local setup generates a separate development secret; do not copy that into production. Wrangler may offer to create the Worker when setting its first secret.
 5. Run `npm run deploy`. This validates the database ID and origin, builds the Worker, applies remote migrations, and deploys code, assets and the cleanup schedule. It does not enable live lead delivery.
 6. Open the resulting URL and `/api/leads`. With delivery disabled, readiness should return HTTP 503 and `SUBMISSIONS_DISABLED`; `DATABASE_UNAVAILABLE` or `INTERNAL_ERROR` indicates a binding/migration problem. A missing hash secret returns `CONFIG_HASH_SECRET_REQUIRED`.
@@ -51,7 +53,7 @@ OpenNext warns that Windows builds are not fully supported. Use Linux Workers Bu
 
 The current quote form adds migration `0003_contact_email.sql`. Use `npm run deploy` for releases that include schema changes: it builds, applies migrations and uploads in that order. The combined `npm run build:cloudflare && npx wrangler deploy` command does not apply database migrations. Keep `LEADBYTE_ENABLED=true` in version control to preserve the live delivery setting enabled by the owner. Production `LEAD_HASH_SECRET` is a Worker runtime secret, not a build variable.
 
-Connect this repository to the `cartrack-dashcam-landingpage` Worker in Workers Builds. Use Node 24, install dependencies with the platform's normal `npm ci` step, set the **Build command** to `npm run build:cloudflare`, and set the **Deploy command** to `npx wrangler deploy`. The build command must run before deploy so `.open-next` exists. Keep the same database ID and runtime settings in version control. Restrict automatic deployment to the production branch. Disable automatic preview branch deployment until a separate staging Worker and database are configured.
+Connect this repository to the `cartrack-dashcam-landingpage` Worker in Workers Builds. Use Node 24, install dependencies with the platform's normal `npm ci` step, set the **Build command** to `npm run build:cloudflare`, and set the **Deploy command** to `npm run db:migrate:remote && npx wrangler deploy`. The build command must run before deploy so `.open-next` exists. Keep the same database ID and runtime settings in version control. Restrict automatic deployment to the production branch. Disable automatic preview branch deployment until a separate staging Worker and database are configured.
 
 Do not set a Pages output directory: this is a Worker deployment, not a static Pages export. No Netlify adapter or function is needed for the Cloudflare deployment.
 

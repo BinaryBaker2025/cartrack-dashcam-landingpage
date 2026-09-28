@@ -3,16 +3,23 @@ import type { LeadResult } from '../lib/leadbyte';
 import { createTestDatabase } from './d1Fixture';
 import { valid } from './fixtures';
 import { POST } from '../app/api/leads/route';
+import { consumeLeads } from '../lib/leadConsumer';
+import type { LeadBindings, LeadJob } from '../lib/leadBindings';
+import type { MessageBatch } from '@cloudflare/workers-types';
 
 const state = vi.hoisted(() => ({
   db: null as ReturnType<typeof createTestDatabase> | null,
   submit: vi.fn(),
+  queue: vi.fn(),
 }));
 vi.mock('../lib/database', () => ({
   database: async () => {
     if (!state.db) throw new Error('Unavailable');
     return state.db;
   },
+}));
+vi.mock('../lib/leadBindings', () => ({
+  leadBindings: async () => ({ DB: state.db, LEAD_QUEUE: { send: state.queue } }),
 }));
 vi.mock('../lib/leadbyte', async (original) => ({
   ...(await original<typeof import('../lib/leadbyte')>()),
@@ -25,6 +32,8 @@ beforeEach(() => {
   vi.stubEnv('RATE_LIMIT_MAX', '100');
   vi.stubEnv('LEAD_HASH_SECRET', 'stable-test-secret-of-at-least-32-characters');
   state.submit.mockReset();
+  state.queue.mockReset();
+  state.queue.mockResolvedValue(undefined);
 });
 afterEach(() => {
   state.db?.sqlite.close();
@@ -49,6 +58,92 @@ function request(overrides = {}) {
 }
 function row() {
   return state.db!.sqlite.prepare('SELECT * FROM lead_reporting').get()!;
+}
+
+it('serializes concurrent website submissions and rejects changed data with the same token', async () => {
+  state.submit.mockResolvedValue({ state: 'success', message: 'Received', code: 1 });
+  const responses = await Promise.all(Array.from({ length: 5 }, () => POST(request())));
+  expect(responses.every((response) => response.status === 200)).toBe(true);
+  expect(state.db!.sqlite.prepare('SELECT count(*) n FROM submissions').get()?.n).toBe(1);
+  await deliver();
+  await deliver();
+  expect(state.submit).toHaveBeenCalledTimes(1);
+  expect((await POST(request({ firstname: 'Changed' }))).status).toBe(409);
+});
+
+it('routes Bing website leads through the shared queue and affiliate service with separate acquisition data', async () => {
+  const attribution = {
+    utm_source: 'bing',
+    utm_medium: 'cpc',
+    utm_campaign: 'bestcardash_dashcam',
+    msclkid: '0123456789abcdef0123456789abcdef',
+    ms_campaign_id: '123',
+    ms_adgroup_id: '456',
+    ms_ad_id: '789',
+  };
+  state.submit.mockResolvedValue({
+    state: 'success',
+    message: 'Received',
+    code: 1,
+    leadId: 'vendor-123',
+  });
+  const response = await POST(request({ attribution }));
+  expect(response.status).toBe(200);
+  expect(state.submit).not.toHaveBeenCalled();
+  expect(state.queue).toHaveBeenCalledWith({ leadId: row().submission_key });
+  expect(row()).toMatchObject({
+    source: 'WEBSITE',
+    consent_source: 'WEBSITE',
+    marketing_consent: null,
+    source_campaign_id: '123',
+    campaign_id: 'DASHCAMS',
+    ad_group_id: '456',
+    ad_id: '789',
+  });
+  expect(JSON.parse(String(row().metadata_json)).acquisitionSource).toBe('MICROSOFT_ADS');
+  const report = state.db!.sqlite.prepare('SELECT * FROM microsoft_ads_leads').get()!;
+  expect(report.msclkid).toBe(attribution.msclkid);
+  expect(report).not.toHaveProperty('phone1');
+  expect(report).not.toHaveProperty('email');
+  await deliver();
+  expect(row().processing_status).toBe('accepted');
+  expect(JSON.parse(String(row().payload_json))).not.toHaveProperty('msclkid');
+  expect(state.submit.mock.calls[0][0]).not.toHaveProperty('msclkid');
+  // Changing attribution must not create another lead/delivery for the same submission token.
+  expect(
+    (await POST(request({ attribution: { ...attribution, msclkid: 'a'.repeat(32) } }))).status,
+  ).toBe(200);
+  await deliver();
+  expect(state.submit).toHaveBeenCalledTimes(1);
+  expect(state.db!.sqlite.prepare('SELECT msclkid FROM microsoft_ads_leads').get()?.msclkid).toBe(
+    attribution.msclkid,
+  );
+});
+
+it('does not let Bing tracking parameters bypass qualification or create marketing consent', async () => {
+  const attribution = {
+    utm_source: 'bing',
+    utm_medium: 'cpc',
+    terms: true,
+    marketingConsent: true,
+    msclkid: 'a'.repeat(32),
+  };
+  expect((await POST(request({ terms: false, attribution }))).status).toBe(422);
+  expect((await POST(request({ age: 'under_18', attribution }))).status).toBe(422);
+  expect(state.queue).not.toHaveBeenCalled();
+  expect(state.db!.sqlite.prepare('SELECT count(*) n FROM microsoft_ads_leads').get()?.n).toBe(0);
+});
+
+async function deliver() {
+  const env = { DB: state.db, LEAD_QUEUE: { send: state.queue } } as unknown as LeadBindings;
+  const leadId = String(row().submission_key);
+  await consumeLeads(
+    {
+      queue: 'bestcardash-leads',
+      messages: [{ id: crypto.randomUUID(), body: { leadId }, ack: vi.fn(), retry: vi.fn() }],
+    } as unknown as MessageBatch<LeadJob>,
+    env,
+  );
 }
 
 it('saves contact, consent, attribution and exact payload before sending, then saves vendor metadata', async () => {
@@ -85,6 +180,8 @@ it('saves contact, consent, attribution and exact payload before sending, then s
     } satisfies LeadResult;
   });
   const response = await POST(request());
+  expect(state.submit).not.toHaveBeenCalled();
+  await deliver();
   expect(response.status).toBe(200);
   expect(row()).toMatchObject({
     delivery_status: 'accepted',
@@ -115,6 +212,7 @@ it('retains email before delivery without adding it to the documented vendor pay
     return { state: 'success', message: 'Received', code: 1 };
   });
   expect((await POST(request({ email: 'visitor@example.com' }))).status).toBe(200);
+  await deliver();
   expect(state.submit).toHaveBeenCalledTimes(1);
 });
 
@@ -137,6 +235,7 @@ it.each([-9, -8, -7, -6, -5, -4, -3, -2, -19, -17, -16, -15, -14, -13, -12, -11,
       info: { status: 'UNDELIV', code: 'EC_UNKNOWN_SUBSCRIBER' },
     });
     await POST(request());
+    await deliver();
     expect(row().leadbyte_code).toBe(code);
     expect(row().leadbyte_code_description).toBeTruthy();
     expect(row().delivery_status).toBe(code === -2 ? 'duplicate' : 'rejected');
@@ -156,15 +255,17 @@ it('retains a locally completed form when delivery is disabled, without calling 
   });
   expect(state.submit).not.toHaveBeenCalled();
 });
-it('keeps timeouts for reconciliation and does not redeliver on replay', async () => {
+it('keeps ambiguous vendor responses for reconciliation and does not redeliver on replay', async () => {
   state.submit.mockResolvedValue({
     state: 'temporary_error',
     message: 'Unknown',
     uncertain: true,
-    diagnosticCode: 'LEADBYTE_TIMEOUT',
+    diagnosticCode: 'LEADBYTE_MALFORMED_RESPONSE',
   });
   await POST(request());
+  await deliver();
   await POST(request());
+  await deliver();
   expect(row()).toMatchObject({
     delivery_status: 'uncertain',
     leadbyte_code: null,
@@ -174,9 +275,11 @@ it('keeps timeouts for reconciliation and does not redeliver on replay', async (
 });
 it('preserves the pending lead if execution fails after recording', async () => {
   state.submit.mockRejectedValue(new Error('Lost execution'));
-  expect((await POST(request())).status).toBe(503);
-  expect(row().delivery_status).toBe('pending');
-  expect((await POST(request())).status).toBe(409);
+  expect((await POST(request())).status).toBe(200);
+  await deliver();
+  expect(row().delivery_status).toBe('uncertain');
+  expect((await POST(request())).status).toBe(200);
+  await deliver();
   expect(state.submit).toHaveBeenCalledTimes(1);
 });
 it('does not send a lead when the record cannot be stored', async () => {

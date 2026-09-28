@@ -1,11 +1,12 @@
 import { createHmac, randomBytes } from 'node:crypto';
 import { ConfigurationError } from './diagnostics';
-const instanceSalt = randomBytes(32);
+// Worker module evaluation cannot generate randomness; test fallback is lazy.
+let instanceSalt: Buffer | undefined;
 export function digest(value: string) {
   const secret = process.env.LEAD_HASH_SECRET;
   if (process.env.NODE_ENV !== 'test' && (!secret || secret.length < 32))
     throw new ConfigurationError('CONFIG_HASH_SECRET_REQUIRED');
-  return createHmac('sha256', secret || instanceSalt)
+  return createHmac('sha256', secret || (instanceSalt ??= randomBytes(32)))
     .update(value)
     .digest('hex');
 }

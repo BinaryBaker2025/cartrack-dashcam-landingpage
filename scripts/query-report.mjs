@@ -1,9 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const files = { daily: 'reports/daily.sql', issues: 'reports/reconciliation-issues.sql' };
+const files = {
+  daily: 'reports/daily.sql',
+  issues: 'reports/reconciliation-issues.sql',
+  pipeline: 'reports/pipeline-issues.sql',
+  microsoft: 'reports/microsoft-ads.sql',
+};
 const file = files[process.argv[2]];
-if (!file) throw new Error('Choose daily or issues.');
+if (!file) throw new Error('Choose daily, issues, pipeline or microsoft.');
 // --command returns SELECT results; Wrangler --file uses a bulk import workflow.
 const result = spawnSync(
   process.execPath,

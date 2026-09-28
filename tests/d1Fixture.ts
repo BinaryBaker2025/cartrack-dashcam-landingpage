@@ -19,8 +19,12 @@ export function createTestDatabase() {
       async first() {
         return sqlite.prepare(sql).get(...values) || null;
       },
-      async all() {
-        return sqlite.prepare(sql).all(...values);
+      all() {
+        return { results: sqlite.prepare(sql).all(...values), success: true };
+      },
+      async run() {
+        const result = sqlite.prepare(sql).run(...values);
+        return { success: true, meta: { changes: Number(result.changes) } };
       },
     };
   }
@@ -28,7 +32,16 @@ export function createTestDatabase() {
     sqlite,
     prepare,
     async batch(statements: ReturnType<typeof prepare>[]) {
-      return Promise.all(statements.map((statement) => statement.all()));
+      sqlite.exec('BEGIN');
+      try {
+        const result = [];
+        for (const statement of statements) result.push(statement.all());
+        sqlite.exec('COMMIT');
+        return result;
+      } catch (error) {
+        sqlite.exec('ROLLBACK');
+        throw error;
+      }
     },
   };
 }
