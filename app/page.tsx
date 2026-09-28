@@ -27,11 +27,11 @@ export default function Home() {
           <div className="page-width hero-grid">
             <div className="hero-copy">
               <h1>Protect your vehicle</h1>
-              <div className="hero-price" aria-label="From only R199 per month. Terms apply.">
-                <p className="price-intro">from only</p>
+              <div className="hero-price" aria-label="From as little as R7 per day. Terms apply.">
+                <p className="price-intro">from as little as</p>
                 <p className="price-amount">
-                  <span>R199</span>
-                  <small>pm*</small>
+                  <span>R7</span>
+                  <small>/day*</small>
                 </p>
               </div>
               <div className="hero-rule" />
@@ -95,7 +95,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="footer">
-        <p>CarTrack Cameras · *From R199 per month. Terms apply.</p>
+        <p>CarTrack Cameras · *From R7 per day. Terms apply.</p>
         <nav aria-label="Legal">
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy notice</a>

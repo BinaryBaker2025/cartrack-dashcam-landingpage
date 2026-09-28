@@ -3,6 +3,7 @@ import { type LeadInput, parseCallTime } from './validation';
 export type LeadResult = {
   state: 'success' | 'duplicate' | 'api_rejected' | 'temporary_error';
   message: string;
+  duplicateFields?: Array<'phone' | 'email'>;
   code?: number;
   leadId?: string;
   response?: string;
@@ -44,6 +45,11 @@ export function buildPayload(input: LeadInput, site: string, now: Date) {
   return payload;
 }
 const temporary = "We couldn't submit your request right now. Please try again shortly.";
+function duplicateFields(info: unknown, response: string): Array<'phone' | 'email'> {
+  const text = `${JSON.stringify(info ?? '')} ${response}`.toLowerCase();
+  if (/\b(e-?mail|email_address)\b/.test(text)) return ['email'];
+  return ['phone'];
+}
 export function parseLeadByte(raw: unknown): LeadResult {
   if (
     !raw ||
@@ -93,6 +99,7 @@ export function parseLeadByte(raw: unknown): LeadResult {
     return {
       ...base,
       state: 'duplicate',
+      duplicateFields: duplicateFields(data.info, data.response),
       message: 'It looks like your details have already been submitted recently.',
     };
   if ([-3, -100].includes(data.code))

@@ -58,9 +58,11 @@ export async function POST(request: Request) {
     });
   }
   try {
-    const { site } = submissionConfig();
+    const { site, allowedOriginsList } = submissionConfig();
+    const origin = request.headers.get('origin');
     if (
-      request.headers.get('origin') !== site ||
+      !origin ||
+      !allowedOriginsList.includes(origin) ||
       request.headers.get('sec-fetch-site') === 'cross-site'
     )
       return json(

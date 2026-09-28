@@ -14,7 +14,11 @@ Use Node 22.13+ (or Node 24). Setup creates ignored `.env.local` and `.dev.vars`
 
 ## Cloudflare deployment
 
+<<<<<<< HEAD
 The configured site is [bestcardash.com](https://bestcardash.com/), using Sharief's Cloudflare account and the existing `cartrack_dashcam_landing` D1 database. Follow [CLOUDFLARE.md](CLOUDFLARE.md) for deployment and operations.
+=======
+The configured site is [bestcardash.com](https://bestcardash.com/) with the [www.bestcardash.com](https://www.bestcardash.com/) variant accepted as the same production origin. It uses the Cloudflare account and the existing `cartrack_dashcam_landing` D1 database. Follow [CLOUDFLARE.md](CLOUDFLARE.md) for deployment and operations.
+>>>>>>> 1b38d42ff6ba43cb38381821df19d17ca99ec44b
 
 ## Current lead pipeline
 

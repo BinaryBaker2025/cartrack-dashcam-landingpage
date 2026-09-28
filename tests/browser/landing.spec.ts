@@ -24,6 +24,17 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
     .analyze();
   expect(results.violations).toEqual([]);
 });
+test('shows revised pricing and a single disclaimer below the CTA', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByLabel('From as little as R7 per day. Terms apply.')).toBeVisible();
+  await expect(
+    page.getByText(
+      'By submitting this form, I confirm that I am 18 or older, have access to a vehicle and am employed.',
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
+});
 test('invalid submission shows inline messages without a network request', async ({ page }) => {
   let requests = 0;
   await page.route('**/api/leads', (route) => {
@@ -142,6 +153,32 @@ test('single-step form requires email', async ({ page }) => {
   await expect(page.locator('#email-error')).toBeVisible();
   expect(requests).toBe(0);
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
+});
+
+test('duplicate response keeps the form editable and resubmits changed details', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/api/leads', async (route) => {
+    requests++;
+    if (requests === 1) {
+      await route.fulfill({
+        status: 409,
+        json: { state: 'duplicate', message: 'Already submitted.', duplicateFields: ['email'] },
+      });
+      return;
+    }
+    await route.fulfill({ json: { state: 'success', message: 'Accepted' } });
+  });
+  await page.goto('/');
+  await fillContact(page);
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.locator('#email-error')).toHaveText('This detail has already been submitted.');
+  await expect(page.getByLabel('Email address')).toBeEnabled();
+  await page.getByLabel('Email address').fill('different@example.com');
+  await expect(page.locator('#email-error')).toHaveCount(0);
+  await expect(page.getByRole('status')).not.toContainText('Already submitted.');
+  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
+  expect(requests).toBe(2);
 });
 
 for (const result of [
