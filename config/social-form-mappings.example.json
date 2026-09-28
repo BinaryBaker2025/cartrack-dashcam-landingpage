@@ -1,0 +1,36 @@
+{
+  "YOUR_FORM_ID": {
+    "fields": {
+      "firstname": "first_name",
+      "lastname": "last_name",
+      "email": "email",
+      "phone": "phone_number"
+    },
+    "answers": {
+      "age": { "columnId": "age", "values": { "18 or older": "18_plus", "Under 18": "under_18" } },
+      "vehicle": { "columnId": "vehicle", "values": { "Yes": "yes", "No": "no" } },
+      "employment": {
+        "columnId": "employment",
+        "values": {
+          "Employed": "employed",
+          "Self employed": "self_employed",
+          "Unemployed": "unemployed"
+        }
+      },
+      "income": {
+        "columnId": "income",
+        "values": { "R10000 or more": "10000_plus", "Below R10000": "under_10000" }
+      },
+      "contactConsent": {
+        "columnId": "contact_permission",
+        "values": { "Yes": true, "No": false }
+      },
+      "marketingConsent": {
+        "columnId": "marketing_permission",
+        "values": { "Yes": true, "No": false }
+      }
+    },
+    "consentText": "REPLACE with the exact contact permission displayed in this form",
+    "consentVersion": "REPLACE with your form consent version"
+  }
+}

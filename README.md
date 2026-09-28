@@ -22,6 +22,10 @@ The configured site is [bestcardash.com](https://bestcardash.com/) with the [www
 
 ## Current lead pipeline
 
+Native Facebook/Instagram and TikTok form callbacks: see [SOCIAL-LEADS.md](SOCIAL-LEADS.md)
+for Cloudflare endpoints, signatures, platform subscriptions and form mappings.
+Automatic Bing notifications after deployment: see [SEARCH-INDEXING.md](SEARCH-INDEXING.md).
+
 Microsoft intermediary lead delivery: see [MICROSOFT-LEADS.md](MICROSOFT-LEADS.md) for
 `POST /api/webhooks/microsoft`, Bearer authentication and the normalized JSON contract.
 

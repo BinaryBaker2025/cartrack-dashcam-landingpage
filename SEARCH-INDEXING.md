@@ -1,5 +1,34 @@
 # Search indexing
 
+## Automatic IndexNow notification
+
+`npm run deploy` now notifies Bing via IndexNow after a successful Cloudflare deployment.
+The ownership key is served from the root text file in `public/`; it is intentionally
+public, not a webhook authentication secret. Configuration lives in `config/indexnow.json`.
+Only the homepage is submitted by default, matching the sitemap; legal pages remain excluded.
+This site has no CMS: deployment is the content publication trigger. No inbound public
+webhook endpoint is needed for this flow. Deploying through a different command or dashboard
+bypasses this hook; run the notification command after such deployments.
+
+```sh
+# Inspect the request without making network requests
+npm run indexnow:check
+# Retry notification independently of deployment
+npm run indexnow
+# Explicit changed/deleted URLs; up to 10,000 per invocation
+npm run indexnow -- https://bestcardash.com/old-page https://bestcardash.com/new-page
+```
+
+The command checks the live ownership file before submitting, rejects off-site URLs,
+and fails visibly on network/API errors. A notification failure after deployment does
+not roll back the deployed site. Retry the notification separately; wait on HTTP 429.
+HTTP 200 means received; HTTP 202 means ownership verification is pending. Neither
+guarantees crawling, indexing, ranking, or inclusion in AI answers. Participating
+engines share submissions, so separate requests to each engine are unnecessary.
+Check the IndexNow report in Bing Webmaster Tools after activation.
+
+Protocol reference: https://www.indexnow.org/documentation
+
 Production Cloudflare builds enable indexing through `SITE_INDEXABLE=true` and
 `DEPLOY_ENV=production` in `wrangler.jsonc`. Local and preview environments remain
 excluded by `lib/hosting.ts`. Run `npm run build:cloudflare` for the production

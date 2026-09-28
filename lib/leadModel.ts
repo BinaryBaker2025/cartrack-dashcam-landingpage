@@ -1,6 +1,6 @@
 import { validateLead, type LeadInput } from './validation';
 
-export type LeadSource = 'WEBSITE' | 'GOOGLE_ADS' | 'MICROSOFT_ADS' | 'META_ADS';
+export type LeadSource = 'WEBSITE' | 'GOOGLE_ADS' | 'MICROSOFT_ADS' | 'META_ADS' | 'TIKTOK_ADS';
 export type LeadRequest = {
   source: LeadSource;
   externalLeadId: string;
