@@ -9,6 +9,10 @@
   "preview_urls": false,
   "routes": [
     {
+      "pattern": "reports.bestcardash.com",
+      "custom_domain": true,
+    },
+    {
       "pattern": "bestcardash.com",
       "custom_domain": true,
     },

@@ -52,7 +52,7 @@ The supplied LeadByte duplicate window is **one submission per 90 days**. LeadBy
 
 Lead records and their vendor results are **no longer automatically deleted**. The daily cron deletes only expired rate-limit buckets. The original `expires_at` field remains for migration compatibility but is ignored for lead retention. Define an operator-managed retention/deletion policy when ready; routine deployment and cleanup will preserve this reporting history.
 
-Reports are accessed through the authenticated Cloudflare account/D1 console or local Wrangler commands. There is no public reporting endpoint or browser-exposed database token. Use an authorised account with the appropriate D1 access. Exported detail reports contain contact information: store them securely and do not commit them. The `artifacts/` directory is ignored by Git.
+Reports are accessed through the authenticated Cloudflare account/D1 console, local Wrangler commands, or the password-protected owner dashboard described in [OWNER-REPORTING.md](OWNER-REPORTING.md). No database token is exposed to the browser. Exported detail reports contain contact information: store them securely and do not commit them. The `artifacts/` directory is ignored by Git.
 
 ## Reports
 

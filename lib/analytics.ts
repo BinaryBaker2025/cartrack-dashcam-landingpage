@@ -14,8 +14,15 @@ export function configureAnalytics(next: Adapter) {
   adapter = next;
 }
 export function track(event: AnalyticsEvent, properties: AnalyticsProperties = {}) {
-  // Intentionally no PII, attribution identifiers, network request or provider by default.
   try {
+    if (typeof window !== 'undefined') {
+      void fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event }),
+        keepalive: true,
+      }).catch(() => {});
+    }
     adapter?.(event, properties);
   } catch {
     /* Analytics must never interrupt a lead. */
