@@ -4,6 +4,9 @@ import { createTestDatabase } from './d1Fixture';
 import { reportAccess } from '../lib/reportAuth';
 import { privateReportResponse } from '../lib/reportResponse';
 import { readReport, reportFilters } from '../lib/reporting';
+import { reportSheets } from '../lib/reportWorkbook';
+import writeExcelFile from 'write-excel-file/universal';
+import { unzipSync, strFromU8 } from 'fflate';
 
 it('preserves streamed report content, status and headers instead of stringifying the Response', async () => {
   const upstream = new Response('<html><body>Owner dashboard</body></html>', {
@@ -85,6 +88,33 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
     });
     expect(second.leads).toHaveLength(1);
     expect(second.leads[0].request_id).toBe('request-0');
+    const exported = await readReport(
+      db as unknown as D1Database,
+      { ...filters, search: '', page: 2 },
+      true,
+    );
+    expect(exported.leads).toHaveLength(51);
+    exported.leads[0].firstname = '=HYPERLINK("https://example.com")';
+    const workbook = await writeExcelFile(reportSheets(exported)).toBlob();
+    const files = unzipSync(new Uint8Array(await workbook.arrayBuffer()));
+    const workbookXml = strFromU8(files['xl/workbook.xml']);
+    expect(workbookXml).toContain('Overview');
+    expect(workbookXml).toContain('Leads');
+    expect(workbookXml).toContain('Daily leads');
+    const xml = Object.entries(files)
+      .filter(([name]) => name.endsWith('.xml'))
+      .map(([, data]) => strFromU8(data))
+      .join('');
+    expect(xml).toContain('0820000000');
+    expect(xml).toContain('=HYPERLINK(');
+    expect(xml).not.toContain('<f>');
+    expect(xml).toContain('request-0');
+    const searched = await readReport(
+      db as unknown as D1Database,
+      { ...filters, search: 'request-50' },
+      true,
+    );
+    expect(searched.leads).toHaveLength(1);
   } finally {
     db.sqlite.close();
   }

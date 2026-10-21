@@ -20,9 +20,9 @@ const config: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline'" +
+              "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com" +
               (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '') +
-              "; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
+              "; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
           },
           ...(!index ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
         ],

@@ -15,13 +15,20 @@ export async function GET(request: Request) {
     );
   }
   try {
-    return Response.json(await readReport(await database(), filters), {
-      headers: {
-        'Cache-Control': 'private, no-store',
-        'X-Robots-Tag': 'noindex, nofollow',
-        Vary: 'Authorization',
+    return Response.json(
+      await readReport(
+        await database(),
+        filters,
+        new URL(request.url).searchParams.get('export') === 'all',
+      ),
+      {
+        headers: {
+          'Cache-Control': 'private, no-store',
+          'X-Robots-Tag': 'noindex, nofollow',
+          Vary: 'Authorization',
+        },
       },
-    });
+    );
   } catch {
     return Response.json(
       { error: 'Reporting is unavailable. Check the database binding and migrations.' },

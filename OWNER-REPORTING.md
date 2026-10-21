@@ -28,3 +28,7 @@ The dashboard reads the existing `lead_reporting` and `lead_daily_summary` views
 Migration 0007 adds anonymous daily event counters. Existing form events now POST only the event name to `/api/analytics`; no contact details or visitor identifiers are stored in the analytics table. A separate IP-derived temporary rate-limit bucket limits event writes without consuming lead submission limits. These are browser event counts, not unique people, ad-platform analytics or sales. Bots and repeat visits can inflate counts; blocked requests can undercount. Historical activity cannot be reconstructed. Tracking failures never stop form submission. LeadByte acceptance comes from SQL, not browser events.
 
 Reports and API responses are private/no-store and noindex. The dashboard is read-only. Refresh is manual. Never place the reporting password in a public environment variable or URL.
+
+## Excel export
+
+Use **Export Excel** beside the lead records after applying the desired date range and search. The `.xlsx` download includes every matching lead across all pages, an overview of delivery/source/activity counts and daily lead totals. Summary sheets use the full date range; search applies to the Leads sheet only. Phone numbers and identifiers remain text, and contact values cannot become spreadsheet formulas. Exports contain private contact information. They are live reads, not historical snapshots; the download records its generation time. Large exports that exceed database or workbook limits fail visibly; use a shorter date range in that case.

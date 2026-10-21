@@ -38,6 +38,43 @@ export default function ReportingDashboard() {
   const [revision, setRevision] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
+  async function exportExcel() {
+    if (!report || exporting) return;
+    setExporting(true);
+    setExportError('');
+    try {
+      const params = new URLSearchParams({
+        from: report.filters.from,
+        to: report.filters.to,
+        search: report.filters.search,
+        export: 'all',
+      });
+      const response = await fetch(`/api/reports?${params}`, { cache: 'no-store' });
+      if (response.status === 401)
+        throw new Error('Owner sign-in required. Reload the page and sign in again.');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Export could not be loaded.');
+      const [{ default: writeExcelFile }, { reportSheets }] = await Promise.all([
+        import('write-excel-file/universal'),
+        import('@/lib/reportWorkbook'),
+      ]);
+      const blob = await writeExcelFile(reportSheets(data)).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cartrack-report-${data.filters.from}-to-${data.filters.to}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (reason) {
+      setExportError(reason instanceof Error ? reason.message : 'Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  }
   useEffect(() => {
     const controller = new AbortController();
     fetch(`/api/reports?${query}`, { cache: 'no-store', signal: controller.signal })
@@ -142,6 +179,11 @@ export default function ReportingDashboard() {
             {error} <button onClick={() => reload()}>Try again</button>
           </div>
         )}
+        {exportError && (
+          <p className={styles.error} role="alert">
+            {exportError}
+          </p>
+        )}
         <div aria-live="polite" aria-busy={loading}>
           {loading ? (
             <div className={styles.placeholder}>Loading the latest reporting data…</div>
@@ -232,7 +274,17 @@ export default function ReportingDashboard() {
                       <h2>Lead records</h2>
                       <p>From the existing lead_reporting SQL view</p>
                     </div>
-                    <span>{number(report.total)} matching records</span>
+                    <div>
+                      <span>{number(report.total)} matching records</span>{' '}
+                      <button
+                        onClick={exportExcel}
+                        disabled={exporting || loading}
+                        aria-busy={exporting}
+                      >
+                        {exporting ? 'Preparing Excel…' : 'Export Excel'}
+                      </button>
+                      <p>Includes all matching leads, overview and daily totals.</p>
+                    </div>
                   </div>
                   <div className={styles.tableScroll}>
                     <table>

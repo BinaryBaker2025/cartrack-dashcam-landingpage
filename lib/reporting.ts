@@ -28,7 +28,11 @@ export function reportFilters(url: URL) {
   };
 }
 
-export async function readReport(db: D1Database, filters: ReturnType<typeof reportFilters>) {
+export async function readReport(
+  db: D1Database,
+  filters: ReturnType<typeof reportFilters>,
+  exportAll = false,
+) {
   const { from, to, start, end, page, search } = filters;
   const range = 'created_at >= ? AND created_at < ?';
   const match = `${range} AND (? = '' OR instr(lower(coalesce(firstname,'') || ' ' || coalesce(lastname,'') || ' ' || coalesce(phone1,'') || ' ' || coalesce(email,'') || ' ' || request_id), lower(?)) > 0)`;
@@ -50,9 +54,9 @@ export async function readReport(db: D1Database, filters: ReturnType<typeof repo
       .bind(start, end),
     db
       .prepare(
-        `SELECT request_id, submitted_at_utc, firstname, lastname, phone1, email, source, processing_status, delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id, utm_source, utm_campaign, is_test FROM lead_reporting WHERE ${match} ORDER BY created_at DESC, request_id DESC LIMIT 50 OFFSET ?`,
+        `SELECT request_id, submitted_at_utc, firstname, lastname, phone1, email, source, processing_status, delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id, utm_source, utm_campaign, is_test FROM lead_reporting WHERE ${match} ORDER BY created_at DESC, request_id DESC${exportAll ? '' : ' LIMIT 50 OFFSET ?'}`,
       )
-      .bind(start, end, search, search, (page - 1) * 50),
+      .bind(start, end, search, search, ...(exportAll ? [] : [(page - 1) * 50])),
     db
       .prepare(`SELECT COUNT(*) AS count FROM lead_reporting WHERE ${match}`)
       .bind(start, end, search, search),
