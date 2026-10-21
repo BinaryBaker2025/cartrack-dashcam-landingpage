@@ -2,7 +2,30 @@ import { expect, it } from 'vitest';
 import type { D1Database } from '@cloudflare/workers-types';
 import { createTestDatabase } from './d1Fixture';
 import { reportAccess } from '../lib/reportAuth';
+import { privateReportResponse } from '../lib/reportResponse';
 import { readReport, reportFilters } from '../lib/reporting';
+
+it('preserves streamed report content, status and headers instead of stringifying the Response', async () => {
+  const upstream = new Response('<html><body>Owner dashboard</body></html>', {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600',
+    },
+  });
+  const response = privateReportResponse(upstream);
+  expect(await response.text()).toBe('<html><body>Owner dashboard</body></html>');
+  expect(response.status).toBe(200);
+  expect(response.headers.get('Content-Type')).toBe('text/html; charset=utf-8');
+  expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+  expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+  const redirect = privateReportResponse(Response.redirect('https://example.com/reports', 307));
+  expect(redirect.status).toBe(307);
+  expect(redirect.headers.get('Location')).toBe('https://example.com/reports');
+  const failure = privateReportResponse(Response.json({ error: 'Unavailable' }, { status: 503 }));
+  expect(failure.status).toBe(503);
+  expect(await failure.json()).toEqual({ error: 'Unavailable' });
+});
 
 it('fails closed and only accepts the owner credentials', () => {
   const password = 'a-long-test-password-for-owner';

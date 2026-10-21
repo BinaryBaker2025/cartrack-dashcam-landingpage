@@ -4,6 +4,7 @@ import { consumeLeads } from './lib/leadConsumer';
 import { recoverOutbox } from './lib/leadService';
 import { processSocialInbox } from './lib/socialLeadProcessor';
 import { reportAccess } from './lib/reportAuth';
+import { privateReportResponse } from './lib/reportResponse';
 
 const worker = {
   async fetch(request, env, ctx) {
@@ -16,11 +17,7 @@ const worker = {
         url.pathname = '/reports';
         return Response.redirect(url.toString(), 302);
       }
-      const response = new Response(await nextWorker.fetch(request, env, ctx));
-      response.headers.set('Cache-Control', 'private, no-store');
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow');
-      response.headers.set('Referrer-Policy', 'no-referrer');
-      return response;
+      return privateReportResponse(await nextWorker.fetch(request, env, ctx));
     }
     return nextWorker.fetch(request, env, ctx);
   },
