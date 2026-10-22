@@ -1,5 +1,36 @@
 # Microsoft leads delivered by an intermediary
 
+## Website UET configuration (October 2026)
+
+The root layout installs UET tag `187282616` once on every page, with automatic SPA
+page tracking. Account reference supplied by the advertiser: `G107EBXA`. This reference
+is not an API credential or a native lead form ID and is not needed in the browser tag.
+
+Consent defaults to `ad_storage: denied` before loading UET. The advertising preference
+panel at the bottom of every page offers accept/decline and a way to reopen the choice.
+The choice persists in local storage and is separate from callback permission. UET can
+send cookieless measurement signals while denied. Enhanced conversion identifiers are
+sent only with advertising consent and a successful website API response, immediately
+before the custom UET event `lead_submit_success`. Duplicates, rejected submissions and
+browser receipt replays do not fire this event. No revenue value is invented.
+
+Before launch, check the existing conversion goal: its UET event action must match
+`lead_submit_success` if using this custom event. If the goal uses another action, align
+that configuration before relying on reports. Destination-page goals need their actual
+configured URL; this application shows an inline thank-you state. Enable enhanced
+conversions in Microsoft Advertising and verify with UET Tag Helper after deployment.
+The goal configuration and account settings have not been inspected or changed here.
+
+MSCLKID is a click identifier, not a native lead form ID. Its existing session capture
+and lead persistence remain in place. Installing UET does not enable account auto-tagging:
+verify MSCLKID auto-tagging in Microsoft Advertising and test a real ad-click landing URL.
+Campaign IDs, native form IDs and a supported upstream delivery integration are still
+needed only for the separate native-lead workflow below. No offline conversion uploader
+or Microsoft reporting API authentication is configured by this browser integration.
+
+Microsoft references: [UET installation](https://help.ads.microsoft.com/apex/index/3/en/56688),
+[Consent Mode](https://www.about.ads.microsoft.com/en/blog/post/february-2026/advanced-consent-mode-preserving-accurate-measurement-while-respecting-user-privacy).
+
 This is a BestCarDash JSON contract for a trusted CRM, Zapier workflow or another supported
 delivery integration. It is **not** a claim that Microsoft Advertising natively posts webhooks,
 or that Zapier has a native Bing lead-form trigger. The upstream integration must actually

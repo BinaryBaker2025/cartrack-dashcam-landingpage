@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import Script from 'next/script';
+import AdvertisingConsent from '@/components/AdvertisingConsent';
+import { uetBootstrap } from '@/lib/uet';
 import { siteUrl } from '@/lib/config';
 import { isIndexable } from '@/lib/hosting';
 import './globals.css';
@@ -60,11 +63,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en-ZA">
+      <head>
+        <Script id="microsoft-uet" strategy="beforeInteractive">
+          {uetBootstrap}
+        </Script>
+      </head>
       <body
         suppressHydrationWarning
         className={`${montserrat.variable} ${poppins.variable} ${questrial.variable} ${handwriting.variable}`}
       >
         {children}
+        <AdvertisingConsent />
       </body>
     </html>
   );

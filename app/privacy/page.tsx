@@ -40,6 +40,21 @@ export default function Privacy() {
         pseudonymous network identifiers to limit repeated requests. Diagnostic logs use request IDs
         and redacted messages rather than full contact details.
       </p>
+      <h2>Microsoft Advertising</h2>
+      <p>
+        We use Microsoft Universal Event Tracking to measure advertising. Advertising storage is
+        denied by default. If you accept advertising, Microsoft may use advertising cookies and
+        receive your email address and phone number for enhanced conversion matching after a
+        successful quote request. UET hashes these contact identifiers for matching. Declining does
+        not prevent you from requesting a quote. In denied mode, UET may send cookieless measurement
+        signals. Microsoft processes data under its{' '}
+        <a href="https://privacy.microsoft.com/en-us/privacystatement">Privacy Statement</a>.
+      </p>
+      <p>
+        Use Advertising preferences on any page to change your choice. We store this preference in
+        your browser until you change it or clear site storage. Withdrawing consent stops future
+        enhanced conversion submissions; it does not undo information already sent.
+      </p>
       <h2>Retention and your choices</h2>
       <p>
         Browser result records expire after 30 minutes and are removed when the site next accesses

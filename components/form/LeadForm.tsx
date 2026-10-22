@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { validateLead, type FieldErrors } from '@/lib/validation';
 import { sessionAttribution } from '@/lib/attribution';
 import { track } from '@/lib/analytics';
+import { trackMicrosoftLead } from '@/lib/uet';
 import { submissionKey } from '@/lib/submissionKey';
 import { browserAttempt, browserReceipt, saveBrowserReceipt } from '@/lib/browserState';
 import { reportDiagnostic } from '@/lib/diagnostics';
@@ -138,9 +139,8 @@ export default function LeadForm() {
       if (result.errors) setErrors(result.errors);
       if (next === 'duplicate') {
         const duplicateFields = Array.isArray(result.duplicateFields)
-          ? result.duplicateFields.filter(
-              (field: unknown): field is keyof FieldErrors =>
-                ['firstname', 'lastname', 'phone', 'email'].includes(String(field)),
+          ? result.duplicateFields.filter((field: unknown): field is keyof FieldErrors =>
+              ['firstname', 'lastname', 'phone', 'email'].includes(String(field)),
             )
           : ['phone'];
         setErrors((current) => ({
@@ -161,6 +161,7 @@ export default function LeadForm() {
         );
       if (result.retryable === true)
         submission.current = { id: await submissionKey(payload, true), payload };
+      if (next === 'success') trackMicrosoftLead(validation.input.email, validation.input.phone);
       track(
         next === 'success'
           ? 'lead_submit_success'
@@ -276,8 +277,7 @@ export default function LeadForm() {
               </button>
               <p className="form-note">
                 By submitting this form, I confirm that I am 18 or older, have access to a vehicle
-                and am employed. I accept the{' '}
-                <a href="/terms">terms</a> and{' '}
+                and am employed. I accept the <a href="/terms">terms</a> and{' '}
                 <a href="/privacy">privacy notice</a>, and consent to my details being shared with
                 the service provider and its authorized partners so that a representative may
                 contact me regarding the requested or future products and services.

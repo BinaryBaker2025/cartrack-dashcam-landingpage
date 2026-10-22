@@ -1,4 +1,45 @@
 @import 'tailwindcss';
+.advertising-consent {
+  padding: 16px clamp(16px, 4vw, 48px);
+  background: oklch(0.97 0.008 250);
+  color: oklch(0.25 0.008 250);
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.advertising-consent-panel {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.advertising-consent h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+.advertising-consent p {
+  max-width: 75ch;
+  margin-block: 8px 16px;
+}
+.advertising-consent-panel > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.advertising-consent button {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.advertising-consent a,
+.advertising-settings {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.advertising-consent :focus-visible {
+  outline: 3px solid var(--orange-text);
+  outline-offset: 3px;
+}
 :root {
   --orange: #f87c3c;
   --orange-text: #aa420d;
