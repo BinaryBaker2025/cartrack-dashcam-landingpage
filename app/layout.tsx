@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import Script from 'next/script';
 import AdvertisingConsent from '@/components/AdvertisingConsent';
 import { uetBootstrap } from '@/lib/uet';
+import { GOOGLE_ADS_TAG_ID, googleTagBootstrap } from '@/lib/googleTag';
 import { siteUrl } from '@/lib/config';
 import { isIndexable } from '@/lib/hosting';
 import './globals.css';
@@ -64,6 +65,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en-ZA">
       <head>
+        <Script id="google-ads-config" strategy="beforeInteractive">
+          {googleTagBootstrap}
+        </Script>
         <Script id="microsoft-uet" strategy="beforeInteractive">
           {uetBootstrap}
         </Script>
@@ -73,6 +77,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         className={`${montserrat.variable} ${poppins.variable} ${questrial.variable} ${handwriting.variable}`}
       >
         {children}
+        <Script
+          id="google-ads-tag"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_TAG_ID}`}
+          strategy="afterInteractive"
+        />
         <AdvertisingConsent />
       </body>
     </html>

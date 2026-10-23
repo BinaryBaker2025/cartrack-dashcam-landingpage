@@ -20,9 +20,9 @@ const config: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://bat.bing.net" +
+              "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://bat.bing.net https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net" +
               (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '') +
-              "; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://bat.bing.net https://bat.bing.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://bat.bing.net https://bat.bing.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
+              "; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://bat.bing.net https://bat.bing.com https://www.googletagmanager.com https://www.google.com https://www.google.co.za https://www.googleadservices.com https://googleads.g.doubleclick.net https://td.doubleclick.net; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://bat.bing.net https://bat.bing.com https://www.googletagmanager.com https://www.google.com https://www.google.co.za https://www.googleadservices.com https://googleads.g.doubleclick.net https://td.doubleclick.net; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
           },
           ...(!index ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
         ],

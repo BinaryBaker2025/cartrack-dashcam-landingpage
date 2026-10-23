@@ -1,6 +1,13 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 
 export function reportAccess(request: Request, password = process.env.REPORTING_PASSWORD) {
+  // next dev does not run the production Worker's page-level sign-in gate.
+  // Limit password-free development access to loopback hosts only.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    ['localhost', '127.0.0.1', '[::1]'].includes(new URL(request.url).hostname)
+  )
+    return null;
   const headers = {
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': 'noindex, nofollow',

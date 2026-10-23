@@ -4,6 +4,7 @@ export type AdConsent = 'granted' | 'denied';
 
 declare global {
   interface Window {
+    gtag?: (...args: unknown[]) => void;
     uetq?: { push: (...args: unknown[]) => unknown };
     bestcardashAdConsent?: AdConsent;
   }
@@ -44,6 +45,11 @@ export function updateAdConsent(choice: AdConsent) {
     // The choice still applies for this document when storage is unavailable.
   }
   window.uetq?.push('consent', 'update', { ad_storage: choice });
+  window.gtag?.('consent', 'update', {
+    ad_storage: choice,
+    ad_user_data: choice,
+    ad_personalization: choice,
+  });
 }
 
 export function trackMicrosoftLead(email: string | undefined, phone: string) {

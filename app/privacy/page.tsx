@@ -40,6 +40,14 @@ export default function Privacy() {
         pseudonymous network identifiers to limit repeated requests. Diagnostic logs use request IDs
         and redacted messages rather than full contact details.
       </p>
+      <h2>Google Advertising</h2>
+      <p>
+        We use the Google Ads tag to measure advertising. Advertising storage, advertising user data
+        and personalisation are denied by default and follow your Advertising preferences. Google
+        may send cookieless measurement signals when consent is denied. Declining does not prevent a
+        quote request. See Google&apos;s <a href="https://policies.google.com/privacy">Privacy Policy</a>
+        .
+      </p>
       <h2>Microsoft Advertising</h2>
       <p>
         We use Microsoft Universal Event Tracking to measure advertising. Advertising storage is

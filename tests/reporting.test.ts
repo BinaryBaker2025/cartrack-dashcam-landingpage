@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import type { D1Database } from '@cloudflare/workers-types';
 import { createTestDatabase } from './d1Fixture';
 import { reportAccess } from '../lib/reportAuth';
@@ -40,6 +40,26 @@ it('fails closed and only accepts the owner credentials', () => {
   expect(reportAccess(request(`other:${password}`), password)?.status).toBe(401);
   expect(reportAccess(request(`owner:${password}`), '')?.status).toBe(503);
   expect(reportAccess(request(`owner:${password}`), password)).toBeNull();
+});
+
+it('allows local development reports while keeping other hosts and production protected', () => {
+  try {
+    vi.stubEnv('NODE_ENV', 'development');
+    for (const host of ['localhost', '127.0.0.1', '[::1]']) {
+      expect(reportAccess(new Request(`http://${host}:3000/api/reports`), '')).toBeNull();
+    }
+    for (const host of ['reports.bestcardash.com', 'localhost.example.com', '192.168.1.2']) {
+      expect(reportAccess(new Request(`http://${host}/api/reports`), '')?.status).toBe(503);
+    }
+    vi.stubEnv('NODE_ENV', 'production');
+    expect(reportAccess(new Request('http://localhost:3000/api/reports'), '')?.status).toBe(503);
+    expect(
+      reportAccess(new Request('http://localhost:3000/api/reports'), 'a-long-test-password-for-owner')
+        ?.status,
+    ).toBe(401);
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });
 
 it('validates dates and pagination and uses inclusive South African days', () => {
