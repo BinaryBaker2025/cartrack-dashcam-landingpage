@@ -12,6 +12,8 @@ it('allows Google Ads page-view requests through the content security policy', a
     directive.trim().startsWith('connect-src '),
   );
 
+  expect(imageSources).toContain('https://ad.doubleclick.net');
+  expect(connectionSources).toContain('https://ad.doubleclick.net');
   expect(imageSources).toContain('https://pagead2.googlesyndication.com');
   expect(connectionSources).toContain('https://pagead2.googlesyndication.com');
 });
