@@ -26,7 +26,7 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
 });
 test('shows revised pricing and a single disclaimer below the CTA', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByLabel('From as little as R7 per day. Terms apply.')).toBeVisible();
+  await expect(page.getByLabel('From as little as R6.99 per day. Terms apply.')).toBeVisible();
   await expect(
     page.getByText(
       'By submitting this form, I confirm that I am 18 or older, have access to a vehicle and am employed.',
@@ -155,7 +155,9 @@ test('single-step form requires email', async ({ page }) => {
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
 });
 
-test('duplicate response keeps the form editable and resubmits changed details', async ({ page }) => {
+test('duplicate response keeps the form editable and resubmits changed details', async ({
+  page,
+}) => {
   let requests = 0;
   await page.route('**/api/leads', async (route) => {
     requests++;

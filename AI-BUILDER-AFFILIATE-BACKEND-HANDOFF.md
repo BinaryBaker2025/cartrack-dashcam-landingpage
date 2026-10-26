@@ -2102,7 +2102,7 @@ export default function Home() {
               <div className="hero-price" aria-label="From as little as R7 per day. Terms apply.">
                 <p className="price-intro">from as little as</p>
                 <p className="price-amount">
-                  <span>R7</span>
+                  <span>R6.99</span>
                   <small>/day*</small>
                 </p>
               </div>
