@@ -141,7 +141,7 @@ export default function LeadForm() {
       if (next === 'duplicate') {
         const duplicateFields = Array.isArray(result.duplicateFields)
           ? result.duplicateFields.filter((field: unknown): field is keyof FieldErrors =>
-              ['firstname', 'lastname', 'phone', 'email'].includes(String(field)),
+              ['name', 'phone'].includes(String(field)),
             )
           : ['phone'];
         setErrors((current) => ({
@@ -193,11 +193,7 @@ export default function LeadForm() {
       </span>
     ) : null;
   }
-  function input(
-    name: 'firstname' | 'lastname' | 'phone' | 'email',
-    label: string,
-    autocomplete: string,
-  ) {
+  function input(name: 'name' | 'phone', label: string, autocomplete: string) {
     return (
       <div className="field contact-field">
         <label className="sr-only" htmlFor={name}>
@@ -220,14 +216,14 @@ export default function LeadForm() {
           <input
             id={name}
             name={name}
-            type={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
-            inputMode={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
+            type={name === 'phone' ? 'tel' : 'text'}
+            inputMode={name === 'phone' ? 'tel' : 'text'}
             autoComplete={autocomplete}
-            maxLength={name === 'phone' ? 30 : name === 'email' ? 254 : 80}
+            maxLength={name === 'phone' ? 30 : 161}
             required
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
-            placeholder={name === 'phone' ? 'Phone *' : `${label} *`}
+            placeholder={name === 'phone' ? 'Phone *' : 'Name *'}
             onChange={() => {
               if (errors[name])
                 setErrors((current) => {
@@ -261,10 +257,8 @@ export default function LeadForm() {
             <fieldset disabled={locked}>
               <legend className="sr-only">Your details and eligibility</legend>
               <div className="contact-fields">
-                {input('firstname', 'First name', 'given-name')}
-                {input('lastname', 'Last name', 'family-name')}
+                {input('name', 'Name', 'name')}
                 {input('phone', 'South African mobile number', 'tel')}
-                {input('email', 'Email address', 'email')}
               </div>
               <div className="quote-confirmations">
                 <div className="honeypot" aria-hidden="true">
@@ -277,7 +271,7 @@ export default function LeadForm() {
                   ? 'SENDING REQUEST…'
                   : state === 'validating'
                     ? 'CHECKING DETAILS…'
-                    : 'CALL ME BACK'}
+                    : 'Get Quote & Qualify'}
               </button>
               <p className="form-note">
                 By submitting this form, I confirm that I am 18 or older, have access to a vehicle

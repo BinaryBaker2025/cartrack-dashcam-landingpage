@@ -40,6 +40,16 @@ it('uses common service with website consent and qualification, ignoring offer o
   expect(mocks.ingest.mock.calls[0][1]).not.toHaveProperty('offer_id');
   expect((await response.json()).diagnostics.code).toBe('LEAD_RECEIVED');
 });
+it('accepts one full name and maps it to the existing lead fields', async () => {
+  const response = await POST(request({ name: 'Test van der Testing' }));
+  expect(response.status).toBe(200);
+  expect(mocks.ingest.mock.calls[0][1]).toMatchObject({
+    firstname: 'Test',
+    lastname: 'van der Testing',
+    phone: '+27821234567',
+    email: undefined,
+  });
+});
 it.each([
   ['age', 'under_18'],
   ['vehicle', 'no'],

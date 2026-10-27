@@ -57,7 +57,10 @@ export function trackMicrosoftLead(email: string | undefined, phone: string) {
     if (typeof window === 'undefined' || window.bestcardashAdConsent !== 'granted') return;
     // UET normalises and hashes these identifiers for enhanced conversions.
     // Never put contact details in event properties, URLs or our analytics endpoint.
-    window.uetq?.push('set', { pid: { em: email?.trim().toLowerCase() || '', ph: phone } });
+    const normalizedEmail = email?.trim().toLowerCase();
+    window.uetq?.push('set', {
+      pid: { ...(normalizedEmail ? { em: normalizedEmail } : {}), ph: phone },
+    });
     window.uetq?.push('event', 'lead_submit_success', {});
   } catch {
     // Advertising must never interrupt a successful lead.

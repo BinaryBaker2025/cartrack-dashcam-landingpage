@@ -15,26 +15,6 @@ const montserrat = localFont({
   variable: '--font-montserrat',
   display: 'swap',
 });
-const poppins = localFont({
-  src: [
-    { path: '../public/assets/fonts/poppins-0.ttf', weight: '400' },
-    { path: '../public/assets/fonts/poppins-1.ttf', weight: '700' },
-  ],
-  variable: '--font-poppins',
-  display: 'swap',
-});
-const questrial = localFont({
-  src: '../public/assets/fonts/questrial-0.ttf',
-  variable: '--font-questrial',
-  display: 'swap',
-  preload: false,
-});
-const handwriting = localFont({
-  src: '../public/assets/fonts/nanum-pen-script-0.ttf',
-  variable: '--font-handwriting',
-  display: 'swap',
-  preload: false,
-});
 const indexable = isIndexable();
 export const metadata: Metadata = {
   icons: { icon: '/assets/cartrack-logo.jpg' },
@@ -72,10 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {uetBootstrap}
         </Script>
       </head>
-      <body
-        suppressHydrationWarning
-        className={`${montserrat.variable} ${poppins.variable} ${questrial.variable} ${handwriting.variable}`}
-      >
+      <body suppressHydrationWarning className={montserrat.variable}>
         {children}
         <Script
           id="google-ads-tag"

@@ -152,8 +152,8 @@ export default function Terms() {
       <h2>4. Notification and Claiming the Prize</h2>
       <ul>
         <li>
-          <strong>Contact:</strong> The winner will be notified via the email address or phone
-          number provided upon entry within five (5) business days of the draw.
+          <strong>Contact:</strong> The winner will be notified using the phone number provided
+          upon entry within five (5) business days of the draw.
         </li>
         <li>
           <strong>Verification &amp; Forfeiture:</strong> The winner has fourteen (14) days from the

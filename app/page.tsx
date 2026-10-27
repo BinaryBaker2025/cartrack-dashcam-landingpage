@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import LeadForm from '@/components/form/LeadForm';
 import QuoteExperience from '@/components/QuoteExperience';
 export default function Home() {
@@ -8,43 +7,46 @@ export default function Home() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
-      <header className="site-header">
-        <div className="page-width">
-          <Link href="/" aria-label="CarTrack Cameras home">
-            <Image
-              src="/assets/cartrack-logo.jpg"
-              alt="Cartrack"
-              width={233}
-              height={63}
-              priority
-              className="brand-logo"
-            />
-          </Link>
-        </div>
-      </header>
       <main id="main">
-        <section className="hero">
-          <div className="page-width hero-grid">
-            <div className="hero-copy">
-              <h1>Protect your vehicle</h1>
-              <div
-                className="hero-price"
-                aria-label="From as little as R6.99 per day. Terms apply."
-              >
-                <p className="price-intro">from as little as</p>
-                <p className="price-amount">
-                  <span>R6.99</span>
-                  <small>/day*</small>
+        <div className="campaign-layout">
+          <section className="campaign-hero" aria-labelledby="campaign-title">
+            <div className="campaign-hero-inner">
+              <div className="campaign-copy">
+                <p className="campaign-kicker">Stay safe with a dash cam</p>
+                <h1 id="campaign-title">See more. Worry less.</h1>
+                <p className="campaign-price-line">
+                  From as little as <strong>R6.99/day*</strong>
                 </p>
+                <div className="campaign-rule" />
+                <p className="campaign-draw-intro">Stand a chance to win your share of</p>
+                <p className="campaign-prize">R10,000</p>
+                <p className="campaign-draw-label">on our annual draw</p>
+                <p className="campaign-priority">
+                  Being covered should still be your top priority.
+                </p>
+                <a className="campaign-cta" href="#quote">
+                  Get Quote &amp; Qualify <span aria-hidden="true">↓</span>
+                </a>
+                <p className="campaign-terms">*Terms and conditions apply.</p>
               </div>
-              <div className="hero-rule" />
-              <p className="hero-description">
-                Protect your vehicle and capture every moment with Cartrack&apos;s dashcam
-              </p>
+              <div className="campaign-photo">
+                <div className="campaign-photo-frame">
+                  <Image
+                    src="/assets/dashcam-product.jpeg"
+                    alt="A driver with a Cartrack dashcam installed on the windscreen"
+                    fill
+                    sizes="(max-width: 767px) 100vw, 28vw"
+                    preload
+                    className="campaign-photo-image"
+                  />
+                </div>
+              </div>
             </div>
+          </section>
+          <section className="quote-section" aria-label="Request a quote">
             <LeadForm />
-          </div>
-        </section>
+          </section>
+        </div>
         <section className="benefits" aria-labelledby="benefits-title">
           <div className="page-width">
             <h2 id="benefits-title">Why you need a car dashcam</h2>

@@ -15,7 +15,7 @@ export type LeadInput = {
   preferredtimeofcall: string;
   website: string;
 };
-export type FieldErrors = Partial<Record<keyof LeadInput, string>>;
+export type FieldErrors = Partial<Record<keyof LeadInput | 'name', string>>;
 export function cleanText(value: unknown, max = 80): string {
   return typeof value === 'string'
     ? value
@@ -41,12 +41,16 @@ export function parseCallTime(value: string): Date | null {
 }
 export function validateLead(raw: unknown, now = new Date()) {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const fullNameSupplied = r.name !== undefined;
+  const fullName =
+    typeof r.name === 'string' ? cleanText(r.name, 161).replace(/\s+/g, ' ') : '';
+  const nameParts = fullName.split(' ');
   // The compact form fills these values only after the visitor affirms all four facts.
   // Explicit answers remain authoritative, including a non-qualifying answer.
   const confirmed = r.eligibilityConfirmed === true;
   const input: LeadInput = {
-    firstname: cleanText(r.firstname),
-    lastname: cleanText(r.lastname),
+    firstname: fullNameSupplied ? (nameParts[0] ?? '') : cleanText(r.firstname),
+    lastname: fullNameSupplied ? nameParts.slice(1).join(' ') : cleanText(r.lastname),
     phone: cleanPhone(r.phone),
     ...(r.email !== undefined ? { email: cleanText(r.email, 254) } : {}),
     ...(r.eligibilityConfirmed !== undefined ? { eligibilityConfirmed: confirmed } : {}),
@@ -62,18 +66,30 @@ export function validateLead(raw: unknown, now = new Date()) {
   const reasons: string[] = [];
   if (r.eligibilityConfirmed !== undefined && !confirmed)
     errors.eligibilityConfirmed = 'Please confirm that you meet all four requirements.';
-  for (const field of ['firstname', 'lastname'] as const) {
-    // Letters, combining accents and separators support real multi-part names.
+  const validName = /^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u;
+  if (fullNameSupplied) {
     if (
-      typeof r[field] !== 'string' ||
-      r[field].length > 80 ||
-      !/^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u.test(input[field])
+      typeof r.name !== 'string' ||
+      r.name.length > 161 ||
+      !validName.test(fullName) ||
+      input.firstname.length > 80 ||
+      input.lastname.length > 80
     )
-      errors[field] =
-        `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
+      errors.name = 'Please enter your name using letters.';
+  } else {
+    for (const field of ['firstname', 'lastname'] as const) {
+      // Letters, combining accents and separators support real multi-part names.
+      if (
+        typeof r[field] !== 'string' ||
+        r[field].length > 80 ||
+        !validName.test(input[field])
+      )
+        errors[field] =
+          `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
+    }
   }
   if (!input.phone) errors.phone = 'Please enter a valid South African mobile number.';
-  // Existing API clients may omit email; the reference quote form collects it.
+  // Legacy API clients may still provide email; the quote form does not collect it.
   if (
     r.email !== undefined &&
     (typeof r.email !== 'string' ||

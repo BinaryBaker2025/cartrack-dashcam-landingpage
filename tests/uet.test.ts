@@ -31,6 +31,18 @@ it('sends identifiers before the successful lead event and stops after withdrawa
   expect(setItem).toHaveBeenLastCalledWith('bestcardash-ad-consent-v1', 'denied');
 });
 
+it('sends phone-only identifiers when the lead has no email address', () => {
+  const push = vi.fn();
+  vi.stubGlobal('window', { bestcardashAdConsent: 'granted', uetq: { push } });
+
+  trackMicrosoftLead(undefined, '+27821234567');
+
+  expect(push.mock.calls).toEqual([
+    ['set', { pid: { ph: '+27821234567' } }],
+    ['event', 'lead_submit_success', {}],
+  ]);
+});
+
 it('consent works with blocked storage and tracking failures cannot break a lead', () => {
   vi.stubGlobal('window', { uetq: { push: vi.fn() } });
   vi.stubGlobal('localStorage', {

@@ -27,8 +27,8 @@ export default function Privacy() {
         <li>
           <strong>Information you provide to us directly:</strong> When you submit an online form to
           request a quotation, enter our promotional draws, or contact us, we collect details such
-          as your name, surname, email address, telephone number, and any other details you
-          explicitly provide.
+          as your name, telephone number, and any other details you explicitly provide. Other
+          contact methods may request additional information.
         </li>
         <li>
           <strong>Information collected automatically:</strong> Our website automatically collects

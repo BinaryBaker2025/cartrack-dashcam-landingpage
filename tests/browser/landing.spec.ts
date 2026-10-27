@@ -5,7 +5,7 @@ for (const width of [375, 390, 430, 768, 1024, 1280, 1440, 1870]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
-    await expect(page.getByRole('heading', { name: 'Protect your vehicle' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'See more. Worry less.' })).toBeVisible();
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
@@ -26,7 +26,8 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
 });
 test('shows revised pricing and a single disclaimer below the CTA', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByLabel('From as little as R6.99 per day. Terms apply.')).toBeVisible();
+  await expect(page.locator('.campaign-price-line')).toContainText('R6.99/day*');
+  await expect(page.locator('.campaign-terms')).toContainText('Terms and conditions apply.');
   await expect(
     page.getByText(
       'By submitting this form, I confirm that I am 18 or older, have access to a vehicle and am employed.',
@@ -35,6 +36,27 @@ test('shows revised pricing and a single disclaimer below the CTA', async ({ pag
   ).toBeVisible();
   await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
 });
+test('shows the campaign hero above the name-and-phone form', async ({ page }) => {
+  await page.goto('/');
+  const hero = page.locator('.campaign-hero');
+  const photo = hero.locator('.campaign-photo img');
+  const name = page.getByLabel('Name', { exact: true });
+  await expect(hero).toContainText('R10,000');
+  await expect(hero).toContainText('on our annual draw');
+  await expect(photo).toBeVisible();
+  await expect(name).toBeVisible();
+  await expect(page.getByLabel('South African mobile number')).toBeVisible();
+  await expect(page.getByLabel('Last name', { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Email address')).toHaveCount(0);
+  const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
+  await expect(submit).toBeVisible();
+  await expect(submit).toHaveCSS('background-color', 'rgb(7, 56, 143)');
+  expect((await hero.boundingBox())!.y).toBeLessThan((await name.boundingBox())!.y);
+  await expect(photo).toHaveAttribute(
+    'alt',
+    'A driver with a Cartrack dashcam installed on the windscreen',
+  );
+});
 test('invalid submission shows inline messages without a network request', async ({ page }) => {
   let requests = 0;
   await page.route('**/api/leads', (route) => {
@@ -42,15 +64,13 @@ test('invalid submission shows inline messages without a network request', async
     return route.abort();
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
-  await expect(page.locator('#firstname-error')).toBeVisible();
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);
 });
 async function fillContact(page: import('@playwright/test').Page) {
-  await page.getByLabel('First name', { exact: true }).fill('Test');
-  await page.getByLabel('Last name', { exact: true }).fill('Testing');
+  await page.getByLabel('Name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
-  await page.getByLabel('Email address').fill('test@example.com');
 }
 const thankYouHeading = /Thank you for your application/;
 
@@ -79,7 +99,7 @@ test('Bing click attribution survives navigation and reaches the website lead re
     .toContain(clickId);
   await page.goto('/');
   await fillContact(page);
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
 });
 
@@ -92,7 +112,7 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
     const body = route.request().postDataJSON();
     expect(body).toMatchObject({
       firstname: 'Test',
-      email: 'test@example.com',
+      lastname: 'Testing',
       phone: '+27821234567',
       age: '18_plus',
       vehicle: 'yes',
@@ -102,6 +122,7 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
       terms: true,
       attribution: { transaction_id: 'browser-test', offer_id: '999' },
     });
+    expect(body).not.toHaveProperty('email');
     expect(body).not.toHaveProperty('offer_id');
     await new Promise((resolve) => setTimeout(resolve, 150));
     await route.fulfill({
@@ -114,13 +135,15 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   });
   await page.goto('/?transaction_id=browser-test&offer_id=999');
   await fillContact(page);
-  await page.getByRole('button', { name: 'CALL ME BACK' }).evaluate((button: HTMLButtonElement) => {
-    button.click();
-    button.click();
-  });
+  await page
+    .getByRole('button', { name: 'Get Quote & Qualify' })
+    .evaluate((button: HTMLButtonElement) => {
+      button.click();
+      button.click();
+    });
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeFocused();
-  await expect(page.getByRole('button', { name: 'CALL ME BACK' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Get Quote & Qualify' })).toHaveCount(0);
   expect(requests).toBe(1);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
@@ -135,12 +158,12 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   }
   await page.reload();
   await fillContact(page);
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(1);
 });
 
-test('single-step form requires email', async ({ page }) => {
+test('single-step form requires a name', async ({ page }) => {
   let requests = 0;
   await page.route('**/api/leads', (route) => {
     requests++;
@@ -148,9 +171,9 @@ test('single-step form requires email', async ({ page }) => {
   });
   await page.goto('/');
   await fillContact(page);
-  await page.getByLabel('Email address').fill('');
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
-  await expect(page.locator('#email-error')).toBeVisible();
+  await page.getByLabel('Name', { exact: true }).fill('');
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
 });
@@ -164,7 +187,7 @@ test('duplicate response keeps the form editable and resubmits changed details',
     if (requests === 1) {
       await route.fulfill({
         status: 409,
-        json: { state: 'duplicate', message: 'Already submitted.', duplicateFields: ['email'] },
+        json: { state: 'duplicate', message: 'Already submitted.', duplicateFields: ['phone'] },
       });
       return;
     }
@@ -172,13 +195,13 @@ test('duplicate response keeps the form editable and resubmits changed details',
   });
   await page.goto('/');
   await fillContact(page);
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
-  await expect(page.locator('#email-error')).toHaveText('This detail has already been submitted.');
-  await expect(page.getByLabel('Email address')).toBeEnabled();
-  await page.getByLabel('Email address').fill('different@example.com');
-  await expect(page.locator('#email-error')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.locator('#phone-error')).toHaveText('This detail has already been submitted.');
+  await expect(page.getByLabel('South African mobile number')).toBeEnabled();
+  await page.getByLabel('South African mobile number').fill('0831234567');
+  await expect(page.locator('#phone-error')).toHaveCount(0);
   await expect(page.getByRole('status')).not.toContainText('Already submitted.');
-  await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(2);
 });
@@ -195,7 +218,7 @@ for (const result of [
     );
     await page.goto('/');
     await fillContact(page);
-    await page.getByRole('button', { name: 'CALL ME BACK' }).click();
+    await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
     await expect(page.getByRole('status')).toContainText(result.message);
     await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
   });

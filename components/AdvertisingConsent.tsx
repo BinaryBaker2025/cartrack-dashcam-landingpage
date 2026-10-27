@@ -41,9 +41,9 @@ export default function AdvertisingConsent() {
         <section aria-labelledby="advertising-consent-title" className="advertising-consent-panel">
           <h2 id="advertising-consent-title">Your advertising preferences</h2>
           <p>
-            Allow Google and Microsoft Advertising cookies, and Microsoft&apos;s use of your email and
-            phone number to measure successful quote requests and improve advertising? This is
-            optional and separate from permission to call you. <a href="/privacy">Privacy notice</a>
+            Allow Google and Microsoft Advertising cookies, and Microsoft&apos;s use of your phone
+            number to measure successful quote requests and improve advertising? This is optional
+            and separate from permission to call you. <a href="/privacy">Privacy notice</a>
           </p>
           <div>
             <button type="button" onClick={() => choose('denied')}>

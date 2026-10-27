@@ -67,6 +67,20 @@ describe('qualification', () => {
     expect(validateLead({ ...valid, firstname: 'Test123' }).valid).toBe(false));
   it('supports accented multi-part names', () =>
     expect(validateLead({ ...valid, firstname: 'Tést', lastname: 'O’Testing' }).valid).toBe(true));
+  it.each([
+    ['Test Testing', 'Test', 'Testing'],
+    ['Test van der Testing', 'Test', 'van der Testing'],
+    ['Mononym', 'Mononym', ''],
+  ])('accepts a single full name and maps it to the lead fields: %s', (name, firstname, lastname) => {
+    const result = validateLead({ ...valid, name });
+    expect(result.valid).toBe(true);
+    expect(result.input).toMatchObject({ firstname, lastname });
+  });
+  it('rejects invalid full names', () => {
+    const result = validateLead({ ...valid, name: 'Test123 Person' });
+    expect(result.valid).toBe(false);
+    expect(result.errors.name).toBeTruthy();
+  });
   it('rejects a rolled-over call date', () => expect(parseCallTime('2027-02-31T12:00')).toBeNull());
   it('rejects past preferred call times', () =>
     expect(validateLead({ ...valid, preferredtimeofcall: '2020-01-01T09:00' }).valid).toBe(false));
