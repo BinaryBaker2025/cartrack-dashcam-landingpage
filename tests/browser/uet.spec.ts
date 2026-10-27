@@ -37,6 +37,7 @@ test('UET defaults to denied, remembers consent across pages and supports withdr
 });
 
 test('enhanced conversions occur only for consented successful submissions', async ({ page }) => {
+  await page.route('https://www.googletagmanager.com/**', (route) => route.abort());
   await page.route('**/api/leads', (route) =>
     route.fulfill({
       json: { state: 'success', message: 'Accepted' },
@@ -55,10 +56,24 @@ test('enhanced conversions occur only for consented successful submissions', asy
   expect(await page.evaluate(() => window.uetq)).toContainEqual({
     pid: { em: 'test@example.com', ph: '+27821234567' },
   });
+  expect(
+    await page.evaluate(() =>
+      window.dataLayer?.some((args) => {
+        const call = Array.from(args);
+        return (
+          call[0] === 'event' &&
+          call[1] === 'conversion' &&
+          JSON.stringify(call[2]) ===
+            JSON.stringify({ send_to: 'AW-18532625097/iwunCMSnqasdEMnVhYVF' })
+        );
+      }),
+    ),
+  ).toBe(true);
 });
 
 for (const state of ['success', 'duplicate', 'api_rejected']) {
   test(`no enhanced conversion for ${state} with advertising declined`, async ({ page }) => {
+    await page.route('https://www.googletagmanager.com/**', (route) => route.abort());
     await page.route('**/api/leads', (route) =>
       route.fulfill({
         json: { state, message: 'Synthetic result' },
@@ -86,5 +101,13 @@ for (const state of ['success', 'duplicate', 'api_rejected']) {
       'update',
       { ad_storage: 'denied' },
     ]);
+    expect(
+      await page.evaluate(() =>
+        window.dataLayer?.some((args) => {
+          const call = Array.from(args);
+          return call[0] === 'event' && call[1] === 'conversion';
+        }),
+      ),
+    ).toBe(state === 'success');
   });
 }

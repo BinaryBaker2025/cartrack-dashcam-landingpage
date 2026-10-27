@@ -1,6 +1,22 @@
 import { AD_CONSENT_KEY } from './uet';
 
+declare global {
+  interface Window {
+    dataLayer?: IArguments[];
+  }
+}
+
 export const GOOGLE_ADS_TAG_ID = 'AW-18532625097';
+export const GOOGLE_ADS_LEAD_CONVERSION = `${GOOGLE_ADS_TAG_ID}/iwunCMSnqasdEMnVhYVF`;
+
+export function trackGoogleAdsLeadConversion() {
+  try {
+    if (typeof window === 'undefined') return;
+    window.gtag?.('event', 'conversion', { send_to: GOOGLE_ADS_LEAD_CONVERSION });
+  } catch {
+    // Advertising must never interrupt a successful lead.
+  }
+}
 
 export const googleTagBootstrap = `
 window.dataLayer=window.dataLayer||[];

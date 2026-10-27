@@ -4,6 +4,7 @@ import { validateLead, type FieldErrors } from '@/lib/validation';
 import { sessionAttribution } from '@/lib/attribution';
 import { track } from '@/lib/analytics';
 import { trackMicrosoftLead } from '@/lib/uet';
+import { trackGoogleAdsLeadConversion } from '@/lib/googleTag';
 import { submissionKey } from '@/lib/submissionKey';
 import { browserAttempt, browserReceipt, saveBrowserReceipt } from '@/lib/browserState';
 import { reportDiagnostic } from '@/lib/diagnostics';
@@ -161,7 +162,10 @@ export default function LeadForm() {
         );
       if (result.retryable === true)
         submission.current = { id: await submissionKey(payload, true), payload };
-      if (next === 'success') trackMicrosoftLead(validation.input.email, validation.input.phone);
+      if (next === 'success') {
+        trackGoogleAdsLeadConversion();
+        trackMicrosoftLead(validation.input.email, validation.input.phone);
+      }
       track(
         next === 'success'
           ? 'lead_submit_success'

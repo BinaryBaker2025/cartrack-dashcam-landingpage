@@ -1,6 +1,11 @@
 import { runInNewContext } from 'node:vm';
 import { afterEach, expect, it, vi } from 'vitest';
-import { googleTagBootstrap, GOOGLE_ADS_TAG_ID } from '../lib/googleTag';
+import {
+  googleTagBootstrap,
+  GOOGLE_ADS_LEAD_CONVERSION,
+  GOOGLE_ADS_TAG_ID,
+  trackGoogleAdsLeadConversion,
+} from '../lib/googleTag';
 import { updateAdConsent } from '../lib/uet';
 
 afterEach(() => vi.unstubAllGlobals());
@@ -37,4 +42,23 @@ it('updates Google consent when accepting or withdrawing advertising permission'
       ad_personalization: choice,
     });
   }
+});
+
+it('sends the configured Google Ads conversion without interrupting the lead flow', () => {
+  const gtag = vi.fn();
+  vi.stubGlobal('window', { gtag });
+
+  trackGoogleAdsLeadConversion();
+
+  expect(gtag).toHaveBeenCalledOnce();
+  expect(gtag).toHaveBeenCalledWith('event', 'conversion', {
+    send_to: GOOGLE_ADS_LEAD_CONVERSION,
+  });
+
+  vi.stubGlobal('window', {
+    gtag: () => {
+      throw new Error('unavailable');
+    },
+  });
+  expect(() => trackGoogleAdsLeadConversion()).not.toThrow();
 });
