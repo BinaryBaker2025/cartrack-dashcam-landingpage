@@ -389,14 +389,13 @@ Measure real traffic/CPU/database operations before forecasting. Costs also incl
 
 The backend has useful reusable infrastructure. The safest next engineering step is to turn this single-campaign implementation into a configurable starter, then launch one second company through it to validate the template before replicating widely.
 
-
 ## Part B ? sanitized deployment starting configuration
 
 Replace every REPLACE_ value. This configuration deliberately disables delivery/indexing. Keep the existing application configuration guards in mind: it must be generalized before a different campaign works. This file is JSONC; comments/trailing commas are allowed by Wrangler, but the supplied custom deployment scripts use a simpler parser.
 
 ### File: wrangler.jsonc
 
-````jsonc
+```jsonc
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "REPLACE_TARGET_WORKER_NAME",
@@ -471,33 +470,29 @@ Replace every REPLACE_ value. This configuration deliberately disables delivery/
     "RATE_LIMIT_WINDOW_SECONDS": "600",
   },
 }
-
-````
+```
 
 ### File: config/indexnow.json
 
 Generate the corresponding public key-verification text file on the new site if IndexNow is used. This key is public verification material, not a Worker secret.
 
-````json
+```json
 {
   "origin": "https://REPLACE_TARGET_DOMAIN",
   "key": "REPLACE_PUBLIC_INDEXNOW_VERIFICATION_KEY",
-  "urls": [
-    "https://REPLACE_TARGET_DOMAIN/"
-  ]
+  "urls": ["https://REPLACE_TARGET_DOMAIN/"]
 }
-````
+```
 
 ## Part C ? complete reference implementation
 
 These are the existing reference sources, not a completed target-company refactor. Cartrack identifiers within the code and synthetic tests are retained to show actual behavior and must be adapted as described above. Example env campaign IDs are historical reference values, not authorization to submit to that campaign. All source files below are complete.
 
-
 ### File: .dev.vars.example
 
 SHA-256: `526c727f7a820bb7c264d34cb345c8ffb65e8abaf50f736a173627d8faa6df2e`
 
-````text
+```text
 NEXTJS_ENV=development
 DEPLOY_PLATFORM=cloudflare
 DEPLOY_ENV=development
@@ -524,13 +519,13 @@ TIKTOK_ADVERTISER_ID=
 TIKTOK_FORM_MAPPINGS={}
 SOCIAL_LEADS_TEST_MODE=true
 
-````
+```
 
 ### File: .env.example
 
 SHA-256: `556f13a3c950ed7010109ca2510bcb4ea698ba730268ba51b4db12d4f35ee185`
 
-````text
+```text
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 DEPLOY_PLATFORM=cloudflare
 DEPLOY_ENV=development
@@ -558,13 +553,13 @@ LEAD_HASH_SECRET=
 # Native Meta / TikTok lead webhooks use Cloudflare runtime bindings in .dev.vars.
 # See .dev.vars.example and SOCIAL-LEADS.md; never use NEXT_PUBLIC_* for secrets.
 
-````
+```
 
 ### File: .gitignore
 
 SHA-256: `8367da5fdfa133bb6280da5cc78370bcda872a2740bf7181d9eea3639214ca20`
 
-````text
+```text
 node_modules/
 .next/
 .env
@@ -585,13 +580,13 @@ artifacts/
 .env.*
 !.env.example
 
-````
+```
 
 ### File: AGENTS.md
 
 SHA-256: `63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb`
 
-````markdown
+```markdown
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
@@ -601,14 +596,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
-
-````
+```
 
 ### File: app/api/leads/route.ts
 
 SHA-256: `88252e8aba81a803a939c6279533f58a2f4c89f3772089534e7658507b1d6c93`
 
-````typescript
+```typescript
 import { randomUUID } from 'node:crypto';
 import { validateLead } from '@/lib/validation';
 import { rateLimit } from '@/lib/rateLimit';
@@ -827,14 +821,13 @@ export async function GET() {
     );
   }
 }
-
-````
+```
 
 ### File: app/api/webhooks/google-ads/route.ts
 
 SHA-256: `7e3bbd26821c92407d20253187a964b60441abff6bd3cfc1c84a62a92353e3c5`
 
-````typescript
+```typescript
 import { leadBindings } from '@/lib/leadBindings';
 import { googleWebhook } from '@/lib/googleWebhook';
 export const runtime = 'nodejs';
@@ -848,14 +841,13 @@ export async function POST(request: Request) {
     );
   }
 }
-
-````
+```
 
 ### File: app/api/webhooks/meta/route.ts
 
 SHA-256: `9d16a8e6c2f9a226cf304eeec050f8e560be042b82708c7b1e3006c2d8e77ee9`
 
-````typescript
+```typescript
 import { after } from 'next/server';
 import { leadBindings } from '@/lib/leadBindings';
 import { metaChallenge, receiveSocialWebhook, socialReply } from '@/lib/socialWebhooks';
@@ -878,14 +870,13 @@ export async function POST(request: Request) {
     return socialReply(503);
   }
 }
-
-````
+```
 
 ### File: app/api/webhooks/microsoft/route.ts
 
 SHA-256: `78e0adf49d76048b7668f74848e6fa014e6ca91692cafe65d46dc57fca92d0a5`
 
-````typescript
+```typescript
 import { leadBindings } from '@/lib/leadBindings';
 import { microsoftWebhook } from '@/lib/microsoftWebhook';
 export const runtime = 'nodejs';
@@ -902,14 +893,13 @@ export async function POST(request: Request) {
     );
   }
 }
-
-````
+```
 
 ### File: app/api/webhooks/tiktok/route.ts
 
 SHA-256: `402a51d6024ea3015c02fcb8fd1974a8691a1e9da77192377755b1a06e67b7c8`
 
-````typescript
+```typescript
 import { after } from 'next/server';
 import { leadBindings } from '@/lib/leadBindings';
 import { receiveSocialWebhook, socialReply } from '@/lib/socialWebhooks';
@@ -925,14 +915,13 @@ export async function POST(request: Request) {
     return socialReply(503);
   }
 }
-
-````
+```
 
 ### File: app/favicon.ico/route.ts
 
 SHA-256: `5dabb366f93dee332fee0487015f9303cfb6b9b33f6bd98b2dc8b1f23d95847c`
 
-````typescript
+```typescript
 // Reuse the supplied brand asset; no invented favicon artwork.
 export function GET() {
   return new Response(null, {
@@ -940,14 +929,13 @@ export function GET() {
     headers: { Location: '/assets/cartrack-logo.jpg', 'Cache-Control': 'public, max-age=86400' },
   });
 }
-
-````
+```
 
 ### File: app/globals.css
 
 SHA-256: `a55d14b8b102f2c8d2f606617abe3c741acb26c1bdcf6e8dfa60e8b6f247588a`
 
-````css
+```css
 @import 'tailwindcss';
 :root {
   --orange: #f87c3c;
@@ -1983,14 +1971,13 @@ fieldset {
     font-size: 23px;
   }
 }
-
-````
+```
 
 ### File: app/layout.tsx
 
 SHA-256: `77d29933722ec6243c0cb0ad573d3882fe4316996969a084c5e7d1ceb513f5e7`
 
-````tsx
+```tsx
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { siteUrl } from '@/lib/config';
@@ -2062,14 +2049,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-
-````
+```
 
 ### File: app/page.tsx
 
 SHA-256: `09e04a6f357cbf8d69cd44a2d35b0e107990e1bf051d82ff560f67ee5d9077d5`
 
-````tsx
+```tsx
 import Image from 'next/image';
 import Link from 'next/link';
 import LeadForm from '@/components/form/LeadForm';
@@ -2099,7 +2085,10 @@ export default function Home() {
           <div className="page-width hero-grid">
             <div className="hero-copy">
               <h1>Protect your vehicle</h1>
-              <div className="hero-price" aria-label="From as little as R7 per day. Terms apply.">
+              <div
+                className="hero-price"
+                aria-label="From as little as R6.99 per day. Terms apply."
+              >
                 <p className="price-intro">from as little as</p>
                 <p className="price-amount">
                   <span>R6.99</span>
@@ -2167,7 +2156,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="footer">
-        <p>CarTrack Cameras · *From R7 per day. Terms apply.</p>
+        <p>CarTrack Cameras · *From R6.99 per day. Terms apply.</p>
         <nav aria-label="Legal">
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy notice</a>
@@ -2176,14 +2165,13 @@ export default function Home() {
     </QuoteExperience>
   );
 }
-
-````
+```
 
 ### File: app/privacy/page.tsx
 
 SHA-256: `026e73a3efb8fcd66e2f47dcb166f8cfeb968921b14f39ff5e827dac03c99ac6`
 
-````tsx
+```tsx
 import Link from 'next/link';
 import { campaignIdentity } from '@/lib/config';
 import type { Metadata } from 'next';
@@ -2249,14 +2237,13 @@ export default function Privacy() {
     </main>
   );
 }
-
-````
+```
 
 ### File: app/robots.ts
 
 SHA-256: `6d0b3412d502cfc591ef71dd13d6e5539e9db4eea222a536cd07aadc4856e6f8`
 
-````typescript
+```typescript
 import type { MetadataRoute } from 'next';
 import { isIndexable } from '@/lib/hosting';
 import { siteUrl } from '@/lib/config';
@@ -2267,14 +2254,13 @@ export default function robots(): MetadataRoute.Robots {
     ...(allow ? { sitemap: `${siteUrl()}/sitemap.xml` } : {}),
   };
 }
-
-````
+```
 
 ### File: app/sitemap.ts
 
 SHA-256: `cdbdbbb78cf3739b6e299a13e3053959a28cc37bb305500e098f4edb30fbfabd`
 
-````typescript
+```typescript
 import type { MetadataRoute } from 'next';
 import { siteUrl } from '@/lib/config';
 import { isIndexable } from '@/lib/hosting';
@@ -2283,14 +2269,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Legal pages explicitly opt out of indexing; advertise only the landing page.
   return isIndexable() ? [{ url: `${siteUrl()}/` }] : [];
 }
-
-````
+```
 
 ### File: app/terms/page.tsx
 
 SHA-256: `3c59e3fe1216e4076eb3d4addd591cae2fb16c6761e0ea19880e95fc3af4ddb4`
 
-````tsx
+```tsx
 import Link from 'next/link';
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
@@ -2332,14 +2317,13 @@ export default function Terms() {
     </main>
   );
 }
-
-````
+```
 
 ### File: components/QuoteExperience.tsx
 
 SHA-256: `d7f344eb266e45d002dde913c4ad42656af3c968fbf44a543cf6f98d24460773`
 
-````tsx
+```tsx
 'use client';
 
 import Image from 'next/image';
@@ -2385,14 +2369,13 @@ export default function QuoteExperience({ children }: { children: ReactNode }) {
     </QuoteSuccessContext.Provider>
   );
 }
-
-````
+```
 
 ### File: components/form/LeadForm.tsx
 
 SHA-256: `e62d88e863b4845ed64c6778dfefebd45d4e198b228515edf88d43e3bcda1a3e`
 
-````tsx
+```tsx
 'use client';
 import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { validateLead, type FieldErrors } from '@/lib/validation';
@@ -2533,9 +2516,8 @@ export default function LeadForm() {
       if (result.errors) setErrors(result.errors);
       if (next === 'duplicate') {
         const duplicateFields = Array.isArray(result.duplicateFields)
-          ? result.duplicateFields.filter(
-              (field: unknown): field is keyof FieldErrors =>
-                ['firstname', 'lastname', 'phone', 'email'].includes(String(field)),
+          ? result.duplicateFields.filter((field: unknown): field is keyof FieldErrors =>
+              ['firstname', 'lastname', 'phone', 'email'].includes(String(field)),
             )
           : ['phone'];
         setErrors((current) => ({
@@ -2671,8 +2653,7 @@ export default function LeadForm() {
               </button>
               <p className="form-note">
                 By submitting this form, I confirm that I am 18 or older, have access to a vehicle
-                and am employed. I accept the{' '}
-                <a href="/terms">terms</a> and{' '}
+                and am employed. I accept the <a href="/terms">terms</a> and{' '}
                 <a href="/privacy">privacy notice</a>, and consent to my details being shared with
                 the service provider and its authorized partners so that a representative may
                 contact me regarding the requested or future products and services.
@@ -2693,14 +2674,13 @@ export default function LeadForm() {
     </section>
   );
 }
-
-````
+```
 
 ### File: config/google-ads-mappings.example.json
 
 SHA-256: `551498366c2741ce16a7ad7833d3fa07f7d89b0bff9d9a2ad0d8311ba04efcaa`
 
-````json
+```json
 {
   "REPLACE_WITH_ACTUAL_GOOGLE_FORM_ID": {
     "fields": {
@@ -2743,14 +2723,13 @@ SHA-256: `551498366c2741ce16a7ad7833d3fa07f7d89b0bff9d9a2ad0d8311ba04efcaa`
     "consentVersion": ""
   }
 }
-
-````
+```
 
 ### File: config/social-form-mappings.example.json
 
 SHA-256: `6d8ca3902bf01e257a561cfeeb77c2c78c5eeaad8e282cf566a01719484b92b3`
 
-````json
+```json
 {
   "YOUR_FORM_ID": {
     "fields": {
@@ -2787,14 +2766,13 @@ SHA-256: `6d8ca3902bf01e257a561cfeeb77c2c78c5eeaad8e282cf566a01719484b92b3`
     "consentVersion": "REPLACE with your form consent version"
   }
 }
-
-````
+```
 
 ### File: eslint.config.mjs
 
 SHA-256: `e0668fcdf419b86c39b3956226325d34830ee3672ab34e8ce7de0c69cd7666b9`
 
-````javascript
+```javascript
 import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
@@ -2812,14 +2790,13 @@ export default defineConfig([
     'test-results/**',
   ]),
 ]);
-
-````
+```
 
 ### File: lib/analytics.ts
 
 SHA-256: `da9714d7fd9d802d3c7d0abcc7b10d1f1df2383272e3e0c24f0c712610b0f438`
 
-````typescript
+```typescript
 export type AnalyticsEvent =
   | 'landing_page_view'
   | 'form_started'
@@ -2843,14 +2820,13 @@ export function track(event: AnalyticsEvent, properties: AnalyticsProperties = {
     /* Analytics must never interrupt a lead. */
   }
 }
-
-````
+```
 
 ### File: lib/attribution.ts
 
 SHA-256: `0dbe51a578a32a0bcbebf4d933e64c62a0ee7d33c391148707a91d29304365ef`
 
-````typescript
+```typescript
 import { cleanText } from './validation';
 export const attributionKeys = [
   'affiliate_id',
@@ -2936,14 +2912,13 @@ export function sessionAttribution(search?: string): Attribution {
   }
   return memory;
 }
-
-````
+```
 
 ### File: lib/browserState.ts
 
 SHA-256: `17b801a85e4499b20051d37ff24902c38f0c7404a1f15a7a00f987c5ebd79c0f`
 
-````typescript
+```typescript
 import type { Attribution } from './attribution';
 const WINDOW = 10 * 60 * 1000;
 const TTL = 30 * 60 * 1000;
@@ -3019,14 +2994,13 @@ export function saveBrowserReceipt(
   state.receipts = Object.fromEntries(Object.entries(state.receipts).slice(-20));
   save();
 }
-
-````
+```
 
 ### File: lib/config.ts
 
 SHA-256: `ab5dbd633c792de0f0ea982a8a42ef8b1635accfe5b4af678a43b11913aa4462`
 
-````typescript
+```typescript
 import { ConfigurationError } from './diagnostics';
 export const OFFER_ID = '3046';
 export const CONSENT_VERSION = '2026-09-15-v4';
@@ -3113,14 +3087,13 @@ export function submissionConfig() {
   }).toString();
   return { endpoint, site, allowedOriginsList };
 }
-
-````
+```
 
 ### File: lib/database.ts
 
 SHA-256: `88d56b965346c8286ea68066dc17042ceecf74f7bd18142761f05ef375114791`
 
-````typescript
+```typescript
 import type { D1Database } from '@cloudflare/workers-types';
 import { ConfigurationError } from './diagnostics';
 
@@ -3149,27 +3122,25 @@ export async function checkDatabase() {
     db.prepare('SELECT id FROM webhook_events LIMIT 0'),
   ]);
 }
-
-````
+```
 
 ### File: lib/databaseMaintenance.ts
 
 SHA-256: `0a25734141309d9b972e9cd94c58a0b9ada5963c2ff335fad8ab2ab57e9a4a3d`
 
-````typescript
+```typescript
 import type { D1Database } from '@cloudflare/workers-types';
 
 export async function cleanupDatabase(db: D1Database, now = Date.now()) {
   await db.batch([db.prepare('DELETE FROM rate_limits WHERE expires_at <= ?').bind(now)]);
 }
-
-````
+```
 
 ### File: lib/diagnostics.ts
 
 SHA-256: `4e07f504d3d4a3be496192f1c7eb7c2684ad8ca63b65fc9f1ed2cd4b6288417c`
 
-````typescript
+```typescript
 export class ConfigurationError extends Error {
   constructor(public readonly code: string) {
     super(code);
@@ -3199,14 +3170,13 @@ export function reportDiagnostic(raw: unknown, httpStatus?: number) {
   if (httpStatus !== undefined) safe.httpStatus = httpStatus;
   console.info('[CarTrack lead diagnostic]', safe);
 }
-
-````
+```
 
 ### File: lib/googleLeadMapper.ts
 
 SHA-256: `741e74e4beab35d3cc105d128df7fb211e0a612add703ecd7572289b92e51815`
 
-````typescript
+```typescript
 import type { LeadRequest } from './leadModel';
 
 type AnswerMapping = { columnId: string; values: Record<string, string | boolean> };
@@ -3317,14 +3287,13 @@ export function googleLeadMapper(
     },
   };
 }
-
-````
+```
 
 ### File: lib/googleWebhook.ts
 
 SHA-256: `154f048668cad8dca69146be9a9531dd4d42055d1e296bd33316f91976acb21e`
 
-````typescript
+```typescript
 import { readJsonBody, sanitizePayload } from './webhookPayload';
 export { readJsonBody } from './webhookPayload';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
@@ -3415,14 +3384,13 @@ export async function googleWebhook(request: Request, env: LeadBindings) {
     return reply(503);
   }
 }
-
-````
+```
 
 ### File: lib/hosting.ts
 
 SHA-256: `05f2c7b5ed9b616d10841dc4e50e3a87f8739563a91786224bedd6155c9eb0f9`
 
-````typescript
+```typescript
 export function isIndexable() {
   if (process.env.SITE_INDEXABLE !== 'true') return false;
   if (process.env.DEPLOY_PLATFORM === 'cloudflare') return process.env.DEPLOY_ENV === 'production';
@@ -3443,14 +3411,13 @@ export function clientAddress(request: Request) {
   }
   return 'local-shared';
 }
-
-````
+```
 
 ### File: lib/leadBindings.ts
 
 SHA-256: `aa3a6b7897ce29fccb6e6b3d2a7c8e6193dffea7fa79c6ce4ea71abf55879747`
 
-````typescript
+```typescript
 import type { D1Database, Queue } from '@cloudflare/workers-types';
 export type LeadJob = { leadId: string };
 export type LeadBindings = {
@@ -3477,14 +3444,13 @@ export async function leadBindings(): Promise<LeadBindings> {
   if (!bindings.DB || !bindings.LEAD_QUEUE) throw new Error('PIPELINE_UNAVAILABLE');
   return bindings;
 }
-
-````
+```
 
 ### File: lib/leadConsumer.ts
 
 SHA-256: `7252a0055b3a04054ac14e992550bd22057f62027d61e4f3b0ae85ba4705d3de`
 
-````typescript
+```typescript
 import { randomUUID } from 'node:crypto';
 import type { MessageBatch } from '@cloudflare/workers-types';
 import type { LeadBindings, LeadJob } from './leadBindings';
@@ -3714,14 +3680,13 @@ export async function consumeLeads(
     }
   }
 }
-
-````
+```
 
 ### File: lib/leadModel.ts
 
 SHA-256: `94db49e64dfbc979973340d35696f3963381aa84427cfae83558b821470af6ce`
 
-````typescript
+```typescript
 import { validateLead, type LeadInput } from './validation';
 
 export type LeadSource = 'WEBSITE' | 'GOOGLE_ADS' | 'MICROSOFT_ADS' | 'META_ADS' | 'TIKTOK_ADS';
@@ -3781,14 +3746,13 @@ export function assessLead(lead: LeadRequest) {
           : 'pending_review',
   };
 }
-
-````
+```
 
 ### File: lib/leadService.ts
 
 SHA-256: `b5d1eb61568a944401b475bf2c601f89a3215ce51485162de9744e653f28d2d7`
 
-````typescript
+```typescript
 import { createHash, randomUUID } from 'node:crypto';
 import type { D1Database } from '@cloudflare/workers-types';
 import { buildPayload } from './leadbyte';
@@ -3997,14 +3961,13 @@ export async function markStaleAttempts(db: D1Database) {
       .bind(Date.now(), Date.now()),
   ]);
 }
-
-````
+```
 
 ### File: lib/leadbyte.ts
 
 SHA-256: `762c0d5089e6e06deb45f8111f0e93d948d413d52178ce961fc9f41de5f0466b`
 
-````typescript
+```typescript
 import { OFFER_ID, submissionConfig } from './config';
 import { type LeadInput, parseCallTime } from './validation';
 export type LeadResult = {
@@ -4228,14 +4191,13 @@ export async function submitLead(
     clearTimeout(timer);
   }
 }
-
-````
+```
 
 ### File: lib/logger.ts
 
 SHA-256: `8a250757bcdbd94611b47da6ec0ecb83e4d22a56df3abfdc47cc286634094ea0`
 
-````typescript
+```typescript
 import { createHmac, randomBytes } from 'node:crypto';
 import { ConfigurationError } from './diagnostics';
 // Worker module evaluation cannot generate randomness; test fallback is lazy.
@@ -4274,14 +4236,13 @@ export function log(
 ) {
   console.info(JSON.stringify({ time: new Date().toISOString(), event, ...data }));
 }
-
-````
+```
 
 ### File: lib/microsoftAds.ts
 
 SHA-256: `b58a939ba877a866e94f6525fe36dc8f634a8f8cef1c149c53f305cc5279037a`
 
-````typescript
+```typescript
 import { sanitizeAttribution } from './attribution';
 import type { LeadRequest } from './leadModel';
 
@@ -4309,14 +4270,13 @@ export function microsoftWebsiteDetails(
     },
   };
 }
-
-````
+```
 
 ### File: lib/microsoftLeadMapper.ts
 
 SHA-256: `eb1a8cd8f6a16975bd57bb456387de79f46c8b6082882502fa6a765a1ea2dd1e`
 
-````typescript
+```typescript
 import type { LeadRequest } from './leadModel';
 import { InvalidWebhookPayload } from './webhookPayload';
 
@@ -4402,14 +4362,13 @@ export function microsoftLeadMapper(raw: Record<string, unknown>, now = new Date
     metadata: { fullName: raw.fullName, deliveryMethod: 'intermediary' },
   };
 }
-
-````
+```
 
 ### File: lib/microsoftWebhook.ts
 
 SHA-256: `e666abe7acdb9ab73ce7e4f137c67cd59a1e4818be5ccb5468a8bd3ac2db35d6`
 
-````typescript
+```typescript
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { LeadBindings } from './leadBindings';
 import { microsoftLeadMapper } from './microsoftLeadMapper';
@@ -4483,14 +4442,13 @@ export async function microsoftWebhook(request: Request, env: LeadBindings) {
     return reject(invalid ? 400 : 503, invalid ? 'INVALID_PAYLOAD' : 'INGESTION_FAILED');
   }
 }
-
-````
+```
 
 ### File: lib/rateLimit.ts
 
 SHA-256: `29bfade113c0a38698f6b460c847c1f8bc5d7f610c6f9366ac53fb9cc6b5ce37`
 
-````typescript
+```typescript
 import { digest } from './logger';
 import { clientAddress } from './hosting';
 import { database } from './database';
@@ -4521,14 +4479,13 @@ export async function rateLimit(request: Request) {
     retryAfter: Math.max(1, Math.ceil((expiresAt - now) / 1000)),
   };
 }
-
-````
+```
 
 ### File: lib/reconciliation.mjs
 
 SHA-256: `8ef7080cf390ae5a87eddadc9c7e7e7c89a08f43be40d7ad8469c36f15661d10`
 
-````javascript
+```javascript
 import { parsePhoneNumberFromString } from 'libphonenumber-js/max';
 
 function phone(value) {
@@ -4608,14 +4565,13 @@ export function reconcile(local, vendor) {
     ),
   };
 }
-
-````
+```
 
 ### File: lib/socialLeadProcessor.ts
 
 SHA-256: `1d3d73e94ce2fbfd77ed9975a276fd7152cb5ae11ea38540d40d58c21daf8290`
 
-````typescript
+```typescript
 import { createHmac, randomUUID } from 'node:crypto';
 import type { LeadBindings } from './leadBindings';
 import { googleLeadMapper, type GoogleMappings } from './googleLeadMapper';
@@ -4826,14 +4782,13 @@ export async function processSocialInbox(env: LeadBindings) {
     .bind(Date.now() - 30 * 86400000)
     .run();
 }
-
-````
+```
 
 ### File: lib/socialWebhooks.ts
 
 SHA-256: `1cf3c44c403dbd544e46f0046b6b918ec274bac17c2654e5b8fe8a03ceab3376`
 
-````typescript
+```typescript
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import type { LeadBindings } from './leadBindings';
 import { parseWebhookJson, readRawBody, InvalidWebhookPayload } from './webhookPayload';
@@ -4986,14 +4941,13 @@ export async function receiveSocialWebhook(
     return socialReply(503);
   }
 }
-
-````
+```
 
 ### File: lib/submissionKey.ts
 
 SHA-256: `b4d8626a650956baf77a8e51e93476d91c02626c5dc9bc13789cc42a43041815`
 
-````typescript
+```typescript
 // Persist only a digest and random id, never contact details, in browser session storage.
 export async function submissionKey(payload: string, renew = false) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
@@ -5013,14 +4967,13 @@ export async function submissionKey(payload: string, renew = false) {
   }
   return id;
 }
-
-````
+```
 
 ### File: lib/submissions.ts
 
 SHA-256: `e067cf6e82d41d77dd9356dc46fc504a1195bd86fca5412eb8dd7ca1f47db6cb`
 
-````typescript
+```typescript
 import type { LeadResult } from './leadbyte';
 import { database } from './database';
 import { CONSENT_VERSION } from './config';
@@ -5142,14 +5095,13 @@ export async function completeSubmission(
     .first();
   if (!updated) throw new Error('Submission completion unavailable');
 }
-
-````
+```
 
 ### File: lib/temporaryStore.ts
 
 SHA-256: `f2d322d413d97dcd880c1ebc78412ce8f0b46ed6cfceb97239eb1ea432e907bc`
 
-````typescript
+```typescript
 // Best-effort protection within ONE warm function instance, not shared persistence.
 export class TemporaryStore<T> {
   private entries = new Map<string, { value: T; expiresAt: number }>();
@@ -5170,14 +5122,13 @@ export class TemporaryStore<T> {
     return true;
   }
 }
-
-````
+```
 
 ### File: lib/validation.ts
 
 SHA-256: `3b362b2eac9de9ce409d8fe8a50dff129239bdf6111693b3a05265d5daa7c4e6`
 
-````typescript
+```typescript
 import { parsePhoneNumberFromString } from 'libphonenumber-js/max';
 
 export const employmentOptions = ['employed', 'self_employed'] as const;
@@ -5307,14 +5258,13 @@ export function validateLead(raw: unknown, now = new Date()) {
   }
   return { input, errors, reasons, valid: Object.keys(errors).length === 0 };
 }
-
-````
+```
 
 ### File: lib/webhookPayload.ts
 
 SHA-256: `a011317e934c7f460a24b3c0ae1b1e44e3556ada010afa8a9d1b14707b782994`
 
-````typescript
+```typescript
 export class InvalidWebhookPayload extends Error {}
 
 export function sanitizePayload(value: unknown, secret: string): unknown {
@@ -5376,14 +5326,13 @@ export function parseWebhookJson(body: string): Record<string, unknown> {
 export async function readJsonBody(request: Request, limit = 65536) {
   return parseWebhookJson((await readRawBody(request, limit)).toString('utf8'));
 }
-
-````
+```
 
 ### File: migrations/0001_submission_storage.sql
 
 SHA-256: `407bb828088de9eab5dccbf188cc46af2242d15fe9ac65fb86a41acbc17bcdd7`
 
-````sql
+```sql
 -- Only pseudonymous identifiers and safe response data: no raw contact details.
 CREATE TABLE submissions (
   submission_key TEXT PRIMARY KEY NOT NULL,
@@ -5405,13 +5354,13 @@ CREATE TABLE rate_limits (
 );
 CREATE INDEX rate_limits_expiry ON rate_limits(expires_at);
 
-````
+```
 
 ### File: migrations/0002_lead_reporting.sql
 
 SHA-256: `3969dbf0f80bde8cc878d44d36b05865b97b0df221dc1264238e0dd54ebaa993`
 
-````sql
+```sql
 -- Additive migration: preserve existing submission tokens and safe replay responses.
 -- expires_at is retained for compatibility but is no longer used to delete leads.
 ALTER TABLE submissions ADD COLUMN record_version INTEGER NOT NULL DEFAULT 0;
@@ -5488,23 +5437,23 @@ FROM lead_reporting
 GROUP BY submitted_date_sa, campaign_id, supplier_id, offer_id,
   delivery_status, leadbyte_code, leadbyte_code_description;
 
-````
+```
 
 ### File: migrations/0003_contact_email.sql
 
 SHA-256: `f6fe218cdeb303e64047969671e4b3471e8f61e21ac609faceef7046347d14ef`
 
-````sql
+```sql
 -- Preserve existing records. Email is retained locally, not added to the vendor payload.
 ALTER TABLE submissions ADD COLUMN email TEXT;
 
-````
+```
 
 ### File: migrations/0004_lead_pipeline.sql
 
 SHA-256: `66543239e199e7458e07799da7b28855aa30fe267fb59d642775313233c66c55`
 
-````sql
+```sql
 -- Additive: historical synchronous submissions are never automatically queued.
 ALTER TABLE submissions ADD COLUMN source TEXT NOT NULL DEFAULT 'WEBSITE';
 ALTER TABLE submissions ADD COLUMN external_lead_id TEXT;
@@ -5571,13 +5520,13 @@ CREATE TABLE lead_dead_letters (
   reason TEXT NOT NULL
 );
 
-````
+```
 
 ### File: migrations/0005_microsoft_ads_reporting.sql
 
 SHA-256: `c3a76975b427101fb9d6e16f95208f644b34daff5a9c2d5f357b84479b4e2d96`
 
-````sql
+```sql
 -- Reuse the existing attribution JSON and ad campaign columns. No lead rows change.
 -- Ingestion source stays WEBSITE; acquisitionSource identifies the advertising channel.
 CREATE VIEW microsoft_ads_leads AS
@@ -5596,13 +5545,13 @@ WHERE source = 'WEBSITE' AND json_extract(metadata_json, '$.acquisitionSource') 
 CREATE INDEX submissions_acquisition_created
   ON submissions(json_extract(metadata_json, '$.acquisitionSource'), created_at);
 
-````
+```
 
 ### File: migrations/0006_social_webhook_inbox.sql
 
 SHA-256: `ea2c883e0ef12d7928f44f54d873a74ef49fc698582bb38d32b2d624f2255fb5`
 
-````sql
+```sql
 -- Durable receipt before acknowledging native provider callbacks.
 CREATE TABLE social_webhook_inbox (
   id TEXT PRIMARY KEY,
@@ -5619,28 +5568,27 @@ CREATE TABLE social_webhook_inbox (
 );
 CREATE INDEX social_inbox_pending ON social_webhook_inbox(status, next_attempt_at);
 
-````
+```
 
 ### File: next-env.d.ts
 
 SHA-256: `1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b`
 
-````typescript
+```typescript
 /// <reference types="next" />
 /// <reference types="next/image-types/global" />
-import "./.next/types/routes.d.ts";
-import "./.next/types/root-params.d.ts";
+import './.next/types/routes.d.ts';
+import './.next/types/root-params.d.ts';
 
 // NOTE: This file should not be edited
 // see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
-
-````
+```
 
 ### File: next.config.ts
 
 SHA-256: `d27d94342e794b137d95811afb3619cdaa76309651a27f5633e24f1f4607d602`
 
-````typescript
+```typescript
 import type { NextConfig } from 'next';
 import { isIndexable } from './lib/hosting';
 import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
@@ -5674,25 +5622,23 @@ const config: NextConfig = {
   },
 };
 export default config;
-
-````
+```
 
 ### File: open-next.config.ts
 
 SHA-256: `48a47e57593373c29b88d2d1bd46d29e602fd051c19afc28f3b0be17f94ae1d4`
 
-````typescript
+```typescript
 import { defineCloudflareConfig } from '@opennextjs/cloudflare';
 
 export default defineCloudflareConfig({});
-
-````
+```
 
 ### File: package.json
 
 SHA-256: `5b47844c5d6e22993fda71254f13a8fb541e20a4de8790e25413f60c1a49a5dd`
 
-````json
+```json
 {
   "name": "cartrack-cameras",
   "version": "1.0.0",
@@ -5752,14 +5698,13 @@ SHA-256: `5b47844c5d6e22993fda71254f13a8fb541e20a4de8790e25413f60c1a49a5dd`
     "node": ">=22.12.0"
   }
 }
-
-````
+```
 
 ### File: playwright.config.ts
 
 SHA-256: `ec63bbb35da6d7130d4ed6c7eb82c6b2ebc5ac1c14efd0649b9740fc8da355ac`
 
-````typescript
+```typescript
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/browser',
@@ -5772,45 +5717,43 @@ export default defineConfig({
     timeout: 120000,
   },
 });
-
-````
+```
 
 ### File: postcss.config.mjs
 
 SHA-256: `258faa39968594a46c2cf72ba120fb353e788ef2acc3265ddbfbc6400dd80761`
 
-````javascript
+```javascript
 const config = { plugins: { '@tailwindcss/postcss': {} } };
 export default config;
-
-````
+```
 
 ### File: public/_headers
 
 SHA-256: `243f83a85be7196e6382459068447d056353cabfdc9b85725ff9e6ddf794e97e`
 
-````text
+```text
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
-````
+```
 
 ### File: reports/daily.sql
 
 SHA-256: `c9cfaaffc14a0eef0247cc61ff564e12c432ed18addf93474f9c0c1a53bfa14f`
 
-````sql
+```sql
 -- Contact-free daily counts in South African time. Includes all recorded outcomes.
 SELECT * FROM lead_daily_summary
 ORDER BY submitted_date_sa DESC, delivery_status, leadbyte_code;
 
-````
+```
 
 ### File: reports/microsoft-ads.sql
 
 SHA-256: `98f0cf6009bed54f736aa9c0e2e8d20c8ca2c7dd1791770e0b76efac80192e9b`
 
-````sql
+```sql
 -- Aggregate operational report, no contact fields or click IDs.
 SELECT date(created_at / 1000, 'unixepoch', '+2 hours') AS submitted_date_sa,
   source_campaign_id, ad_group_id, ad_id, processing_status,
@@ -5821,13 +5764,13 @@ WHERE is_test = 0
 GROUP BY submitted_date_sa, source_campaign_id, ad_group_id, ad_id, processing_status
 ORDER BY submitted_date_sa DESC, source_campaign_id;
 
-````
+```
 
 ### File: reports/pipeline-issues.sql
 
 SHA-256: `dff2a26922d99d429c61dd93869c148a8a89d9b63e302375051ee11d34f32803`
 
-````sql
+```sql
 -- No customer contact fields. Use the internal lead ID to investigate privately.
 SELECT submission_key AS lead_id, source, processing_status, delivery_status,
   retry_count, diagnostic_code, leadbyte_code, leadbyte_lead_id,
@@ -5837,13 +5780,13 @@ WHERE processing_status IN ('pending_review','retry','failed','dead_letter','unc
    OR (processing_status IN ('pending','queued','processing') AND updated_at < (unixepoch() - 900) * 1000)
 ORDER BY updated_at DESC;
 
-````
+```
 
 ### File: reports/reconciliation-issues.sql
 
 SHA-256: `64d2af9d06f6ade1b6c15bd835e12dcc79d582e6af0f43f99e9699d65e44e6fc`
 
-````sql
+```sql
 -- Read-only operational checks. No contact details in this result.
 SELECT request_id, submitted_at_utc, delivery_status, leadbyte_lead_id,
   leadbyte_code, leadbyte_code_description, diagnostic_code,
@@ -5860,13 +5803,13 @@ WHERE delivery_status IN ('pending', 'uncertain', 'not_sent_disabled')
   OR (leadbyte_code IS NOT NULL AND leadbyte_code_description IS NULL)
 ORDER BY created_at DESC;
 
-````
+```
 
 ### File: scripts/build-cloudflare.mjs
 
 SHA-256: `7a3fc5217cf228f55cf91e2be6db6e592a4eb70a8ca9356360da3f422b7a3b30`
 
-````javascript
+```javascript
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
@@ -5890,14 +5833,13 @@ const result = spawnSync(
 );
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);
-
-````
+```
 
 ### File: scripts/check-deployment.mjs
 
 SHA-256: `cff7080b23b56ac64d6b724bbd502a60171d18b23029e38c8ca3d98a39370564`
 
-````javascript
+```javascript
 import { readFileSync } from 'node:fs';
 
 const config = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/,\s*([}\]])/g, '$1'));
@@ -5914,14 +5856,13 @@ if (
 )
   throw new Error('Set vars.NEXT_PUBLIC_SITE_URL to the exact HTTPS Cloudflare site origin first.');
 console.log('Deployment configuration is ready.');
-
-````
+```
 
 ### File: scripts/deploy-cloudflare.mjs
 
 SHA-256: `b741f987a21d5ef410a3e5d839959837d8d83b99f4d417ca0401524009f5453b`
 
-````javascript
+```javascript
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
@@ -5951,14 +5892,13 @@ for (const args of steps) {
   if (result.error) throw result.error;
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
-
-````
+```
 
 ### File: scripts/export-report.mjs
 
 SHA-256: `9c7c1d9e371fbdbfcac96eba78249f78990c26adaa5fc3a2d69dda01d9bfb4d4`
 
-````javascript
+```javascript
 import { existsSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -6075,14 +6015,13 @@ renameSync(output + '.tmp', output);
 console.log(
   `Saved ${summary.length} summary groups${report.leads ? ` and ${report.leads.length} lead records` : ''} to ${output}`,
 );
-
-````
+```
 
 ### File: scripts/indexnow.mjs
 
 SHA-256: `a39e958e98b5c8c99aeb897f4314eb5cd710ac5e798d5b380020d6eabbadc88e`
 
-````javascript
+```javascript
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -6182,14 +6121,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exitCode = 1;
   });
 }
-
-````
+```
 
 ### File: scripts/query-report.mjs
 
 SHA-256: `314a94de328f94650f1d031939b27905a2dbfe26634fee9e40f2f61a77ed4e2b`
 
-````javascript
+```javascript
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
@@ -6216,14 +6154,13 @@ const result = spawnSync(
 );
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);
-
-````
+```
 
 ### File: scripts/reconcile-report.mjs
 
 SHA-256: `50f37f505f2c626328da21bdfe342298b0e1eb497405d8ceb3c7d11540af3b03`
 
-````javascript
+```javascript
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { reconcile } from '../lib/reconciliation.mjs';
@@ -6249,14 +6186,13 @@ writeFileSync(
   { flag: 'wx', mode: 0o600 },
 );
 console.log(`Reconciled ${report.results.length} local records. Results saved to ${output}`);
-
-````
+```
 
 ### File: scripts/setup-local.mjs
 
 SHA-256: `8aba480b4a9808cabfc55cd9d37605611cefa746332a980ba7c46e05bdb480f2`
 
-````javascript
+```javascript
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { parse } from 'dotenv';
@@ -6282,14 +6218,13 @@ const serialize = (values) =>
 writeFileSync('.env.local', serialize({ ...current, ...shared }));
 writeFileSync('.dev.vars', serialize({ ...vars, ...shared, NEXTJS_ENV: 'development' }));
 console.log('Local Cloudflare settings saved. Live lead delivery is disabled.');
-
-````
+```
 
 ### File: scripts/test-lead-worker.mjs
 
 SHA-256: `6234ed57d914b1c668c83cb64230aef17fefa7f132b3d331cd3b1675a7e111ec`
 
-````javascript
+```javascript
 // Real local workerd + D1 + Queue; all outbound requests are intercepted.
 // Uses the Miniflare version bundled with the installed Wrangler.
 import { createRequire } from 'node:module';
@@ -6479,14 +6414,13 @@ try {
 } finally {
   await mf.dispose();
 }
-
-````
+```
 
 ### File: tests/browser/landing.spec.ts
 
 SHA-256: `7d2d1ed496273d8e2a553641f059fd0805e73da2c9efccc127b75cec71269310`
 
-````typescript
+```typescript
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 for (const width of [375, 390, 430, 768, 1024, 1280, 1440, 1870]) {
@@ -6515,7 +6449,7 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
 });
 test('shows revised pricing and a single disclaimer below the CTA', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByLabel('From as little as R7 per day. Terms apply.')).toBeVisible();
+  await expect(page.getByLabel('From as little as R6.99 per day. Terms apply.')).toBeVisible();
   await expect(
     page.getByText(
       'By submitting this form, I confirm that I am 18 or older, have access to a vehicle and am employed.',
@@ -6644,7 +6578,9 @@ test('single-step form requires email', async ({ page }) => {
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
 });
 
-test('duplicate response keeps the form editable and resubmits changed details', async ({ page }) => {
+test('duplicate response keeps the form editable and resubmits changed details', async ({
+  page,
+}) => {
   let requests = 0;
   await page.route('**/api/leads', async (route) => {
     requests++;
@@ -6687,14 +6623,13 @@ for (const result of [
     await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
   });
 }
-
-````
+```
 
 ### File: tests/d1Fixture.ts
 
 SHA-256: `ba2dd852f0999888e5559d09470c5d042c00e126e2c62ec559cf62b9a9ebe690`
 
-````typescript
+```typescript
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 
@@ -6742,14 +6677,13 @@ export function createTestDatabase() {
     },
   };
 }
-
-````
+```
 
 ### File: tests/database.test.ts
 
 SHA-256: `6633d46584f92f23ee86bc3e2bd78fda27eeebd53e944c663e25f136f979233b`
 
-````typescript
+```typescript
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createTestDatabase } from './d1Fixture';
 import { claimSubmission, completeSubmission } from '../lib/submissions';
@@ -6836,14 +6770,13 @@ it('daily cleanup removes rate buckets but preserves lead history and pending cl
   });
   expect(state.db?.sqlite.prepare('SELECT * FROM rate_limits').all()).toHaveLength(0);
 });
-
-````
+```
 
 ### File: tests/diagnostics.test.ts
 
 SHA-256: `f37c69c447459c7697ad288df4c7498ee8e0e0e4c1056cdaeef2fa9d37890232`
 
-````typescript
+```typescript
 import { afterEach, expect, it, vi } from 'vitest';
 import { ConfigurationError, reportDiagnostic } from '../lib/diagnostics';
 import { submissionConfig } from '../lib/config';
@@ -6943,14 +6876,13 @@ it('distinguishes timeout', async () => {
     ).diagnosticCode,
   ).toBe('LEADBYTE_TIMEOUT');
 });
-
-````
+```
 
 ### File: tests/fixtures.ts
 
 SHA-256: `775b1da5cf39b02b32e984811eb1e20feb31ee9026334e815338d6e3cea62eec`
 
-````typescript
+```typescript
 // Synthetic fixture for mocked tests only. No automated test submits to LeadByte.
 export const valid = {
   firstname: 'Test',
@@ -6964,14 +6896,13 @@ export const valid = {
   preferredtimeofcall: '',
   website: '',
 };
-
-````
+```
 
 ### File: tests/hosting.test.ts
 
 SHA-256: `3eef3e27c85afa9511707521fdf445b54564b0bf02de4fe7a4014b96afc6a988`
 
-````typescript
+```typescript
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { clientAddress, isIndexable } from '../lib/hosting';
 
@@ -7044,14 +6975,13 @@ it('does not trust Netlify headers on a local server', () => {
     ),
   ).toBe('local-shared');
 });
-
-````
+```
 
 ### File: tests/indexnow.test.ts
 
 SHA-256: `e274253ed412d08e3f80e9dfedefde5dbe2be70fd29ba983c60317c968101fbc`
 
-````typescript
+```typescript
 import { describe, expect, it, vi } from 'vitest';
 import { submissionPayload, submitIndexNow } from '../scripts/indexnow.mjs';
 import config from '../config/indexnow.json';
@@ -7102,14 +7032,13 @@ describe('IndexNow', () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });
-
-````
+```
 
 ### File: tests/leadPipeline.test.ts
 
 SHA-256: `128c4f0537f4663351c035bb3fc9868941ab67be9bb5b4237b88247e2809bbf4`
 
-````typescript
+```typescript
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import type { MessageBatch } from '@cloudflare/workers-types';
 import { createTestDatabase } from './d1Fixture';
@@ -7357,14 +7286,12 @@ it('recovers a failed queue send from durable outbox without a provider retry', 
 });
 it('saves success and never sends again on concurrent or later delivery', async () => {
   await googleWebhook(request(), env);
-  const send = vi
-    .fn()
-    .mockResolvedValue({
-      state: 'success',
-      message: 'Received',
-      code: 1,
-      leadId: 'synthetic-affiliate-1',
-    });
+  const send = vi.fn().mockResolvedValue({
+    state: 'success',
+    message: 'Received',
+    code: 1,
+    leadId: 'synthetic-affiliate-1',
+  });
   const a = job(),
     b = job();
   await Promise.all([consumeLeads(a.batch, env, send), consumeLeads(b.batch, env, send)]);
@@ -7382,14 +7309,12 @@ it.each(['LEADBYTE_TIMEOUT', 'LEADBYTE_NETWORK_ERROR', 'LEADBYTE_HTTP_ERROR'])(
   'retries temporary %s with bounded backoff',
   async (diagnosticCode) => {
     await googleWebhook(request(), env);
-    const send = vi
-      .fn()
-      .mockResolvedValue({
-        state: 'temporary_error',
-        message: 'Retry',
-        diagnosticCode,
-        uncertain: diagnosticCode !== 'LEADBYTE_HTTP_ERROR',
-      });
+    const send = vi.fn().mockResolvedValue({
+      state: 'temporary_error',
+      message: 'Retry',
+      diagnosticCode,
+      uncertain: diagnosticCode !== 'LEADBYTE_HTTP_ERROR',
+    });
     const { batch, message } = job();
     await consumeLeads(batch, env, send);
     expect(message.retry).toHaveBeenCalledWith({ delaySeconds: 60 });
@@ -7452,14 +7377,13 @@ it('does not resend after a consumer crashes while an affiliate call might have 
   expect(send).not.toHaveBeenCalled();
   expect(row().processing_status).toBe('uncertain');
 });
-
-````
+```
 
 ### File: tests/leadRecording.test.ts
 
 SHA-256: `4cdbd003442e19730d1327cb069f439d33f71ff7ecaa57956a9ee629d73fc8cf`
 
-````typescript
+```typescript
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { LeadResult } from '../lib/leadbyte';
 import { createTestDatabase } from './d1Fixture';
@@ -7766,14 +7690,13 @@ it('groups daily reports by South African date rather than UTC date', async () =
     vi.useRealTimers();
   }
 });
-
-````
+```
 
 ### File: tests/leadbyte.test.ts
 
 SHA-256: `356da71f03ad68b6ebd7e5391bae6692a568c58f3e2234052a3a1abe9bbf9cf2`
 
-````typescript
+```typescript
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildPayload, formatSaDate, parseLeadByte, submitLead } from '../lib/leadbyte';
 import { submissionConfig } from '../lib/config';
@@ -7906,14 +7829,13 @@ describe('payload integrity', () => {
       ).get('preferredtimeofcall'),
     ).toBe('12/12/2026 14:30:00'));
 });
-
-````
+```
 
 ### File: tests/microsoftAds.test.ts
 
 SHA-256: `41aef04aa855dfab4c69ca574be1031c7687f046dd1b62e89bb6c84ebaa51a90`
 
-````typescript
+```typescript
 import { afterEach, expect, it, vi } from 'vitest';
 import { captureAttribution, sanitizeAttribution, sessionAttribution } from '../lib/attribution';
 import { microsoftWebsiteDetails } from '../lib/microsoftAds';
@@ -8039,14 +7961,13 @@ it('stores and retrieves the Bing click from the existing browser session', () =
   expect(sessionAttribution('').ms_campaign_id).toBe('123');
   expect(saved.get('cartrack-attribution')).toContain(clickId);
 });
-
-````
+```
 
 ### File: tests/microsoftWebhook.test.ts
 
 SHA-256: `f1d8cd95f9f7e42421640ac671bd0bc70cc794d6996b46b636a11a41d5b6fd61`
 
-````typescript
+```typescript
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import type { MessageBatch } from '@cloudflare/workers-types';
 import { createTestDatabase } from './d1Fixture';
@@ -8221,14 +8142,12 @@ it.each([
     queue: 'bestcardash-leads',
     messages: [message],
   } as unknown as MessageBatch<LeadJob>;
-  const send = vi
-    .fn()
-    .mockResolvedValue({
-      state,
-      message: 'Synthetic response',
-      code: state === 'success' ? 1 : -8,
-      leadId: 'test-affiliate-1',
-    });
+  const send = vi.fn().mockResolvedValue({
+    state,
+    message: 'Synthetic response',
+    code: state === 'success' ? 1 : -8,
+    leadId: 'test-affiliate-1',
+  });
   await consumeLeads(batch, env, send);
   expect(row().processing_status).toBe(status);
   expect(retry ? message.retry : message.ack).toHaveBeenCalled();
@@ -8252,14 +8171,13 @@ it('never queues tests or leads without verified contact consent and evidence', 
   }
   expect(sendQueue).not.toHaveBeenCalled();
 });
-
-````
+```
 
 ### File: tests/reconciliation.test.ts
 
 SHA-256: `7be06e1251718235b0d976913996754fe35cdbf92382febb162206b23ddfcd91`
 
-````typescript
+```typescript
 import { expect, it } from 'vitest';
 import { reconcile } from '../lib/reconciliation.mjs';
 
@@ -8302,14 +8220,13 @@ it('flags duplicate vendor IDs rather than choosing an arbitrary match', () => {
 it('rejects malformed exports', () => {
   expect(() => reconcile([], [{ arbitrary: 'field' }])).toThrow();
 });
-
-````
+```
 
 ### File: tests/route.test.ts
 
 SHA-256: `c8d16e02ffdc1e07d01a0891d29c051ef3f5f22c31141ca71a3d80034690f477`
 
-````typescript
+```typescript
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({ rateLimit: vi.fn(), ingest: vi.fn() }));
 vi.mock('../lib/rateLimit', () => ({ rateLimit: mocks.rateLimit }));
@@ -8415,14 +8332,13 @@ it('does not expose persistence exceptions', async () => {
   expect(response.status).toBe(503);
   expect(await response.text()).not.toContain('private customer');
 });
-
-````
+```
 
 ### File: tests/socialWebhooks.test.ts
 
 SHA-256: `c3552c0f55c5aacffec34572d3381879d2c47f571662a53ef73da3d8be8b0ad7`
 
-````typescript
+```typescript
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createHmac } from 'node:crypto';
 import { createTestDatabase } from './d1Fixture';
@@ -8711,14 +8627,13 @@ it('queues a qualified live lead once across different notifications and preserv
   ).toMatchObject({ processing_status: 'pending_review', acceptterms: null });
   expect(send).toHaveBeenCalledTimes(1);
 });
-
-````
+```
 
 ### File: tests/temporaryState.test.ts
 
 SHA-256: `a8a271aab4a0097ae06525d401709e4692bd13771b3c214d185472b29002fa36`
 
-````typescript
+```typescript
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { TemporaryStore } from '../lib/temporaryStore';
 import { claimSubmission, completeSubmission } from '../lib/submissions';
@@ -8797,14 +8712,13 @@ it('still works when browser storage is unavailable', () => {
   });
   expect(browserAttempt(Date.now()).allowed).toBe(true);
 });
-
-````
+```
 
 ### File: tests/validation.test.ts
 
 SHA-256: `acbba477b7f0f73d1029eea5c7af5fe024731df6d07c1eb4f39985cbd4c8d5cf`
 
-````typescript
+```typescript
 import { describe, expect, it } from 'vitest';
 import { validateLead, cleanPhone, parseCallTime } from '../lib/validation';
 import { captureAttribution } from '../lib/attribution';
@@ -8891,14 +8805,13 @@ describe('attribution', () => {
   it('supports aff_id links and limits keys', () =>
     expect(captureAttribution('?aff_id=27144&phone=secret')).toEqual({ affiliate_id: '27144' }));
 });
-
-````
+```
 
 ### File: tsconfig.json
 
 SHA-256: `1fe85b00295f636c95916643a97619e2bf7183c9dc13c99dc7a7eae9e835c862`
 
-````json
+```json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -8926,14 +8839,13 @@ SHA-256: `1fe85b00295f636c95916643a97619e2bf7183c9dc13c99dc7a7eae9e835c862`
   ],
   "exclude": ["node_modules", ".open-next", ".wrangler"]
 }
-
-````
+```
 
 ### File: vitest.config.ts
 
 SHA-256: `30ca55931d1f5a7f6637841ad7afb5d32204e4400c5521cfa70240d90809a229`
 
-````typescript
+```typescript
 import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 export default defineConfig({
@@ -8945,14 +8857,13 @@ export default defineConfig({
     execArgv: ['--experimental-sqlite'],
   },
 });
-
-````
+```
 
 ### File: worker.mjs
 
 SHA-256: `e38df7020d20f6a7f01e63e644597195c4cbbbe438d5fdf7372ab3b3ba0a0620`
 
-````javascript
+```javascript
 import nextWorker from './.open-next/worker.js';
 import { cleanupDatabase } from './lib/databaseMaintenance';
 import { consumeLeads } from './lib/leadConsumer';
@@ -8974,110 +8885,109 @@ const worker = {
 export default worker;
 
 export { DOQueueHandler, DOShardedTagCache, BucketCachePurge } from './.open-next/worker.js';
-
-````
+```
 
 ## Part D ? source manifest and handoff limits
 
 Embedded reference source files: 96. Additional generated configuration files: wrangler.jsonc and config/indexnow.json.
 
-File | SHA-256 | UTF-8 bytes
---- | --- | ---
-.dev.vars.example | 526c727f7a820bb7c264d34cb345c8ffb65e8abaf50f736a173627d8faa6df2e | 882
-.env.example | 556f13a3c950ed7010109ca2510bcb4ea698ba730268ba51b4db12d4f35ee185 | 1223
-.gitignore | 8367da5fdfa133bb6280da5cc78370bcda872a2740bf7181d9eea3639214ca20 | 234
-AGENTS.md | 63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb | 678
-app/api/leads/route.ts | 88252e8aba81a803a939c6279533f58a2f4c89f3772089534e7658507b1d6c93 | 7421
-app/api/webhooks/google-ads/route.ts | 7e3bbd26821c92407d20253187a964b60441abff6bd3cfc1c84a62a92353e3c5 | 413
-app/api/webhooks/meta/route.ts | 9d16a8e6c2f9a226cf304eeec050f8e560be042b82708c7b1e3006c2d8e77ee9 | 727
-app/api/webhooks/microsoft/route.ts | 78e0adf49d76048b7668f74848e6fa014e6ca91692cafe65d46dc57fca92d0a5 | 445
-app/api/webhooks/tiktok/route.ts | 402a51d6024ea3015c02fcb8fd1974a8691a1e9da77192377755b1a06e67b7c8 | 556
-app/favicon.ico/route.ts | 5dabb366f93dee332fee0487015f9303cfb6b9b33f6bd98b2dc8b1f23d95847c | 241
-app/globals.css | a55d14b8b102f2c8d2f606617abe3c741acb26c1bdcf6e8dfa60e8b6f247588a | 17283
-app/layout.tsx | 77d29933722ec6243c0cb0ad573d3882fe4316996969a084c5e7d1ceb513f5e7 | 2319
-app/page.tsx | 09e04a6f357cbf8d69cd44a2d35b0e107990e1bf051d82ff560f67ee5d9077d5 | 3958
-app/privacy/page.tsx | 026e73a3efb8fcd66e2f47dcb166f8cfeb968921b14f39ff5e827dac03c99ac6 | 3563
-app/robots.ts | 6d0b3412d502cfc591ef71dd13d6e5539e9db4eea222a536cd07aadc4856e6f8 | 398
-app/sitemap.ts | cdbdbbb78cf3739b6e299a13e3053959a28cc37bb305500e098f4edb30fbfabd | 330
-app/terms/page.tsx | 3c59e3fe1216e4076eb3d4addd591cae2fb16c6761e0ea19880e95fc3af4ddb4 | 1791
-components/QuoteExperience.tsx | d7f344eb266e45d002dde913c4ad42656af3c968fbf44a543cf6f98d24460773 | 1271
-components/form/LeadForm.tsx | e62d88e863b4845ed64c6778dfefebd45d4e198b228515edf88d43e3bcda1a3e | 11177
-config/google-ads-mappings.example.json | 551498366c2741ce16a7ad7833d3fa07f7d89b0bff9d9a2ad0d8311ba04efcaa | 1419
-config/social-form-mappings.example.json | 6d8ca3902bf01e257a561cfeeb77c2c78c5eeaad8e282cf566a01719484b92b3 | 1129
-eslint.config.mjs | e0668fcdf419b86c39b3956226325d34830ee3672ab34e8ce7de0c69cd7666b9 | 438
-lib/analytics.ts | da9714d7fd9d802d3c7d0abcc7b10d1f1df2383272e3e0c24f0c712610b0f438 | 798
-lib/attribution.ts | 0dbe51a578a32a0bcbebf4d933e64c62a0ee7d33c391148707a91d29304365ef | 2788
-lib/browserState.ts | 17b801a85e4499b20051d37ff24902c38f0c7404a1f15a7a00f987c5ebd79c0f | 2163
-lib/config.ts | ab5dbd633c792de0f0ea982a8a42ef8b1635accfe5b4af678a43b11913aa4462 | 3056
-lib/database.ts | 88d56b965346c8286ea68066dc17042ceecf74f7bd18142761f05ef375114791 | 1075
-lib/databaseMaintenance.ts | 0a25734141309d9b972e9cd94c58a0b9ada5963c2ff335fad8ab2ab57e9a4a3d | 229
-lib/diagnostics.ts | 4e07f504d3d4a3be496192f1c7eb7c2684ad8ca63b65fc9f1ed2cd4b6288417c | 1139
-lib/googleLeadMapper.ts | 741e74e4beab35d3cc105d128df7fb211e0a612add703ecd7572289b92e51815 | 4459
-lib/googleWebhook.ts | 154f048668cad8dca69146be9a9531dd4d42055d1e296bd33316f91976acb21e | 3423
-lib/hosting.ts | 05f2c7b5ed9b616d10841dc4e50e3a87f8739563a91786224bedd6155c9eb0f9 | 869
-lib/leadBindings.ts | aa3a6b7897ce29fccb6e6b3d2a7c8e6193dffea7fa79c6ce4ea71abf55879747 | 970
-lib/leadConsumer.ts | 7252a0055b3a04054ac14e992550bd22057f62027d61e4f3b0ae85ba4705d3de | 8474
-lib/leadModel.ts | 94db49e64dfbc979973340d35696f3963381aa84427cfae83558b821470af6ce | 1832
-lib/leadService.ts | b5d1eb61568a944401b475bf2c601f89a3215ce51485162de9744e653f28d2d7 | 8209
-lib/leadbyte.ts | 762c0d5089e6e06deb45f8111f0e93d948d413d52178ce961fc9f41de5f0466b | 7764
-lib/logger.ts | 8a250757bcdbd94611b47da6ec0ecb83e4d22a56df3abfdc47cc286634094ea0 | 1462
-lib/microsoftAds.ts | b58a939ba877a866e94f6525fe36dc8f634a8f8cef1c149c53f305cc5279037a | 1154
-lib/microsoftLeadMapper.ts | eb1a8cd8f6a16975bd57bb456387de79f46c8b6082882502fa6a765a1ea2dd1e | 3499
-lib/microsoftWebhook.ts | e666abe7acdb9ab73ce7e4f137c67cd59a1e4818be5ccb5468a8bd3ac2db35d6 | 3002
-lib/rateLimit.ts | 29bfade113c0a38698f6b460c847c1f8bc5d7f610c6f9366ac53fb9cc6b5ce37 | 1331
-lib/reconciliation.mjs | 8ef7080cf390ae5a87eddadc9c7e7e7c89a08f43be40d7ad8469c36f15661d10 | 2763
-lib/socialLeadProcessor.ts | 1d3d73e94ce2fbfd77ed9975a276fd7152cb5ae11ea38540d40d58c21daf8290 | 8632
-lib/socialWebhooks.ts | 1cf3c44c403dbd544e46f0046b6b918ec274bac17c2654e5b8fe8a03ceab3376 | 5792
-lib/submissionKey.ts | b4d8626a650956baf77a8e51e93476d91c02626c5dc9bc13789cc42a43041815 | 770
-lib/submissions.ts | e067cf6e82d41d77dd9356dc46fc504a1195bd86fca5412eb8dd7ca1f47db6cb | 4449
-lib/temporaryStore.ts | f2d322d413d97dcd880c1ebc78412ce8f0b46ed6cfceb97239eb1ea432e907bc | 803
-lib/validation.ts | 3b362b2eac9de9ce409d8fe8a50dff129239bdf6111693b3a05265d5daa7c4e6 | 5160
-lib/webhookPayload.ts | a011317e934c7f460a24b3c0ae1b1e44e3556ada010afa8a9d1b14707b782994 | 2244
-migrations/0001_submission_storage.sql | 407bb828088de9eab5dccbf188cc46af2242d15fe9ac65fb86a41acbc17bcdd7 | 648
-migrations/0002_lead_reporting.sql | 3969dbf0f80bde8cc878d44d36b05865b97b0df221dc1264238e0dd54ebaa993 | 3854
-migrations/0003_contact_email.sql | f6fe218cdeb303e64047969671e4b3471e8f61e21ac609faceef7046347d14ef | 137
-migrations/0004_lead_pipeline.sql | 66543239e199e7458e07799da7b28855aa30fe267fb59d642775313233c66c55 | 2750
-migrations/0005_microsoft_ads_reporting.sql | c3a76975b427101fb9d6e16f95208f644b34daff5a9c2d5f357b84479b4e2d96 | 1047
-migrations/0006_social_webhook_inbox.sql | ea2c883e0ef12d7928f44f54d873a74ef49fc698582bb38d32b2d624f2255fb5 | 549
-next-env.d.ts | 1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b | 288
-next.config.ts | d27d94342e794b137d95811afb3619cdaa76309651a27f5633e24f1f4607d602 | 1330
-open-next.config.ts | 48a47e57593373c29b88d2d1bd46d29e602fd051c19afc28f3b0be17f94ae1d4 | 109
-package.json | 5b47844c5d6e22993fda71254f13a8fb541e20a4de8790e25413f60c1a49a5dd | 2188
-playwright.config.ts | ec63bbb35da6d7130d4ed6c7eb82c6b2ebc5ac1c14efd0649b9740fc8da355ac | 327
-postcss.config.mjs | 258faa39968594a46c2cf72ba120fb353e788ef2acc3265ddbfbc6400dd80761 | 83
-public/_headers | 243f83a85be7196e6382459068447d056353cabfdc9b85725ff9e6ddf794e97e | 69
-reports/daily.sql | c9cfaaffc14a0eef0247cc61ff564e12c432ed18addf93474f9c0c1a53bfa14f | 182
-reports/microsoft-ads.sql | 98f0cf6009bed54f736aa9c0e2e8d20c8ca2c7dd1791770e0b76efac80192e9b | 485
-reports/pipeline-issues.sql | dff2a26922d99d429c61dd93869c148a8a89d9b63e302375051ee11d34f32803 | 553
-reports/reconciliation-issues.sql | 64d2af9d06f6ade1b6c15bd835e12dcc79d582e6af0f43f99e9699d65e44e6fc | 968
-scripts/build-cloudflare.mjs | 7a3fc5217cf228f55cf91e2be6db6e592a4eb70a8ca9356360da3f422b7a3b30 | 679
-scripts/check-deployment.mjs | cff7080b23b56ac64d6b724bbd502a60171d18b23029e38c8ca3d98a39370564 | 779
-scripts/deploy-cloudflare.mjs | b741f987a21d5ef410a3e5d839959837d8d83b99f4d417ca0401524009f5453b | 1072
-scripts/export-report.mjs | 9c7c1d9e371fbdbfcac96eba78249f78990c26adaa5fc3a2d69dda01d9bfb4d4 | 4888
-scripts/indexnow.mjs | a39e958e98b5c8c99aeb897f4314eb5cd710ac5e798d5b380020d6eabbadc88e | 3787
-scripts/query-report.mjs | 314a94de328f94650f1d031939b27905a2dbfe26634fee9e40f2f61a77ed4e2b | 762
-scripts/reconcile-report.mjs | 50f37f505f2c626328da21bdfe342298b0e1eb497405d8ceb3c7d11540af3b03 | 1111
-scripts/setup-local.mjs | 8aba480b4a9808cabfc55cd9d37605611cefa746332a980ba7c46e05bdb480f2 | 1139
-scripts/test-lead-worker.mjs | 6234ed57d914b1c668c83cb64230aef17fefa7f132b3d331cd3b1675a7e111ec | 6756
-tests/browser/landing.spec.ts | 7d2d1ed496273d8e2a553641f059fd0805e73da2c9efccc127b75cec71269310 | 8012
-tests/d1Fixture.ts | ba2dd852f0999888e5559d09470c5d042c00e126e2c62ec559cf62b9a9ebe690 | 1450
-tests/database.test.ts | 6633d46584f92f23ee86bc3e2bd78fda27eeebd53e944c663e25f136f979233b | 3838
-tests/diagnostics.test.ts | f37c69c447459c7697ad288df4c7498ee8e0e0e4c1056cdaeef2fa9d37890232 | 3891
-tests/fixtures.ts | 775b1da5cf39b02b32e984811eb1e20feb31ee9026334e815338d6e3cea62eec | 322
-tests/hosting.test.ts | 3eef3e27c85afa9511707521fdf445b54564b0bf02de4fe7a4014b96afc6a988 | 2213
-tests/indexnow.test.ts | e274253ed412d08e3f80e9dfedefde5dbe2be70fd29ba983c60317c968101fbc | 2373
-tests/leadPipeline.test.ts | 128c4f0537f4663351c035bb3fc9868941ab67be9bb5b4237b88247e2809bbf4 | 13804
-tests/leadRecording.test.ts | 4cdbd003442e19730d1327cb069f439d33f71ff7ecaa57956a9ee629d73fc8cf | 11280
-tests/leadbyte.test.ts | 356da71f03ad68b6ebd7e5391bae6692a568c58f3e2234052a3a1abe9bbf9cf2 | 5291
-tests/microsoftAds.test.ts | 41aef04aa855dfab4c69ca574be1031c7687f046dd1b62e89bb6c84ebaa51a90 | 4945
-tests/microsoftWebhook.test.ts | f1d8cd95f9f7e42421640ac671bd0bc70cc794d6996b46b636a11a41d5b6fd61 | 8000
-tests/reconciliation.test.ts | 7be06e1251718235b0d976913996754fe35cdbf92382febb162206b23ddfcd91 | 1523
-tests/route.test.ts | c8d16e02ffdc1e07d01a0891d29c051ef3f5f22c31141ca71a3d80034690f477 | 4279
-tests/socialWebhooks.test.ts | c3552c0f55c5aacffec34572d3381879d2c47f571662a53ef73da3d8be8b0ad7 | 9808
-tests/temporaryState.test.ts | a8a271aab4a0097ae06525d401709e4692bd13771b3c214d185472b29002fa36 | 3246
-tests/validation.test.ts | acbba477b7f0f73d1029eea5c7af5fe024731df6d07c1eb4f39985cbd4c8d5cf | 3833
-tsconfig.json | 1fe85b00295f636c95916643a97619e2bf7183c9dc13c99dc7a7eae9e835c862 | 641
-vitest.config.ts | 30ca55931d1f5a7f6637841ad7afb5d32204e4400c5521cfa70240d90809a229 | 313
-worker.mjs | e38df7020d20f6a7f01e63e644597195c4cbbbe438d5fdf7372ab3b3ba0a0620 | 692
+| File                                        | SHA-256                                                          | UTF-8 bytes |
+| ------------------------------------------- | ---------------------------------------------------------------- | ----------- |
+| .dev.vars.example                           | 526c727f7a820bb7c264d34cb345c8ffb65e8abaf50f736a173627d8faa6df2e | 882         |
+| .env.example                                | 556f13a3c950ed7010109ca2510bcb4ea698ba730268ba51b4db12d4f35ee185 | 1223        |
+| .gitignore                                  | 8367da5fdfa133bb6280da5cc78370bcda872a2740bf7181d9eea3639214ca20 | 234         |
+| AGENTS.md                                   | 63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb | 678         |
+| app/api/leads/route.ts                      | 88252e8aba81a803a939c6279533f58a2f4c89f3772089534e7658507b1d6c93 | 7421        |
+| app/api/webhooks/google-ads/route.ts        | 7e3bbd26821c92407d20253187a964b60441abff6bd3cfc1c84a62a92353e3c5 | 413         |
+| app/api/webhooks/meta/route.ts              | 9d16a8e6c2f9a226cf304eeec050f8e560be042b82708c7b1e3006c2d8e77ee9 | 727         |
+| app/api/webhooks/microsoft/route.ts         | 78e0adf49d76048b7668f74848e6fa014e6ca91692cafe65d46dc57fca92d0a5 | 445         |
+| app/api/webhooks/tiktok/route.ts            | 402a51d6024ea3015c02fcb8fd1974a8691a1e9da77192377755b1a06e67b7c8 | 556         |
+| app/favicon.ico/route.ts                    | 5dabb366f93dee332fee0487015f9303cfb6b9b33f6bd98b2dc8b1f23d95847c | 241         |
+| app/globals.css                             | a55d14b8b102f2c8d2f606617abe3c741acb26c1bdcf6e8dfa60e8b6f247588a | 17283       |
+| app/layout.tsx                              | 77d29933722ec6243c0cb0ad573d3882fe4316996969a084c5e7d1ceb513f5e7 | 2319        |
+| app/page.tsx                                | 09e04a6f357cbf8d69cd44a2d35b0e107990e1bf051d82ff560f67ee5d9077d5 | 3958        |
+| app/privacy/page.tsx                        | 026e73a3efb8fcd66e2f47dcb166f8cfeb968921b14f39ff5e827dac03c99ac6 | 3563        |
+| app/robots.ts                               | 6d0b3412d502cfc591ef71dd13d6e5539e9db4eea222a536cd07aadc4856e6f8 | 398         |
+| app/sitemap.ts                              | cdbdbbb78cf3739b6e299a13e3053959a28cc37bb305500e098f4edb30fbfabd | 330         |
+| app/terms/page.tsx                          | 3c59e3fe1216e4076eb3d4addd591cae2fb16c6761e0ea19880e95fc3af4ddb4 | 1791        |
+| components/QuoteExperience.tsx              | d7f344eb266e45d002dde913c4ad42656af3c968fbf44a543cf6f98d24460773 | 1271        |
+| components/form/LeadForm.tsx                | e62d88e863b4845ed64c6778dfefebd45d4e198b228515edf88d43e3bcda1a3e | 11177       |
+| config/google-ads-mappings.example.json     | 551498366c2741ce16a7ad7833d3fa07f7d89b0bff9d9a2ad0d8311ba04efcaa | 1419        |
+| config/social-form-mappings.example.json    | 6d8ca3902bf01e257a561cfeeb77c2c78c5eeaad8e282cf566a01719484b92b3 | 1129        |
+| eslint.config.mjs                           | e0668fcdf419b86c39b3956226325d34830ee3672ab34e8ce7de0c69cd7666b9 | 438         |
+| lib/analytics.ts                            | da9714d7fd9d802d3c7d0abcc7b10d1f1df2383272e3e0c24f0c712610b0f438 | 798         |
+| lib/attribution.ts                          | 0dbe51a578a32a0bcbebf4d933e64c62a0ee7d33c391148707a91d29304365ef | 2788        |
+| lib/browserState.ts                         | 17b801a85e4499b20051d37ff24902c38f0c7404a1f15a7a00f987c5ebd79c0f | 2163        |
+| lib/config.ts                               | ab5dbd633c792de0f0ea982a8a42ef8b1635accfe5b4af678a43b11913aa4462 | 3056        |
+| lib/database.ts                             | 88d56b965346c8286ea68066dc17042ceecf74f7bd18142761f05ef375114791 | 1075        |
+| lib/databaseMaintenance.ts                  | 0a25734141309d9b972e9cd94c58a0b9ada5963c2ff335fad8ab2ab57e9a4a3d | 229         |
+| lib/diagnostics.ts                          | 4e07f504d3d4a3be496192f1c7eb7c2684ad8ca63b65fc9f1ed2cd4b6288417c | 1139        |
+| lib/googleLeadMapper.ts                     | 741e74e4beab35d3cc105d128df7fb211e0a612add703ecd7572289b92e51815 | 4459        |
+| lib/googleWebhook.ts                        | 154f048668cad8dca69146be9a9531dd4d42055d1e296bd33316f91976acb21e | 3423        |
+| lib/hosting.ts                              | 05f2c7b5ed9b616d10841dc4e50e3a87f8739563a91786224bedd6155c9eb0f9 | 869         |
+| lib/leadBindings.ts                         | aa3a6b7897ce29fccb6e6b3d2a7c8e6193dffea7fa79c6ce4ea71abf55879747 | 970         |
+| lib/leadConsumer.ts                         | 7252a0055b3a04054ac14e992550bd22057f62027d61e4f3b0ae85ba4705d3de | 8474        |
+| lib/leadModel.ts                            | 94db49e64dfbc979973340d35696f3963381aa84427cfae83558b821470af6ce | 1832        |
+| lib/leadService.ts                          | b5d1eb61568a944401b475bf2c601f89a3215ce51485162de9744e653f28d2d7 | 8209        |
+| lib/leadbyte.ts                             | 762c0d5089e6e06deb45f8111f0e93d948d413d52178ce961fc9f41de5f0466b | 7764        |
+| lib/logger.ts                               | 8a250757bcdbd94611b47da6ec0ecb83e4d22a56df3abfdc47cc286634094ea0 | 1462        |
+| lib/microsoftAds.ts                         | b58a939ba877a866e94f6525fe36dc8f634a8f8cef1c149c53f305cc5279037a | 1154        |
+| lib/microsoftLeadMapper.ts                  | eb1a8cd8f6a16975bd57bb456387de79f46c8b6082882502fa6a765a1ea2dd1e | 3499        |
+| lib/microsoftWebhook.ts                     | e666abe7acdb9ab73ce7e4f137c67cd59a1e4818be5ccb5468a8bd3ac2db35d6 | 3002        |
+| lib/rateLimit.ts                            | 29bfade113c0a38698f6b460c847c1f8bc5d7f610c6f9366ac53fb9cc6b5ce37 | 1331        |
+| lib/reconciliation.mjs                      | 8ef7080cf390ae5a87eddadc9c7e7e7c89a08f43be40d7ad8469c36f15661d10 | 2763        |
+| lib/socialLeadProcessor.ts                  | 1d3d73e94ce2fbfd77ed9975a276fd7152cb5ae11ea38540d40d58c21daf8290 | 8632        |
+| lib/socialWebhooks.ts                       | 1cf3c44c403dbd544e46f0046b6b918ec274bac17c2654e5b8fe8a03ceab3376 | 5792        |
+| lib/submissionKey.ts                        | b4d8626a650956baf77a8e51e93476d91c02626c5dc9bc13789cc42a43041815 | 770         |
+| lib/submissions.ts                          | e067cf6e82d41d77dd9356dc46fc504a1195bd86fca5412eb8dd7ca1f47db6cb | 4449        |
+| lib/temporaryStore.ts                       | f2d322d413d97dcd880c1ebc78412ce8f0b46ed6cfceb97239eb1ea432e907bc | 803         |
+| lib/validation.ts                           | 3b362b2eac9de9ce409d8fe8a50dff129239bdf6111693b3a05265d5daa7c4e6 | 5160        |
+| lib/webhookPayload.ts                       | a011317e934c7f460a24b3c0ae1b1e44e3556ada010afa8a9d1b14707b782994 | 2244        |
+| migrations/0001_submission_storage.sql      | 407bb828088de9eab5dccbf188cc46af2242d15fe9ac65fb86a41acbc17bcdd7 | 648         |
+| migrations/0002_lead_reporting.sql          | 3969dbf0f80bde8cc878d44d36b05865b97b0df221dc1264238e0dd54ebaa993 | 3854        |
+| migrations/0003_contact_email.sql           | f6fe218cdeb303e64047969671e4b3471e8f61e21ac609faceef7046347d14ef | 137         |
+| migrations/0004_lead_pipeline.sql           | 66543239e199e7458e07799da7b28855aa30fe267fb59d642775313233c66c55 | 2750        |
+| migrations/0005_microsoft_ads_reporting.sql | c3a76975b427101fb9d6e16f95208f644b34daff5a9c2d5f357b84479b4e2d96 | 1047        |
+| migrations/0006_social_webhook_inbox.sql    | ea2c883e0ef12d7928f44f54d873a74ef49fc698582bb38d32b2d624f2255fb5 | 549         |
+| next-env.d.ts                               | 1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b | 288         |
+| next.config.ts                              | d27d94342e794b137d95811afb3619cdaa76309651a27f5633e24f1f4607d602 | 1330        |
+| open-next.config.ts                         | 48a47e57593373c29b88d2d1bd46d29e602fd051c19afc28f3b0be17f94ae1d4 | 109         |
+| package.json                                | 5b47844c5d6e22993fda71254f13a8fb541e20a4de8790e25413f60c1a49a5dd | 2188        |
+| playwright.config.ts                        | ec63bbb35da6d7130d4ed6c7eb82c6b2ebc5ac1c14efd0649b9740fc8da355ac | 327         |
+| postcss.config.mjs                          | 258faa39968594a46c2cf72ba120fb353e788ef2acc3265ddbfbc6400dd80761 | 83          |
+| public/_headers                             | 243f83a85be7196e6382459068447d056353cabfdc9b85725ff9e6ddf794e97e | 69          |
+| reports/daily.sql                           | c9cfaaffc14a0eef0247cc61ff564e12c432ed18addf93474f9c0c1a53bfa14f | 182         |
+| reports/microsoft-ads.sql                   | 98f0cf6009bed54f736aa9c0e2e8d20c8ca2c7dd1791770e0b76efac80192e9b | 485         |
+| reports/pipeline-issues.sql                 | dff2a26922d99d429c61dd93869c148a8a89d9b63e302375051ee11d34f32803 | 553         |
+| reports/reconciliation-issues.sql           | 64d2af9d06f6ade1b6c15bd835e12dcc79d582e6af0f43f99e9699d65e44e6fc | 968         |
+| scripts/build-cloudflare.mjs                | 7a3fc5217cf228f55cf91e2be6db6e592a4eb70a8ca9356360da3f422b7a3b30 | 679         |
+| scripts/check-deployment.mjs                | cff7080b23b56ac64d6b724bbd502a60171d18b23029e38c8ca3d98a39370564 | 779         |
+| scripts/deploy-cloudflare.mjs               | b741f987a21d5ef410a3e5d839959837d8d83b99f4d417ca0401524009f5453b | 1072        |
+| scripts/export-report.mjs                   | 9c7c1d9e371fbdbfcac96eba78249f78990c26adaa5fc3a2d69dda01d9bfb4d4 | 4888        |
+| scripts/indexnow.mjs                        | a39e958e98b5c8c99aeb897f4314eb5cd710ac5e798d5b380020d6eabbadc88e | 3787        |
+| scripts/query-report.mjs                    | 314a94de328f94650f1d031939b27905a2dbfe26634fee9e40f2f61a77ed4e2b | 762         |
+| scripts/reconcile-report.mjs                | 50f37f505f2c626328da21bdfe342298b0e1eb497405d8ceb3c7d11540af3b03 | 1111        |
+| scripts/setup-local.mjs                     | 8aba480b4a9808cabfc55cd9d37605611cefa746332a980ba7c46e05bdb480f2 | 1139        |
+| scripts/test-lead-worker.mjs                | 6234ed57d914b1c668c83cb64230aef17fefa7f132b3d331cd3b1675a7e111ec | 6756        |
+| tests/browser/landing.spec.ts               | 7d2d1ed496273d8e2a553641f059fd0805e73da2c9efccc127b75cec71269310 | 8012        |
+| tests/d1Fixture.ts                          | ba2dd852f0999888e5559d09470c5d042c00e126e2c62ec559cf62b9a9ebe690 | 1450        |
+| tests/database.test.ts                      | 6633d46584f92f23ee86bc3e2bd78fda27eeebd53e944c663e25f136f979233b | 3838        |
+| tests/diagnostics.test.ts                   | f37c69c447459c7697ad288df4c7498ee8e0e0e4c1056cdaeef2fa9d37890232 | 3891        |
+| tests/fixtures.ts                           | 775b1da5cf39b02b32e984811eb1e20feb31ee9026334e815338d6e3cea62eec | 322         |
+| tests/hosting.test.ts                       | 3eef3e27c85afa9511707521fdf445b54564b0bf02de4fe7a4014b96afc6a988 | 2213        |
+| tests/indexnow.test.ts                      | e274253ed412d08e3f80e9dfedefde5dbe2be70fd29ba983c60317c968101fbc | 2373        |
+| tests/leadPipeline.test.ts                  | 128c4f0537f4663351c035bb3fc9868941ab67be9bb5b4237b88247e2809bbf4 | 13804       |
+| tests/leadRecording.test.ts                 | 4cdbd003442e19730d1327cb069f439d33f71ff7ecaa57956a9ee629d73fc8cf | 11280       |
+| tests/leadbyte.test.ts                      | 356da71f03ad68b6ebd7e5391bae6692a568c58f3e2234052a3a1abe9bbf9cf2 | 5291        |
+| tests/microsoftAds.test.ts                  | 41aef04aa855dfab4c69ca574be1031c7687f046dd1b62e89bb6c84ebaa51a90 | 4945        |
+| tests/microsoftWebhook.test.ts              | f1d8cd95f9f7e42421640ac671bd0bc70cc794d6996b46b636a11a41d5b6fd61 | 8000        |
+| tests/reconciliation.test.ts                | 7be06e1251718235b0d976913996754fe35cdbf92382febb162206b23ddfcd91 | 1523        |
+| tests/route.test.ts                         | c8d16e02ffdc1e07d01a0891d29c051ef3f5f22c31141ca71a3d80034690f477 | 4279        |
+| tests/socialWebhooks.test.ts                | c3552c0f55c5aacffec34572d3381879d2c47f571662a53ef73da3d8be8b0ad7 | 9808        |
+| tests/temporaryState.test.ts                | a8a271aab4a0097ae06525d401709e4692bd13771b3c214d185472b29002fa36 | 3246        |
+| tests/validation.test.ts                    | acbba477b7f0f73d1029eea5c7af5fe024731df6d07c1eb4f39985cbd4c8d5cf | 3833        |
+| tsconfig.json                               | 1fe85b00295f636c95916643a97619e2bf7183c9dc13c99dc7a7eae9e835c862 | 641         |
+| vitest.config.ts                            | 30ca55931d1f5a7f6637841ad7afb5d32204e4400c5521cfa70240d90809a229 | 313         |
+| worker.mjs                                  | e38df7020d20f6a7f01e63e644597195c4cbbbe438d5fdf7372ab3b3ba0a0620 | 692         |
 
 The source is an implementation snapshot reviewed on 20 October 2026. The live-state review is historical context, not configuration for the new company. No secrets, customer records, dependency lockfile, installed packages, compiled assets or binary brand assets are embedded. External hosting accounts, platform subscriptions, approved consent and vendor credentials must be supplied/provisioned for the new project. The AI builder must implement the required refactor and verify the target deployment rather than merely copy this file.
