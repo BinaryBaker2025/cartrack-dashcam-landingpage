@@ -13,6 +13,26 @@
 @theme inline {
   --font-sans: var(--font-montserrat);
 }
+.brand-header {
+  padding-block: 16px;
+  background: var(--campaign-blue);
+  color: white;
+  border-bottom: 1px solid rgb(255 255 255 / 18%);
+}
+.brand-header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+.best-car-dash-logo {
+  width: clamp(240px, 24vw, 300px);
+  height: 56px;
+  object-fit: cover;
+}
 * {
   box-sizing: border-box;
 }

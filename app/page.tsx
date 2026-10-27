@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import LeadForm from '@/components/form/LeadForm';
 import QuoteExperience from '@/components/QuoteExperience';
 export default function Home() {
@@ -7,6 +8,20 @@ export default function Home() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
+      <header className="brand-header">
+        <div className="page-width">
+          <Link href="/" aria-label="Best Car Dash home">
+            <Image
+              src="/assets/best-car-dash-logo.png"
+              alt="Best Car Dash"
+              width={300}
+              height={100}
+              preload
+              className="best-car-dash-logo"
+            />
+          </Link>
+        </div>
+      </header>
       <main id="main">
         <div className="campaign-layout">
           <section className="campaign-hero" aria-labelledby="campaign-title">
