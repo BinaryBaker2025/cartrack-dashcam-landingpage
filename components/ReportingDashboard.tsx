@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import styles from './ReportingDashboard.module.css';
 
 type Count = { count: number; status?: string; event?: string; source?: string; day?: string };
+type ValidationFailure = { field: string; reason: string; count: number };
 type Lead = {
   request_id: string;
   submitted_at_utc: string;
@@ -26,6 +27,7 @@ type Report = {
   daily: Count[];
   sources: Count[];
   events: Count[];
+  validationFailures: ValidationFailure[];
   leads: Lead[];
   total: number;
   generatedAt: string;
@@ -267,6 +269,22 @@ export default function ReportingDashboard() {
                       </div>
                     ))}
                   </div>
+                </section>
+                <section className={styles.panel}>
+                  <h2>Form validation failures</h2>
+                  <p>Anonymous counts by field and reason, within the selected date range.</p>
+                  {report.validationFailures.length ? (
+                    report.validationFailures.map((failure) => (
+                      <div className={styles.breakdown} key={`${failure.field}-${failure.reason}`}>
+                        <span>
+                          {label(failure.field)} · {label(failure.reason)}
+                        </span>
+                        <strong>{number(failure.count)}</strong>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={styles.empty}>No validation failures for this date range.</p>
+                  )}
                 </section>
                 <section className={styles.panel}>
                   <div className={styles.tableTitle}>

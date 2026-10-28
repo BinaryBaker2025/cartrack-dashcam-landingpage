@@ -68,6 +68,14 @@ it('blocks honeypot bots', async () => {
   expect((await POST(request({ ...valid, website: 'spam' }))).status).toBe(400);
   expect(mocks.ingest).not.toHaveBeenCalled();
 });
+it('identifies honeypot rejection for anonymous validation reporting', async () => {
+  const response = await POST(request({ ...valid, website: 'filled' }));
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({
+    state: 'api_rejected',
+    diagnostics: { code: 'HONEYPOT_FILLED' },
+  });
+});
 it('accepts the production site when using either apex or www origin', async () => {
   vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://bestcardash.com');
   const response = await POST(request(valid, 'https://www.bestcardash.com'));

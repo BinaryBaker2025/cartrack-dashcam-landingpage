@@ -92,7 +92,14 @@ export async function POST(request: Request) {
       );
     }
     if (raw.website)
-      return json({ state: 'api_rejected', message: 'We’re unable to process this request.' }, 400);
+      return json(
+        {
+          state: 'api_rejected',
+          message: 'We’re unable to process this request.',
+          diagnostics: { code: 'HONEYPOT_FILLED', requestId },
+        },
+        400,
+      );
     const now = new Date();
     const validation = validateLead(raw, now);
     const { input, reasons, errors } = validation;

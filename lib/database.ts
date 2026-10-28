@@ -24,5 +24,6 @@ export async function checkDatabase() {
     db.prepare('SELECT source, processing_status FROM submissions LIMIT 0'),
     db.prepare('SELECT lead_id FROM lead_outbox LIMIT 0'),
     db.prepare('SELECT id FROM webhook_events LIMIT 0'),
+    db.prepare('SELECT day, field, reason FROM site_validation_failure_daily LIMIT 0'),
   ]);
 }

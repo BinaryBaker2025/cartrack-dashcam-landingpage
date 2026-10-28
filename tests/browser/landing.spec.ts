@@ -24,17 +24,13 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
     .analyze();
   expect(results.violations).toEqual([]);
 });
-test('shows revised pricing and a single disclaimer below the CTA', async ({ page }) => {
+test('shows revised pricing and explicit eligibility and consent checkboxes', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.campaign-price-line')).toContainText('R6.99/day*');
   await expect(page.locator('.campaign-terms')).toContainText('Terms and conditions apply.');
-  await expect(
-    page.getByText(
-      'By submitting this form, I confirm that I am 18 or older, have access to a vehicle and am employed.',
-      { exact: false },
-    ),
-  ).toBeVisible();
-  await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
+  await expect(page.locator('input[type="checkbox"]')).toHaveCount(2);
+  await expect(page.locator('#eligibilityConfirmed')).not.toBeChecked();
+  await expect(page.locator('#terms')).not.toBeChecked();
 });
 test('shows the campaign hero above the name-and-phone form', async ({ page }) => {
   await page.goto('/');
@@ -43,6 +39,9 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   const name = page.getByLabel('Name', { exact: true });
   await expect(hero).toContainText('R10,000');
   await expect(hero).toContainText('on our annual draw');
+  await expect(hero.locator('.campaign-partner')).toContainText('In association with');
+  await expect(hero.locator('.campaign-partner img')).toHaveAttribute('alt', 'Cartrack');
+  await expect(page.locator('.footer')).toContainText('In association with LeadByte and Cartrack.');
   await expect(photo).toBeVisible();
   await expect(name).toBeVisible();
   await expect(page.getByLabel('South African mobile number')).toBeVisible();
@@ -51,6 +50,9 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
   await expect(submit).toBeVisible();
   await expect(submit).toHaveCSS('background-color', 'rgb(7, 56, 143)');
+  await expect(submit).toHaveCSS('min-height', '60px');
+  await expect(page.locator('.campaign-cta')).toHaveCSS('min-height', '60px');
+  await expect(page.locator('.campaign-draw-badge')).toContainText('R10,000');
   expect((await hero.boundingBox())!.y).toBeLessThan((await name.boundingBox())!.y);
   await expect(photo).toHaveAttribute(
     'alt',
@@ -68,9 +70,41 @@ test('invalid submission shows inline messages without a network request', async
   await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);
 });
+test('logs invalid fields and reason codes without sending the lead', async ({ page }) => {
+  let leadRequests = 0;
+  const analytics: { event: string; failures?: { field: string; reason: string }[] }[] = [];
+  await page.route('**/api/leads', (route) => {
+    leadRequests++;
+    return route.abort();
+  });
+  await page.route('**/api/analytics', async (route) => {
+    analytics.push(route.request().postDataJSON());
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto('/');
+  await page.getByLabel('Name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('South African mobile number').fill('123');
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.locator('#phone-error')).toBeVisible();
+  await expect(page.locator('#eligibilityConfirmed-error')).toBeVisible();
+  await expect(page.locator('#terms-error')).toBeVisible();
+  await expect
+    .poll(() => analytics.find((event) => event.event === 'form_validation_failed'))
+    .toMatchObject({
+      event: 'form_validation_failed',
+      failures: [
+        { field: 'eligibility', reason: 'required' },
+        { field: 'mobile', reason: 'format' },
+        { field: 'consent', reason: 'required' },
+      ],
+    });
+  expect(leadRequests).toBe(0);
+});
 async function fillContact(page: import('@playwright/test').Page) {
   await page.getByLabel('Name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
+  await page.locator('#eligibilityConfirmed').check();
+  await page.locator('#terms').check();
 }
 const thankYouHeading = /Thank you for your application/;
 

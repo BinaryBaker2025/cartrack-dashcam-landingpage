@@ -110,9 +110,28 @@ button:disabled {
   gap: 16px;
 }
 .campaign-copy {
-  position: relative;
-  z-index: 1;
   padding-block: 16px;
+}
+.campaign-partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #f2f5fc;
+  color: var(--ink);
+}
+.campaign-partner span {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.campaign-partner-logo {
+  display: block;
+  width: 140px;
+  height: auto;
+  object-fit: contain;
 }
 .campaign-kicker {
   margin: 0 0 16px;
@@ -148,24 +167,45 @@ button:disabled {
   margin: 24px 0;
   background: rgb(255 255 255 / 25%);
 }
+.campaign-draw-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 24px;
+  z-index: 2;
+  width: fit-content;
+  max-width: min(320px, calc(100% - 24px));
+  overflow: hidden;
+  border: 2px solid var(--campaign-gold);
+  border-radius: 10px;
+  background: var(--campaign-blue);
+  transform: rotate(-2deg);
+  box-shadow: 0 12px 30px rgb(0 23 68 / 20%);
+}
 .campaign-draw-intro {
-  margin: 0 0 4px;
-  max-width: 28ch;
-  font-size: 15px;
-  line-height: 1.5;
+  margin: 0;
+  padding: 8px 14px;
+  color: #f2f5fc;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.campaign-prize-panel {
+  padding: 8px 16px 10px;
+  background: var(--campaign-gold);
+  color: var(--ink);
 }
 .campaign-prize {
   margin: 0;
-  color: var(--campaign-gold);
-  font-size: clamp(56px, 5.2vw, 76px);
+  color: var(--ink);
+  font-size: clamp(48px, 4.8vw, 68px);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.055em;
 }
 .campaign-draw-label {
-  margin: 4px 0 0;
-  color: var(--campaign-gold);
-  font-size: 22px;
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -202,14 +242,14 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  min-height: 50px;
-  padding: 14px 24px;
+  min-height: 60px;
+  padding: 16px 28px;
   border: 0;
   border-radius: 8px;
   background: var(--campaign-gold);
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.4;
   text-decoration: none;
@@ -282,6 +322,11 @@ fieldset {
   border-color: #b3261e;
   background: #fff8f7;
 }
+.field-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
 .phone-input {
   display: flex;
   align-items: center;
@@ -310,18 +355,38 @@ fieldset {
   margin-top: 24px;
   background: var(--campaign-blue);
   color: white;
-  font-size: 14px;
+  min-height: 60px;
+  font-size: 16px;
 }
 .quote-panel .submit-button:hover {
   background: #0c4aa8;
 }
-.form-note {
-  margin: 20px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.75;
+.quote-confirmations {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
 }
-.form-note a {
+.consent-check {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.consent-check input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--campaign-blue);
+}
+.consent-check input[aria-invalid='true'] {
+  outline: 2px solid #b3261e;
+  outline-offset: 2px;
+}
+.consent-check a {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -488,6 +553,10 @@ fieldset {
 .footer p {
   margin: 0;
 }
+.footer-association {
+  display: block;
+  margin-top: 4px;
+}
 .footer nav {
   display: flex;
   gap: 24px;
@@ -510,6 +579,11 @@ fieldset {
   }
   .campaign-photo {
     display: none;
+  }
+  .campaign-draw-badge {
+    position: static;
+    margin-top: 24px;
+    transform: rotate(-1deg);
   }
   .campaign-copy h1 {
     font-size: 44px;
@@ -553,14 +627,11 @@ fieldset {
   .campaign-rule {
     margin-block: 20px;
   }
-  .campaign-draw-intro {
-    font-size: 13px;
-  }
   .campaign-prize {
-    font-size: clamp(44px, 10vw, 64px);
+    font-size: clamp(44px, 10vw, 60px);
   }
   .campaign-draw-label {
-    font-size: 17px;
+    font-size: 16px;
   }
   .campaign-priority {
     font-size: 12px;
@@ -573,10 +644,22 @@ fieldset {
   .campaign-photo-frame {
     inset: 4px 0 4px 4px;
   }
-  .campaign-cta {
-    padding: 12px 16px;
-    gap: 8px;
+  .campaign-draw-badge {
+    position: static;
+    max-width: 100%;
+    margin-top: 20px;
+    transform: rotate(-1deg);
+  }
+  .campaign-draw-intro {
     font-size: 12px;
+  }
+  .campaign-prize-panel {
+    padding: 6px 12px 8px;
+  }
+  .campaign-cta {
+    padding: 14px 20px;
+    gap: 8px;
+    font-size: 15px;
   }
   .campaign-terms {
     font-size: 11px;
@@ -588,10 +671,6 @@ fieldset {
   }
   .quote-panel h2 {
     margin-bottom: 24px;
-  }
-  .form-note {
-    font-size: 12px;
-    line-height: 1.75;
   }
   .benefits {
     padding-block: 48px;

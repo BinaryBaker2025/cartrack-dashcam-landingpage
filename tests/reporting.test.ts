@@ -54,8 +54,10 @@ it('allows local development reports while keeping other hosts and production pr
     vi.stubEnv('NODE_ENV', 'production');
     expect(reportAccess(new Request('http://localhost:3000/api/reports'), '')?.status).toBe(503);
     expect(
-      reportAccess(new Request('http://localhost:3000/api/reports'), 'a-long-test-password-for-owner')
-        ?.status,
+      reportAccess(
+        new Request('http://localhost:3000/api/reports'),
+        'a-long-test-password-for-owner',
+      )?.status,
     ).toBe(401);
   } finally {
     vi.unstubAllEnvs();
@@ -89,6 +91,9 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
     db.sqlite
       .prepare('INSERT INTO site_event_daily(day,event,count) VALUES (?,?,?)')
       .run('2026-10-01', 'landing_page_view', 7);
+    db.sqlite
+      .prepare('INSERT INTO site_validation_failure_daily(day,field,reason,count) VALUES (?,?,?,?)')
+      .run('2026-10-01', 'mobile', 'format', 3);
     const filters = reportFilters(
       new URL('https://example.com?from=2026-10-01&to=2026-10-02&search=%27%20OR%201%3D1'),
     );
@@ -96,6 +101,7 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
     expect(report.total).toBe(0);
     expect(report.leads).toEqual([]);
     expect(report.events).toEqual([{ event: 'landing_page_view', count: 7 }]);
+    expect(report.validationFailures).toEqual([{ field: 'mobile', reason: 'format', count: 3 }]);
     const first = await readReport(db as unknown as D1Database, { ...filters, search: '' });
     expect(first.total).toBe(51);
     expect(first.leads).toHaveLength(50);

@@ -27,7 +27,11 @@ export function cleanText(value: unknown, max = 80): string {
 }
 export function cleanPhone(value: unknown): string {
   if (typeof value !== 'string' || value.length > 30 || !/^[+\d\s()-]+$/.test(value)) return '';
-  const phone = parsePhoneNumberFromString(value.trim(), 'ZA');
+  let compact = value.trim().replace(/[\s()-]/g, '');
+  if (compact.startsWith('+27')) compact = `+27${compact.slice(3).replace(/^0/, '')}`;
+  else if (compact.startsWith('27')) compact = `+27${compact.slice(2).replace(/^0/, '')}`;
+  else if (/^\d{9}$/.test(compact)) compact = `0${compact}`;
+  const phone = parsePhoneNumberFromString(compact, 'ZA');
   return phone?.country === 'ZA' && phone.isValid() && phone.getType() === 'MOBILE'
     ? phone.number
     : '';
@@ -42,12 +46,15 @@ export function parseCallTime(value: string): Date | null {
 export function validateLead(raw: unknown, now = new Date()) {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const fullNameSupplied = r.name !== undefined;
-  const fullName =
-    typeof r.name === 'string' ? cleanText(r.name, 161).replace(/\s+/g, ' ') : '';
+  const fullName = typeof r.name === 'string' ? cleanText(r.name, 161).replace(/\s+/g, ' ') : '';
   const nameParts = fullName.split(' ');
   // The compact form fills these values only after the visitor affirms all four facts.
   // Explicit answers remain authoritative, including a non-qualifying answer.
   const confirmed = r.eligibilityConfirmed === true;
+  const eligibilityAnswersSupplied = ['age', 'vehicle', 'employment', 'income'].some(
+    (field) => r[field] !== undefined,
+  );
+  const eligibilityConfirmationRequired = !confirmed && !eligibilityAnswersSupplied;
   const input: LeadInput = {
     firstname: fullNameSupplied ? (nameParts[0] ?? '') : cleanText(r.firstname),
     lastname: fullNameSupplied ? nameParts.slice(1).join(' ') : cleanText(r.lastname),
@@ -64,7 +71,7 @@ export function validateLead(raw: unknown, now = new Date()) {
   };
   const errors: FieldErrors = {};
   const reasons: string[] = [];
-  if (r.eligibilityConfirmed !== undefined && !confirmed)
+  if (eligibilityConfirmationRequired)
     errors.eligibilityConfirmed = 'Please confirm that you meet all four requirements.';
   const validName = /^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u;
   if (fullNameSupplied) {
@@ -79,11 +86,7 @@ export function validateLead(raw: unknown, now = new Date()) {
   } else {
     for (const field of ['firstname', 'lastname'] as const) {
       // Letters, combining accents and separators support real multi-part names.
-      if (
-        typeof r[field] !== 'string' ||
-        r[field].length > 80 ||
-        !validName.test(input[field])
-      )
+      if (typeof r[field] !== 'string' || r[field].length > 80 || !validName.test(input[field]))
         errors[field] =
           `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
     }
@@ -127,12 +130,14 @@ export function validateLead(raw: unknown, now = new Date()) {
       'This offer requires a monthly income of R10,000 or more.',
     ],
   ] as const;
-  for (const [field, allowed, qualifying, reason, message] of checks) {
-    if (!(allowed as readonly string[]).includes(input[field]))
-      errors[field] = 'Please select an option.';
-    else if (!(qualifying as readonly string[]).includes(input[field])) {
-      errors[field] = message;
-      reasons.push(reason);
+  if (!eligibilityConfirmationRequired) {
+    for (const [field, allowed, qualifying, reason, message] of checks) {
+      if (!(allowed as readonly string[]).includes(input[field]))
+        errors[field] = 'Please select an option.';
+      else if (!(qualifying as readonly string[]).includes(input[field])) {
+        errors[field] = message;
+        reasons.push(reason);
+      }
     }
   }
   if (!input.terms) errors.terms = 'Please accept the terms and consent to being contacted.';

@@ -65,6 +65,11 @@ export async function readReport(
         'SELECT event, SUM(count) AS count FROM site_event_daily WHERE day >= ? AND day <= ? GROUP BY event',
       )
       .bind(from, to),
+    db
+      .prepare(
+        'SELECT field, reason, SUM(count) AS count FROM site_validation_failure_daily WHERE day >= ? AND day <= ? GROUP BY field, reason ORDER BY count DESC, field, reason',
+      )
+      .bind(from, to),
   ]);
   return {
     filters,
@@ -74,6 +79,7 @@ export async function readReport(
     leads: results[3].results,
     total: results[4].results[0]?.count || 0,
     events: results[5].results,
+    validationFailures: results[6].results,
     generatedAt: new Date().toISOString(),
   };
 }

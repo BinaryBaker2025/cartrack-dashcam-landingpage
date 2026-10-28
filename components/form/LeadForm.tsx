@@ -2,7 +2,7 @@
 import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { validateLead, type FieldErrors } from '@/lib/validation';
 import { sessionAttribution } from '@/lib/attribution';
-import { track } from '@/lib/analytics';
+import { track, type ValidationFailure } from '@/lib/analytics';
 import { trackMicrosoftLead } from '@/lib/uet';
 import { trackGoogleAdsLeadConversion } from '@/lib/googleTag';
 import { submissionKey } from '@/lib/submissionKey';
@@ -55,8 +55,9 @@ export default function LeadForm() {
     const data = new FormData(form);
     const raw = {
       ...Object.fromEntries(data),
-      terms: true,
-      eligibilityConfirmed: true,
+      terms: data.get('terms') === 'on',
+      eligibilityConfirmed: data.get('eligibilityConfirmed') === 'on',
+      website: data.get('company_website'),
     };
     const validation = validateLead(raw);
     setErrors(validation.errors);
@@ -68,8 +69,19 @@ export default function LeadForm() {
           : 'Please check the highlighted fields.',
       );
       track(validation.reasons.length ? 'qualification_failed' : 'form_validation_failed', {
-        reasons: validation.reasons,
-        fields: Object.keys(validation.errors),
+        failures: Object.keys(validation.errors).map((field): ValidationFailure => ({
+          field:
+            field === 'phone'
+              ? 'mobile'
+              : field === 'eligibilityConfirmed'
+                ? 'eligibility'
+                : field === 'terms'
+                  ? 'consent'
+                  : field === 'name'
+                    ? 'name'
+                    : 'eligibility',
+          reason: field === 'name' || field === 'phone' ? 'format' : 'required',
+        })),
       });
       busy.current = false;
       const firstError = Object.keys(validation.errors)[0];
@@ -120,6 +132,10 @@ export default function LeadForm() {
         return;
       }
       reportDiagnostic(result?.diagnostics, response.status);
+      if (result?.diagnostics?.code === 'HONEYPOT_FILLED')
+        track('form_validation_failed', {
+          failures: [{ field: 'honeypot', reason: 'filled' }],
+        });
       const states: State[] = [
         'success',
         'qualification_failed',
@@ -218,12 +234,12 @@ export default function LeadForm() {
             name={name}
             type={name === 'phone' ? 'tel' : 'text'}
             inputMode={name === 'phone' ? 'tel' : 'text'}
-            autoComplete={autocomplete}
+            autoComplete={name === 'phone' ? 'tel-national' : autocomplete}
             maxLength={name === 'phone' ? 30 : 161}
             required
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
-            placeholder={name === 'phone' ? 'Phone *' : 'Name *'}
+            placeholder={name === 'phone' ? '82 123 4567' : 'Name *'}
             onChange={() => {
               if (errors[name])
                 setErrors((current) => {
@@ -236,6 +252,11 @@ export default function LeadForm() {
           />
         </div>
         {fieldError(name)}
+        {name === 'phone' && (
+          <span className="field-hint">
+            Enter 82 123 4567 or 082 123 4567. We’ll normalize it with +27.
+          </span>
+        )}
       </div>
     );
   }
@@ -262,9 +283,46 @@ export default function LeadForm() {
               </div>
               <div className="quote-confirmations">
                 <div className="honeypot" aria-hidden="true">
-                  <label htmlFor="website">Leave this field empty</label>
-                  <input name="website" id="website" tabIndex={-1} autoComplete="off" />
+                  <label htmlFor="company_website">Leave this field empty</label>
+                  <input
+                    name="company_website"
+                    id="company_website"
+                    tabIndex={-1}
+                    autoComplete="new-password"
+                  />
                 </div>
+                <label className="consent-check">
+                  <input
+                    id="eligibilityConfirmed"
+                    name="eligibilityConfirmed"
+                    type="checkbox"
+                    aria-invalid={!!errors.eligibilityConfirmed}
+                    aria-describedby={
+                      errors.eligibilityConfirmed ? 'eligibilityConfirmed-error' : undefined
+                    }
+                  />
+                  <span>
+                    I confirm that I am 18 or older, have access to a vehicle, am employed or
+                    self-employed, and earn at least R10,000 per month.
+                  </span>
+                </label>
+                {fieldError('eligibilityConfirmed')}
+                <label className="consent-check">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    aria-invalid={!!errors.terms}
+                    aria-describedby={errors.terms ? 'terms-error' : undefined}
+                  />
+                  <span>
+                    I accept the <a href="/terms">terms</a> and{' '}
+                    <a href="/privacy">privacy notice</a>, and consent to my details being shared
+                    with the service provider and its authorized partners so that a representative
+                    may contact me regarding the requested or future products and services.
+                  </span>
+                </label>
+                {fieldError('terms')}
               </div>
               <button className="cta submit-button" type="submit" disabled={locked}>
                 {state === 'submitting'
@@ -273,13 +331,6 @@ export default function LeadForm() {
                     ? 'CHECKING DETAILS…'
                     : 'Get Quote & Qualify'}
               </button>
-              <p className="form-note">
-                By submitting this form, I confirm that I am 18 or older, have access to a vehicle
-                and am employed. I accept the <a href="/terms">terms</a> and{' '}
-                <a href="/privacy">privacy notice</a>, and consent to my details being shared with
-                the service provider and its authorized partners so that a representative may
-                contact me regarding the requested or future products and services.
-              </p>
             </fieldset>
             <div
               className={`form-status ${message ? 'has-message' : ''}`}

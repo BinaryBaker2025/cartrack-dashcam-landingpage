@@ -28,7 +28,7 @@ The `submissions` table now contains:
 
 Only the documented fields go to LeadByte. Attribution stays in our database. Incoming tracking parameters cannot change the actual offer or campaign. The supplied guide allows multiple offer IDs; this particular landing page retains its established Dashcams offer `3046`.
 
-Incomplete, invalid, unqualified, non-consenting, honeypot and rate-limited attempts are not contact lead records. They are rejected before recording. The browser already stops invalid forms before making an API request.
+Incomplete, invalid, unqualified, non-consenting, honeypot and rate-limited attempts are not contact lead records. Invalid fields are rejected before lead submission. Anonymous validation-failure counts are aggregated by South African day, field and reason for the owner dashboard; no contact values are included. Migration 0008 adds this reporting table.
 
 ## Delivery states and response codes
 

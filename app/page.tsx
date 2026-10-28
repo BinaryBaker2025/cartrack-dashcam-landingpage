@@ -27,15 +27,29 @@ export default function Home() {
           <section className="campaign-hero" aria-labelledby="campaign-title">
             <div className="campaign-hero-inner">
               <div className="campaign-copy">
+                <div className="campaign-partner" aria-label="In association with Cartrack">
+                  <span>In association with</span>
+                  <Image
+                    src="/assets/cartrack-logo.jpg"
+                    alt="Cartrack"
+                    width={140}
+                    height={38}
+                    className="campaign-partner-logo"
+                  />
+                </div>
                 <p className="campaign-kicker">Stay safe with a dash cam</p>
                 <h1 id="campaign-title">See more. Worry less.</h1>
                 <p className="campaign-price-line">
                   From as little as <strong>R6.99/day*</strong>
                 </p>
                 <div className="campaign-rule" />
-                <p className="campaign-draw-intro">Stand a chance to win your share of</p>
-                <p className="campaign-prize">R10,000</p>
-                <p className="campaign-draw-label">on our annual draw</p>
+                <div className="campaign-draw-badge">
+                  <p className="campaign-draw-intro">Stand a chance to win your share of</p>
+                  <div className="campaign-prize-panel">
+                    <p className="campaign-prize">R10,000</p>
+                    <p className="campaign-draw-label">on our annual draw</p>
+                  </div>
+                </div>
                 <p className="campaign-priority">
                   Being covered should still be your top priority.
                 </p>
@@ -115,7 +129,10 @@ export default function Home() {
         </section>
       </main>
       <footer className="footer">
-        <p>CarTrack Cameras · *From R6.99 per day. Terms apply.</p>
+        <p>
+          CarTrack Cameras · *From R6.99 per day. Terms apply.
+          <span className="footer-association">In association with LeadByte and Cartrack.</span>
+        </p>
         <nav aria-label="Legal">
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy notice</a>

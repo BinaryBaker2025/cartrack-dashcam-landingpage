@@ -35,6 +35,7 @@ describe('qualification', () => {
       });
       expect(result.valid).toBe(false);
       expect(result.input.age).toBe('');
+      expect(Object.keys(result.errors)).toEqual(['eligibilityConfirmed']);
     },
   );
   it('does not override a non-qualifying answer even when confirmation is checked', () => {
@@ -61,6 +62,18 @@ describe('qualification', () => {
   );
   it('normalises ZA national mobile', () =>
     expect(cleanPhone('082 123 4567')).toBe('+27821234567'));
+  it.each([
+    '0821234567',
+    '082 123 4567',
+    '082-123-4567',
+    '821234567',
+    '+27821234567',
+    '+27 082 123 4567',
+    '27821234567',
+    '27 082 123 4567',
+  ])('normalises common South African mobile formats: %s', (phone) => {
+    expect(cleanPhone(phone)).toBe('+27821234567');
+  });
   it('rejects unknown qualifying selections', () =>
     expect(validateLead({ ...valid, age: 'yes', income: '50000' }).valid).toBe(false));
   it('requires alphabetic names', () =>
@@ -71,11 +84,14 @@ describe('qualification', () => {
     ['Test Testing', 'Test', 'Testing'],
     ['Test van der Testing', 'Test', 'van der Testing'],
     ['Mononym', 'Mononym', ''],
-  ])('accepts a single full name and maps it to the lead fields: %s', (name, firstname, lastname) => {
-    const result = validateLead({ ...valid, name });
-    expect(result.valid).toBe(true);
-    expect(result.input).toMatchObject({ firstname, lastname });
-  });
+  ])(
+    'accepts a single full name and maps it to the lead fields: %s',
+    (name, firstname, lastname) => {
+      const result = validateLead({ ...valid, name });
+      expect(result.valid).toBe(true);
+      expect(result.input).toMatchObject({ firstname, lastname });
+    },
+  );
   it('rejects invalid full names', () => {
     const result = validateLead({ ...valid, name: 'Test123 Person' });
     expect(result.valid).toBe(false);

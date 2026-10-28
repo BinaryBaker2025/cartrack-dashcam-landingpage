@@ -1,6 +1,7 @@
 import { database } from '@/lib/database';
 import { clientAddress } from '@/lib/hosting';
 import { digest } from '@/lib/logger';
+import type { ValidationFailure } from '@/lib/analytics';
 
 const events = new Set([
   'landing_page_view',
@@ -12,6 +13,24 @@ const events = new Set([
   'lead_submit_rejected',
   'lead_submit_error',
 ]);
+function parseFailures(value: unknown): ValidationFailure[] | null {
+  if (!Array.isArray(value) || value.length > 8) return null;
+  const failures: ValidationFailure[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+    const { field, reason } = item as { field?: unknown; reason?: unknown };
+    if ((field === 'name' || field === 'mobile') && reason === 'format') {
+      failures.push({ field, reason });
+    } else if ((field === 'eligibility' || field === 'consent') && reason === 'required') {
+      failures.push({ field, reason });
+    } else if (field === 'honeypot' && reason === 'filled') {
+      failures.push({ field, reason });
+    } else {
+      return null;
+    }
+  }
+  return failures;
+}
 export async function POST(request: Request) {
   const response = (status: number) =>
     new Response(null, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -20,7 +39,7 @@ export async function POST(request: Request) {
     request.headers.get('sec-fetch-site') === 'cross-site'
   )
     return response(403);
-  if (Number(request.headers.get('content-length')) > 128) return response(413);
+  if (Number(request.headers.get('content-length')) > 512) return response(413);
   try {
     const reader = request.body?.getReader();
     if (!reader) return response(400);
@@ -31,14 +50,31 @@ export async function POST(request: Request) {
       const part = await reader.read();
       if (part.done) break;
       bytes += part.value.length;
-      if (bytes > 128) {
+      if (bytes > 512) {
         await reader.cancel();
         return response(413);
       }
       body += decoder.decode(part.value, { stream: true });
     }
-    const event = JSON.parse(body).event;
-    if (!events.has(event)) return response(400);
+    let payload: unknown;
+    try {
+      payload = JSON.parse(body);
+    } catch {
+      return response(400);
+    }
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return response(400);
+    const { event, failures: rawFailures } = payload as {
+      event?: unknown;
+      failures?: unknown;
+    };
+    if (typeof event !== 'string' || !events.has(event)) return response(400);
+    let failures: ValidationFailure[] = [];
+    if (rawFailures !== undefined) {
+      if (event !== 'form_validation_failed') return response(400);
+      const parsed = parseFailures(rawFailures);
+      if (!parsed) return response(400);
+      failures = parsed;
+    }
     const db = await database();
     const now = Date.now();
     const expiry = (Math.floor(now / 60000) + 1) * 60000;
@@ -51,12 +87,20 @@ export async function POST(request: Request) {
       .first<{ count: number }>();
     if (!limit || limit.count > 60) return response(429);
     const day = new Date(now + 7200000).toISOString().slice(0, 10);
-    await db
-      .prepare(
-        'INSERT INTO site_event_daily (day,event,count) VALUES (?,?,1) ON CONFLICT(day,event) DO UPDATE SET count=count+1',
-      )
-      .bind(day, event)
-      .run();
+    await db.batch([
+      db
+        .prepare(
+          'INSERT INTO site_event_daily (day,event,count) VALUES (?,?,1) ON CONFLICT(day,event) DO UPDATE SET count=count+1',
+        )
+        .bind(day, event),
+      ...failures.map((failure) =>
+        db
+          .prepare(
+            'INSERT INTO site_validation_failure_daily (day,field,reason,count) VALUES (?,?,?,1) ON CONFLICT(day,field,reason) DO UPDATE SET count=count+1',
+          )
+          .bind(day, failure.field, failure.reason),
+      ),
+    ]);
     return response(204);
   } catch {
     return response(503);
