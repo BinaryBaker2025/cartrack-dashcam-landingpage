@@ -675,7 +675,7 @@ fieldset {
     width: 108px;
     max-width: none;
     border-radius: 6px;
-    transform: none;
+    transform: rotate(-15deg);
     box-shadow: none;
   }
   .campaign-draw-intro {
