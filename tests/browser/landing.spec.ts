@@ -56,7 +56,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   expect((await hero.boundingBox())!.y).toBeLessThan((await name.boundingBox())!.y);
   await expect(photo).toHaveAttribute(
     'alt',
-    'A driver travelling with a dashcam installed on the windscreen',
+    'A driver and three passengers travelling with a dashcam beneath the rear-view mirror',
   );
 });
 test('matches the supplied mobile banner layout', async ({ page }) => {

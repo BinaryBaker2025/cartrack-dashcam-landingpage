@@ -214,7 +214,7 @@ button:disabled {
 .campaign-prize {
   margin: 0;
   color: var(--ink);
-  font-size: clamp(48px, 4.8vw, 68px);
+  font-size: clamp(44px, 4.4vw, 62px);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.055em;
@@ -251,7 +251,7 @@ button:disabled {
 }
 .campaign-photo-image {
   object-fit: cover;
-  object-position: 69% center;
+  object-position: 50% top;
 }
 .cta,
 .campaign-cta {
@@ -627,7 +627,7 @@ fieldset {
   }
   .campaign-hero-inner {
     display: block;
-    min-height: clamp(650px, 175vw, 720px);
+    min-height: 400px;
     overflow: hidden;
   }
   .campaign-hero-inner::before {
@@ -670,7 +670,7 @@ fieldset {
     display: grid;
     gap: 5px;
     max-width: none;
-    font-size: clamp(32px, 8.2vw, 40px);
+    font-size: clamp(28px, 7.5vw, 34px);
     line-height: 1.05;
   }
   .campaign-headline-chip {
@@ -680,13 +680,13 @@ fieldset {
     border-radius: 6px;
     background: #f3891c;
     color: var(--campaign-blue);
-    font-size: clamp(35px, 8.8vw, 43px);
+    font-size: clamp(30px, 8vw, 36px);
     transform: rotate(-1deg);
   }
   .campaign-price-line {
     margin: 12px 0 0;
     color: var(--campaign-gold);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.4;
   }
@@ -696,10 +696,10 @@ fieldset {
     font-size: inherit;
   }
   .campaign-prize {
-    font-size: clamp(44px, 10vw, 60px);
+    font-size: clamp(38px, 9vw, 46px);
   }
   .campaign-draw-label {
-    font-size: 16px;
+    font-size: 14px;
   }
   .campaign-draw-badge {
     position: absolute;
@@ -721,7 +721,7 @@ fieldset {
   .campaign-priority {
     max-width: 34ch;
     margin: 12px 0 0;
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1.5;
   }
   .campaign-cta {
@@ -735,7 +735,7 @@ fieldset {
     position: absolute;
     z-index: 0;
     inset: 0 0 auto;
-    height: 470px;
+    height: 320px;
     border-radius: 0;
     background: var(--campaign-blue);
   }
@@ -744,7 +744,7 @@ fieldset {
     border-radius: 0;
   }
   .campaign-photo-image {
-    object-position: 65% center;
+    object-position: 50% top;
   }
   .quote-section {
     background: #01228b;
@@ -752,7 +752,7 @@ fieldset {
   .quote-panel {
     max-width: none;
     margin: 0;
-    padding: 28px 20px 36px;
+    padding: 20px 20px 36px;
     border: 0;
     border-radius: 0;
     background: #01228b;
@@ -762,7 +762,7 @@ fieldset {
   .quote-panel h2 {
     margin: 0 0 6px;
     color: #f2f5fc;
-    font-size: 26px;
+    font-size: 23px;
   }
   .quote-subtitle {
     margin: 0 0 18px;
@@ -911,7 +911,7 @@ fieldset {
     font-size: 30px;
   }
   .campaign-prize {
-    font-size: 42px;
+    font-size: 38px;
   }
   .campaign-cta {
     padding-inline: 12px;

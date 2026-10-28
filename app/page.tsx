@@ -52,8 +52,8 @@ export default function Home() {
               <div className="campaign-photo">
                 <div className="campaign-photo-frame">
                   <Image
-                    src="/assets/dashcam-product.jpeg"
-                    alt="A driver travelling with a dashcam installed on the windscreen"
+                    src="/assets/dashcam-family.jpeg"
+                    alt="A driver and three passengers travelling with a dashcam beneath the rear-view mirror"
                     fill
                     sizes="(max-width: 767px) 100vw, 28vw"
                     preload
