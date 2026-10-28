@@ -239,7 +239,7 @@ export default function LeadForm() {
             required
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
-            placeholder={name === 'phone' ? '82 123 4567' : 'Name *'}
+            placeholder={name === 'phone' ? '82 123 4567' : 'Enter your full name'}
             onChange={() => {
               if (errors[name])
                 setErrors((current) => {
@@ -274,11 +274,12 @@ export default function LeadForm() {
         </div>
       ) : (
         <>
+          <p className="quote-subtitle">Your details and eligibility</p>
           <form onSubmit={submit} onFocus={begin} noValidate aria-busy={state === 'submitting'}>
             <fieldset disabled={locked}>
               <legend className="sr-only">Your details and eligibility</legend>
               <div className="contact-fields">
-                {input('name', 'Name', 'name')}
+                {input('name', 'Full name', 'name')}
                 {input('phone', 'South African mobile number', 'tel')}
               </div>
               <div className="quote-confirmations">

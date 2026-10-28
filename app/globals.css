@@ -28,10 +28,18 @@
   letter-spacing: -0.035em;
   text-decoration: none;
 }
-.best-car-dash-logo {
-  width: clamp(240px, 24vw, 300px);
-  height: 56px;
-  object-fit: cover;
+.brand-header .brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #f2f5fc;
+  font-size: clamp(23px, 2.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  text-decoration: none;
+}
+.brand-wordmark span {
+  color: var(--campaign-gold);
 }
 * {
   box-sizing: border-box;
@@ -112,37 +120,46 @@ button:disabled {
 .campaign-copy {
   padding-block: 16px;
 }
-.campaign-partner {
-  display: inline-flex;
+.campaign-hero-top {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  background: #f2f5fc;
-  color: var(--ink);
-}
-.campaign-partner span {
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.3;
-}
-.campaign-partner-logo {
-  display: block;
-  width: 140px;
-  height: auto;
-  object-fit: contain;
+  gap: 8px 12px;
+  margin-bottom: 16px;
 }
 .campaign-kicker {
-  margin: 0 0 16px;
+  margin: 0;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+.campaign-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f2f5fc;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.campaign-pill-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #df3838;
+}
+.campaign-headline-line,
+.campaign-headline-chip {
+  display: block;
+}
 .campaign-copy h1 {
-  margin: 0;
   max-width: 11ch;
+  margin: 0;
   font-size: clamp(38px, 3.6vw, 54px);
   font-weight: 700;
   letter-spacing: -0.045em;
@@ -286,6 +303,12 @@ button:disabled {
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.035em;
+}
+.quote-subtitle {
+  margin: -16px 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 fieldset {
   min-width: 0;
@@ -491,6 +514,7 @@ fieldset {
   height: auto;
   aspect-ratio: 1.5;
   object-fit: cover;
+  object-position: left center;
   border-radius: 12px;
 }
 .did-you-know {
@@ -598,34 +622,78 @@ fieldset {
 @media (max-width: 767px) {
   .campaign-layout {
     grid-template-columns: 1fr;
-    gap: 28px;
-    padding-block: 28px 36px;
-  }
-  .campaign-hero-inner {
-    grid-template-columns: minmax(0, 1fr) 100px;
-    gap: 12px;
-    min-height: 0;
-  }
-  .campaign-copy {
+    gap: 0;
     padding: 0;
   }
-  .campaign-kicker {
-    font-size: 12px;
-    letter-spacing: 0.025em;
+  .campaign-hero-inner {
+    display: block;
+    min-height: clamp(650px, 175vw, 720px);
+    overflow: hidden;
+  }
+  .campaign-hero-inner::before {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgb(7 56 143 / 0%) 0%,
+      rgb(7 56 143 / 8%) 27%,
+      rgb(7 56 143 / 82%) 53%,
+      var(--campaign-blue) 74%
+    );
+    content: '';
+    pointer-events: none;
+  }
+  .campaign-copy {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0 20px 24px;
+  }
+  .campaign-hero-top {
+    gap: 8px;
     margin-bottom: 12px;
   }
+  .campaign-kicker {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .campaign-pill {
+    font-size: 10px;
+  }
   .campaign-copy h1 {
-    font-size: clamp(32px, 7vw, 44px);
+    display: grid;
+    gap: 5px;
+    max-width: none;
+    font-size: clamp(32px, 8.2vw, 40px);
+    line-height: 1.05;
+  }
+  .campaign-headline-chip {
+    width: fit-content;
+    max-width: 100%;
+    padding: 2px 9px;
+    border-radius: 6px;
+    background: #f3891c;
+    color: var(--campaign-blue);
+    font-size: clamp(35px, 8.8vw, 43px);
+    transform: rotate(-1deg);
   }
   .campaign-price-line {
-    font-size: 14px;
-    margin-top: 16px;
+    margin: 12px 0 0;
+    color: var(--campaign-gold);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
   }
   .campaign-price-line strong {
-    font-size: 25px;
-  }
-  .campaign-rule {
-    margin-block: 20px;
+    display: inline;
+    color: var(--campaign-gold);
+    font-size: inherit;
   }
   .campaign-prize {
     font-size: clamp(44px, 10vw, 60px);
@@ -633,44 +701,154 @@ fieldset {
   .campaign-draw-label {
     font-size: 16px;
   }
-  .campaign-priority {
-    font-size: 12px;
-    margin-block: 12px 16px;
-  }
-  .campaign-photo {
-    height: 280px;
-    border-radius: 100px 12px 12px 100px;
-  }
-  .campaign-photo-frame {
-    inset: 4px 0 4px 4px;
-  }
   .campaign-draw-badge {
-    position: static;
-    max-width: 100%;
-    margin-top: 20px;
-    transform: rotate(-1deg);
+    position: absolute;
+    top: 20px;
+    right: auto;
+    bottom: auto;
+    left: 20px;
+    z-index: 3;
+    max-width: min(290px, calc(100% - 40px));
+    transform: rotate(-2deg);
   }
   .campaign-draw-intro {
     font-size: 12px;
   }
   .campaign-prize-panel {
     padding: 6px 12px 8px;
+    background: #f3891c;
+  }
+  .campaign-priority {
+    max-width: 34ch;
+    margin: 12px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
   }
   .campaign-cta {
-    padding: 14px 20px;
-    gap: 8px;
-    font-size: 15px;
+    display: none;
   }
   .campaign-terms {
+    margin-top: 10px;
     font-size: 11px;
   }
+  .campaign-photo {
+    position: absolute;
+    z-index: 0;
+    inset: 0 0 auto;
+    height: 470px;
+    border-radius: 0;
+    background: var(--campaign-blue);
+  }
+  .campaign-photo-frame {
+    inset: 0;
+    border-radius: 0;
+  }
+  .campaign-photo-image {
+    object-position: 65% center;
+  }
+  .quote-section {
+    background: #01228b;
+  }
   .quote-panel {
-    padding: 28px 24px;
-    max-width: 520px;
-    margin-inline: auto;
+    max-width: none;
+    margin: 0;
+    padding: 28px 20px 36px;
+    border: 0;
+    border-radius: 0;
+    background: #01228b;
+    color: #f2f5fc;
+    box-shadow: none;
   }
   .quote-panel h2 {
-    margin-bottom: 24px;
+    margin: 0 0 6px;
+    color: #f2f5fc;
+    font-size: 26px;
+  }
+  .quote-subtitle {
+    margin: 0 0 18px;
+    color: #c9d6f2;
+    font-size: 15px;
+  }
+  .contact-fields {
+    gap: 14px;
+  }
+  .contact-field > .sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0 0 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+    color: #f2f5fc;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .contact-field input {
+    height: 52px;
+    border: 0;
+    border-radius: 10px;
+    background: #f2f5fc;
+    color: var(--ink);
+  }
+  .phone-input {
+    gap: 8px;
+    border: 0;
+    background: transparent;
+  }
+  .phone-prefix {
+    height: 52px;
+    border: 0;
+    border-radius: 10px;
+    background: #e8edf8;
+    color: var(--campaign-blue);
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .phone-input input {
+    min-height: 52px;
+    border-radius: 10px;
+    background: #f2f5fc;
+  }
+  .field-hint {
+    color: #c9d6f2;
+  }
+  .quote-confirmations {
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .consent-check {
+    color: #c9d6f2;
+  }
+  .consent-check a {
+    color: #f2f5fc;
+  }
+  .field-error {
+    color: #ffd1ce;
+  }
+  .quote-panel .submit-button {
+    min-height: 56px;
+    margin-top: 20px;
+    border-radius: 10px;
+    background: #f3891c;
+    color: #01228b;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .form-status {
+    color: #ffd1ce;
+  }
+  .form-status.has-message {
+    background: rgb(255 255 255 / 10%);
+  }
+  .success-panel {
+    color: #f2f5fc;
+  }
+  .success-panel .muted {
+    color: #c9d6f2;
   }
   .benefits {
     padding-block: 48px;
@@ -686,7 +864,8 @@ fieldset {
   .product-image {
     grid-column: 1;
     grid-row: 2;
-    aspect-ratio: 2;
+    aspect-ratio: 1.5;
+    object-position: left center;
   }
   .did-you-know {
     grid-row: 3;

@@ -17,20 +17,20 @@ const montserrat = localFont({
 });
 const indexable = isIndexable();
 export const metadata: Metadata = {
-  icons: { icon: '/assets/cartrack-logo.jpg' },
+  icons: { icon: '/assets/best-car-dash-logo.png' },
   metadataBase: new URL(siteUrl()),
-  title: 'CarTrack Cameras | Get a Free Quote',
+  title: 'Best Car Dash | Get a Free Quote',
   description:
-    'Protect your vehicle and capture every moment with CarTrack’s dashcam. Check your eligibility and request a free call back.',
+    'Protect your vehicle and capture every moment with a dashcam. Check your eligibility and request a free call back.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'CarTrack Cameras | Get a Free Quote',
-    description: 'Request a call about CarTrack Cameras for your vehicle.',
+    title: 'Best Car Dash | Get a Free Quote',
+    description: 'Request a call about a dashcam for your vehicle.',
     url: '/',
     type: 'website',
     locale: 'en_ZA',
     images: [
-      { url: '/assets/dashcam-product.jpeg', width: 519, height: 258, alt: 'CarTrack dashcam' },
+      { url: '/assets/dashcam-product.jpeg', width: 519, height: 258, alt: 'Dashcam in a vehicle' },
     ],
   },
   robots: { index: indexable, follow: indexable },

@@ -8,7 +8,7 @@ export const QuoteSuccessContext = createContext<(() => void) | null>(null);
 function ThankYou() {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    document.title = 'Thank you | CarTrack Cameras';
+    document.title = 'Thank you | Best Car Dash';
     window.scrollTo({ top: 0, behavior: 'instant' });
     heading.current?.focus({ preventScroll: true });
   }, []);
@@ -17,10 +17,10 @@ function ThankYou() {
     <div className="thank-you-page">
       <header className="thank-you-header">
         <Image
-          src="/assets/cartrack-logo.jpg"
-          alt="Cartrack"
-          width={346}
-          height={94}
+          src="/assets/best-car-dash-logo.png"
+          alt="Best Car Dash"
+          width={300}
+          height={100}
           loading="eager"
         />
       </header>

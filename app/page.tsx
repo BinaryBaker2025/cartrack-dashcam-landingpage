@@ -10,15 +10,8 @@ export default function Home() {
       </a>
       <header className="brand-header">
         <div className="page-width">
-          <Link href="/" aria-label="Best Car Dash home">
-            <Image
-              src="/assets/best-car-dash-logo.png"
-              alt="Best Car Dash"
-              width={300}
-              height={100}
-              preload
-              className="best-car-dash-logo"
-            />
+          <Link href="/" className="brand-wordmark" aria-label="Best Car Dash home">
+            best<span>car</span>dash.com
           </Link>
         </div>
       </header>
@@ -27,22 +20,6 @@ export default function Home() {
           <section className="campaign-hero" aria-labelledby="campaign-title">
             <div className="campaign-hero-inner">
               <div className="campaign-copy">
-                <div className="campaign-partner" aria-label="In association with Cartrack">
-                  <span>In association with</span>
-                  <Image
-                    src="/assets/cartrack-logo.jpg"
-                    alt="Cartrack"
-                    width={140}
-                    height={38}
-                    className="campaign-partner-logo"
-                  />
-                </div>
-                <p className="campaign-kicker">Stay safe with a dash cam</p>
-                <h1 id="campaign-title">See more. Worry less.</h1>
-                <p className="campaign-price-line">
-                  From as little as <strong>R6.99/day*</strong>
-                </p>
-                <div className="campaign-rule" />
                 <div className="campaign-draw-badge">
                   <p className="campaign-draw-intro">Stand a chance to win your share of</p>
                   <div className="campaign-prize-panel">
@@ -50,6 +27,20 @@ export default function Home() {
                     <p className="campaign-draw-label">on our annual draw</p>
                   </div>
                 </div>
+                <div className="campaign-hero-top">
+                  <p className="campaign-kicker">Stay safe with a dash cam</p>
+                  <span className="campaign-pill">
+                    <span className="campaign-pill-dot" aria-hidden="true" />
+                    Record it. Prove it.
+                  </span>
+                </div>
+                <h1 id="campaign-title">
+                  <span className="campaign-headline-line">See more.</span>
+                  <span className="campaign-headline-chip">Worry less.</span>
+                </h1>
+                <p className="campaign-price-line">
+                  From as little as <strong>R6.99/day*</strong>
+                </p>
                 <p className="campaign-priority">
                   Being covered should still be your top priority.
                 </p>
@@ -62,7 +53,7 @@ export default function Home() {
                 <div className="campaign-photo-frame">
                   <Image
                     src="/assets/dashcam-product.jpeg"
-                    alt="A driver with a Cartrack dashcam installed on the windscreen"
+                    alt="A driver travelling with a dashcam installed on the windscreen"
                     fill
                     sizes="(max-width: 767px) 100vw, 28vw"
                     preload
@@ -81,15 +72,15 @@ export default function Home() {
             <h2 id="benefits-title">Why you need a car dashcam</h2>
             <p className="benefits-intro">
               Accidents, potholes, insurance disputes, or even just reckless drivers, these are
-              everyday risks on our roads. A Cartrack Dashcam puts you in control by documenting
-              everything that happens.
+              everyday risks on our roads. A dashcam puts you in control by documenting everything
+              that happens.
             </p>
             <div className="benefits-grid">
               <Image
                 className="product-image"
                 loading="eager"
                 src="/assets/dashcam-product.jpeg"
-                alt="Driver with a Cartrack dashcam installed on the windscreen"
+                alt="Driver travelling with a dashcam installed on the windscreen"
                 width={519}
                 height={258}
                 sizes="(max-width: 767px) calc(100vw - 40px), 519px"
@@ -130,8 +121,8 @@ export default function Home() {
       </main>
       <footer className="footer">
         <p>
-          CarTrack Cameras · *From R6.99 per day. Terms apply.
-          <span className="footer-association">In association with LeadByte and Cartrack.</span>
+          Best Car Dash · *From R6.99 per day. Terms apply.
+          <span className="footer-association">In association with LeadByte.</span>
         </p>
         <nav aria-label="Legal">
           <a href="/terms">Terms</a>

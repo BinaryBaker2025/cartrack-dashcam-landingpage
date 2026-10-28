@@ -36,12 +36,12 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   await page.goto('/');
   const hero = page.locator('.campaign-hero');
   const photo = hero.locator('.campaign-photo img');
-  const name = page.getByLabel('Name', { exact: true });
+  const name = page.getByLabel('Full name', { exact: true });
   await expect(hero).toContainText('R10,000');
   await expect(hero).toContainText('on our annual draw');
-  await expect(hero.locator('.campaign-partner')).toContainText('In association with');
-  await expect(hero.locator('.campaign-partner img')).toHaveAttribute('alt', 'Cartrack');
-  await expect(page.locator('.footer')).toContainText('In association with LeadByte and Cartrack.');
+  await expect(hero.locator('.campaign-partner')).toHaveCount(0);
+  await expect(page.locator('.footer')).toContainText('In association with LeadByte.');
+  await expect(page.locator('body')).not.toContainText(/cartrack/i);
   await expect(photo).toBeVisible();
   await expect(name).toBeVisible();
   await expect(page.getByLabel('South African mobile number')).toBeVisible();
@@ -56,7 +56,27 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   expect((await hero.boundingBox())!.y).toBeLessThan((await name.boundingBox())!.y);
   await expect(photo).toHaveAttribute(
     'alt',
-    'A driver with a Cartrack dashcam installed on the windscreen',
+    'A driver travelling with a dashcam installed on the windscreen',
+  );
+});
+test('matches the supplied mobile banner layout', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.getByRole('link', { name: 'Best Car Dash home' })).toContainText(
+    'bestcardash.com',
+  );
+  await expect(page.locator('.campaign-draw-badge')).toBeVisible();
+  await expect(page.locator('.campaign-pill')).toContainText('Record it. Prove it.');
+  await expect(page.locator('.campaign-headline-chip')).toHaveCSS(
+    'background-color',
+    'rgb(243, 137, 28)',
+  );
+  await expect(page.locator('.campaign-cta')).toBeHidden();
+  await expect(page.locator('.quote-panel')).toHaveCSS('background-color', 'rgb(1, 34, 139)');
+  await expect(page.getByText('Full name', { exact: true })).toBeVisible();
+  await expect(page.getByText('South African mobile number', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
   );
 });
 test('invalid submission shows inline messages without a network request', async ({ page }) => {
@@ -82,7 +102,7 @@ test('logs invalid fields and reason codes without sending the lead', async ({ p
     await route.fulfill({ status: 204 });
   });
   await page.goto('/');
-  await page.getByLabel('Name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('123');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.locator('#phone-error')).toBeVisible();
@@ -101,7 +121,7 @@ test('logs invalid fields and reason codes without sending the lead', async ({ p
   expect(leadRequests).toBe(0);
 });
 async function fillContact(page: import('@playwright/test').Page) {
-  await page.getByLabel('Name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
   await page.locator('#eligibilityConfirmed').check();
   await page.locator('#terms').check();
@@ -205,7 +225,7 @@ test('single-step form requires a name', async ({ page }) => {
   });
   await page.goto('/');
   await fillContact(page);
-  await page.getByLabel('Name', { exact: true }).fill('');
+  await page.getByLabel('Full name', { exact: true }).fill('');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);
