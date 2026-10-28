@@ -236,7 +236,7 @@ export default function LeadForm() {
             type={name === 'phone' ? 'tel' : 'text'}
             inputMode={name === 'phone' ? 'tel' : 'text'}
             autoComplete={name === 'phone' ? 'tel-national' : autocomplete}
-            maxLength={name === 'phone' ? 30 : 161}
+            maxLength={name === 'phone' ? 60 : 161}
             required
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}

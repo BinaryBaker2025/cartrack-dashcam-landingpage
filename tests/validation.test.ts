@@ -71,6 +71,10 @@ describe('qualification', () => {
     '+27 082 123 4567',
     '27821234567',
     '27 082 123 4567',
+    '0027 (0)82 123 4567',
+    '082.123.4567',
+    '\uff10\uff18\uff12\uff11\uff12\uff13\uff14\uff15\uff16\uff17',
+    '082\u2013123\u20134567',
   ])('normalises common South African mobile formats: %s', (phone) => {
     expect(cleanPhone(phone)).toBe('+27821234567');
   });
@@ -82,6 +86,9 @@ describe('qualification', () => {
     expect(validateLead({ ...valid, firstname: 'Tést', lastname: 'O’Testing' }).valid).toBe(true));
   it.each([
     ['Test Testing', 'Test', 'Testing'],
+    ['  J.   Testing  ', 'J', 'Testing'],
+    ['Test O\u2019 Testing', 'Test', "O'Testing"],
+    ['Test Anne \u2013 Marie', 'Test', 'Anne-Marie'],
     ['Test van der Testing', 'Test', 'van der Testing'],
     ['Mononym', 'Mononym', ''],
   ])(

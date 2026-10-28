@@ -25,9 +25,24 @@ export function cleanText(value: unknown, max = 80): string {
         .slice(0, max)
     : '';
 }
+export function cleanName(value: unknown): string {
+  return typeof value === 'string'
+    ? cleanText(value.normalize('NFKC'), 162)
+        .replace(/[\u2018\u2019\u02bc]/g, "'")
+        .replace(/[\u2010-\u2015]/g, '-')
+        .replace(/\./g, ' ')
+        .replace(/\s+/g, ' ')
+        .replace(/\s*(['-])\s*/g, '$1')
+        .trim()
+    : '';
+}
 export function cleanPhone(value: unknown): string {
-  if (typeof value !== 'string' || value.length > 30 || !/^[+\d\s()-]+$/.test(value)) return '';
-  let compact = value.trim().replace(/[\s()-]/g, '');
+  if (typeof value !== 'string' || value.length > 60) return '';
+  const normalized = value.normalize('NFKC').trim();
+  // Only remove presentation characters; never guess missing or extra digits.
+  if (!/^[+\d\s().\u2010-\u2015-]+$/.test(normalized)) return '';
+  let compact = normalized.replace(/[\s().\u2010-\u2015-]/g, '');
+  if (compact.startsWith('0027')) compact = `+27${compact.slice(4)}`;
   if (compact.startsWith('+27')) compact = `+27${compact.slice(3).replace(/^0/, '')}`;
   else if (compact.startsWith('27')) compact = `+27${compact.slice(2).replace(/^0/, '')}`;
   else if (/^\d{9}$/.test(compact)) compact = `0${compact}`;
@@ -46,7 +61,7 @@ export function parseCallTime(value: string): Date | null {
 export function validateLead(raw: unknown, now = new Date()) {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const fullNameSupplied = r.name !== undefined;
-  const fullName = typeof r.name === 'string' ? cleanText(r.name, 161).replace(/\s+/g, ' ') : '';
+  const fullName = cleanName(r.name);
   const nameParts = fullName.split(' ');
   // The compact form fills these values only after the visitor affirms all four facts.
   // Explicit answers remain authoritative, including a non-qualifying answer.
@@ -56,8 +71,8 @@ export function validateLead(raw: unknown, now = new Date()) {
   );
   const eligibilityConfirmationRequired = !confirmed && !eligibilityAnswersSupplied;
   const input: LeadInput = {
-    firstname: fullNameSupplied ? (nameParts[0] ?? '') : cleanText(r.firstname),
-    lastname: fullNameSupplied ? nameParts.slice(1).join(' ') : cleanText(r.lastname),
+    firstname: fullNameSupplied ? (nameParts[0] ?? '') : cleanName(r.firstname),
+    lastname: fullNameSupplied ? nameParts.slice(1).join(' ') : cleanName(r.lastname),
     phone: cleanPhone(r.phone),
     ...(r.email !== undefined ? { email: cleanText(r.email, 254) } : {}),
     ...(r.eligibilityConfirmed !== undefined ? { eligibilityConfirmed: confirmed } : {}),
@@ -91,7 +106,9 @@ export function validateLead(raw: unknown, now = new Date()) {
           `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
     }
   }
-  if (!input.phone) errors.phone = 'Please enter a valid South African mobile number.';
+  if (!input.phone)
+    errors.phone =
+      'Please check your mobile number, for example 082 123 4567. Spaces and +27 are accepted.';
   // Legacy API clients may still provide email; the quote form does not collect it.
   if (
     r.email !== undefined &&
