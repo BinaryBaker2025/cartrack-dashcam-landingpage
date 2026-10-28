@@ -55,8 +55,9 @@ export default function LeadForm() {
     const data = new FormData(form);
     const raw = {
       ...Object.fromEntries(data),
-      terms: data.get('terms') === 'on',
-      eligibilityConfirmed: data.get('eligibilityConfirmed') === 'on',
+      // Clicking submit affirms the disclosure displayed above the button.
+      terms: true,
+      eligibilityConfirmed: true,
       website: data.get('company_website'),
     };
     const validation = validateLead(raw);
@@ -239,7 +240,7 @@ export default function LeadForm() {
             required
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
-            placeholder={name === 'phone' ? '82 123 4567' : 'Enter your full name'}
+            placeholder={name === 'phone' ? '082 123 4567' : 'Enter your full name'}
             onChange={() => {
               if (errors[name])
                 setErrors((current) => {
@@ -292,40 +293,17 @@ export default function LeadForm() {
                     autoComplete="new-password"
                   />
                 </div>
-                <label className="consent-check">
-                  <input
-                    id="eligibilityConfirmed"
-                    name="eligibilityConfirmed"
-                    type="checkbox"
-                    aria-invalid={!!errors.eligibilityConfirmed}
-                    aria-describedby={
-                      errors.eligibilityConfirmed ? 'eligibilityConfirmed-error' : undefined
-                    }
-                  />
-                  <span>
-                    I confirm that I am 18 or older, have access to a vehicle, am employed or
-                    self-employed, and earn at least R10,000 per month.
-                  </span>
-                </label>
-                {fieldError('eligibilityConfirmed')}
-                <label className="consent-check">
-                  <input
-                    id="terms"
-                    name="terms"
-                    type="checkbox"
-                    aria-invalid={!!errors.terms}
-                    aria-describedby={errors.terms ? 'terms-error' : undefined}
-                  />
-                  <span>
-                    I accept the <a href="/terms">terms</a> and{' '}
-                    <a href="/privacy">privacy notice</a>, and consent to my details being shared
-                    with the service provider and its authorized partners so that a representative
-                    may contact me regarding the requested or future products and services.
-                  </span>
-                </label>
-                {fieldError('terms')}
+                <p className="submission-agreement" id="submission-agreement">
+                  By submitting, you agree to our <a href="/terms">Terms and Conditions</a> and{' '}
+                  <a href="/privacy">Privacy Policy</a>.
+                </p>
               </div>
-              <button className="cta submit-button" type="submit" disabled={locked}>
+              <button
+                className="cta submit-button"
+                type="submit"
+                disabled={locked}
+                aria-describedby="submission-agreement"
+              >
                 {state === 'submitting'
                   ? 'SENDING REQUEST…'
                   : state === 'validating'

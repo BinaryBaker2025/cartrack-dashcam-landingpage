@@ -24,13 +24,14 @@ test('has no automated WCAG A/AA violations', async ({ page }) => {
     .analyze();
   expect(results.violations).toEqual([]);
 });
-test('shows revised pricing and explicit eligibility and consent checkboxes', async ({ page }) => {
+test('shows revised pricing and agreement by submission', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.campaign-price-line')).toContainText('R6.99/day*');
   await expect(page.locator('.campaign-terms')).toContainText('Terms and conditions apply.');
-  await expect(page.locator('input[type="checkbox"]')).toHaveCount(2);
-  await expect(page.locator('#eligibilityConfirmed')).not.toBeChecked();
-  await expect(page.locator('#terms')).not.toBeChecked();
+  await expect(page.locator('#quote input[type="checkbox"]')).toHaveCount(0);
+  await expect(page.locator('#submission-agreement')).toHaveText(
+    'By submitting, you agree to our Terms and Conditions and Privacy Policy.',
+  );
 });
 test('shows the campaign hero above the name-and-phone form', async ({ page }) => {
   await page.goto('/');
@@ -106,25 +107,17 @@ test('logs invalid fields and reason codes without sending the lead', async ({ p
   await page.getByLabel('South African mobile number').fill('123');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.locator('#phone-error')).toBeVisible();
-  await expect(page.locator('#eligibilityConfirmed-error')).toBeVisible();
-  await expect(page.locator('#terms-error')).toBeVisible();
   await expect
     .poll(() => analytics.find((event) => event.event === 'form_validation_failed'))
     .toMatchObject({
       event: 'form_validation_failed',
-      failures: [
-        { field: 'eligibility', reason: 'required' },
-        { field: 'mobile', reason: 'format' },
-        { field: 'consent', reason: 'required' },
-      ],
+      failures: [{ field: 'mobile', reason: 'format' }],
     });
   expect(leadRequests).toBe(0);
 });
 async function fillContact(page: import('@playwright/test').Page) {
   await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
-  await page.locator('#eligibilityConfirmed').check();
-  await page.locator('#terms').check();
 }
 const thankYouHeading = /Thank you for your application/;
 

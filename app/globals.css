@@ -389,27 +389,13 @@ fieldset {
   gap: 14px;
   margin-top: 20px;
 }
-.consent-check {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
-  align-items: start;
-  gap: 10px;
+.submission-agreement {
+  margin: 0;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.6;
-  cursor: pointer;
 }
-.consent-check input {
-  width: 18px;
-  height: 18px;
-  margin: 2px 0 0;
-  accent-color: var(--campaign-blue);
-}
-.consent-check input[aria-invalid='true'] {
-  outline: 2px solid #b3261e;
-  outline-offset: 2px;
-}
-.consent-check a {
+.submission-agreement a {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -818,10 +804,10 @@ fieldset {
     gap: 14px;
     margin-top: 20px;
   }
-  .consent-check {
+  .submission-agreement {
     color: #c9d6f2;
   }
-  .consent-check a {
+  .submission-agreement a {
     color: #f2f5fc;
   }
   .field-error {
