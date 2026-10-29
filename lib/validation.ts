@@ -73,8 +73,8 @@ export function validateLead(raw: unknown, now = new Date()) {
   const input: LeadInput = {
     firstname: fullNameSupplied ? (nameParts[0] ?? '') : cleanName(r.firstname),
     lastname: fullNameSupplied
-      ? nameParts.slice(1).join(' ') || ' '
-      : cleanName(r.lastname) || (r.lastname === ' ' ? ' ' : ''),
+      ? nameParts.slice(1).join(' ') || nameParts[0] || ''
+      : cleanName(r.lastname) || cleanName(r.firstname),
     phone: cleanPhone(r.phone),
     ...(typeof r.email === 'string' && r.email.trim() ? { email: cleanText(r.email, 254) } : {}),
     ...(r.eligibilityConfirmed !== undefined ? { eligibilityConfirmed: confirmed } : {}),
@@ -103,15 +103,15 @@ export function validateLead(raw: unknown, now = new Date()) {
   } else {
     for (const field of ['firstname', 'lastname'] as const) {
       // Letters, combining accents and separators support real multi-part names.
-      const whitespaceSurname =
+      const missingSurname =
         field === 'lastname' &&
-        r.lastname === ' ' &&
+        r.lastname === undefined &&
         validName.test(input.firstname) &&
-        input.lastname === ' ';
+        input.lastname === input.firstname;
       if (
-        typeof r[field] !== 'string' ||
-        r[field].length > 80 ||
-        (!validName.test(input[field]) && !whitespaceSurname)
+        (typeof r[field] !== 'string' && !missingSurname) ||
+        (typeof r[field] === 'string' && r[field].length > 80) ||
+        !validName.test(input[field])
       )
         errors[field] =
           `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;

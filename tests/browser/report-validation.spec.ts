@@ -18,7 +18,7 @@ test('report explains the reason behind aggregated form validation failures', as
             request_id: 'sample',
             submitted_at_utc: '2026-10-29 08:07:26',
             firstname: 'Niel',
-            lastname: ' ',
+            lastname: 'Niel',
             phone1: '+27745766339',
             email: 'niel@example.com',
             source: 'WEBSITE',
