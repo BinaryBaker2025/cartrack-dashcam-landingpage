@@ -149,6 +149,11 @@ async function fillContact(page: import('@playwright/test').Page) {
 const thankYouHeading = /Thank you for your application/;
 
 test('submits a single name as both first name and surname', async ({ page }) => {
+  // Reproduce older browsers / insecure contexts without modern crypto helpers.
+  await page.addInitScript(() => {
+    Object.defineProperty(window.crypto, 'subtle', { value: undefined });
+    Object.defineProperty(window.crypto, 'randomUUID', { value: undefined });
+  });
   let submitted: Record<string, unknown> | undefined;
   await page.route('**/api/leads', async (route) => {
     submitted = route.request().postDataJSON();
