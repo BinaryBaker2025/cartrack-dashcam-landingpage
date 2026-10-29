@@ -47,7 +47,7 @@ it('accepts one full name and maps it to the existing lead fields', async () => 
     firstname: 'Test',
     lastname: 'van der Testing',
     phone: '+27821234567',
-    email: undefined,
+    email: 'person@example.com',
   });
 });
 it('sends the first name as surname for a mononym', async () => {
@@ -65,9 +65,19 @@ it.each([
   ['income', 'under_10000'],
   ['terms', false],
   ['phone', '123'],
+  ['email', ''],
   ['email', 'invalid'],
 ])('rejects invalid %s', async (key, value) => {
   expect((await POST(request({ [key]: value }))).status).toBe(422);
+  expect(mocks.ingest).not.toHaveBeenCalled();
+});
+it('rejects website submissions without an email address', async () => {
+  const response = await POST(request({ email: undefined }));
+  expect(response.status).toBe(422);
+  expect(await response.json()).toMatchObject({
+    state: 'validation_failed',
+    errors: { email: 'Please enter your email address.' },
+  });
   expect(mocks.ingest).not.toHaveBeenCalled();
 });
 it('rejects honeypot', async () =>

@@ -101,7 +101,7 @@ export async function POST(request: Request) {
         400,
       );
     const now = new Date();
-    const validation = validateLead(raw, now);
+    const validation = validateLead(raw, now, { requireEmail: true });
     const { input, reasons, errors } = validation;
     if (!validation.valid) {
       if (reasons.length) {

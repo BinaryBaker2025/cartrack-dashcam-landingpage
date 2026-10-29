@@ -3,6 +3,7 @@ export const valid = {
   firstname: 'Test',
   lastname: 'Testing',
   phone: '+27821234567',
+  email: 'person@example.com',
   age: '18_plus',
   vehicle: 'yes',
   employment: 'employed',

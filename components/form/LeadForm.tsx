@@ -62,7 +62,7 @@ export default function LeadForm() {
       eligibilityConfirmed: true,
       website: data.get('company_website'),
     };
-    const validation = validateLead(raw);
+    const validation = validateLead(raw, new Date(), { requireEmail: true });
     setErrors(validation.errors);
     if (!validation.valid) {
       setState(validation.reasons.length ? 'qualification_failed' : 'idle');
@@ -86,7 +86,11 @@ export default function LeadForm() {
                       ? 'email'
                       : 'eligibility',
           reason:
-            field === 'name' || field === 'phone' || field === 'email' ? 'format' : 'required',
+            field === 'email' && !submittedEmail
+              ? 'required'
+              : field === 'name' || field === 'phone' || field === 'email'
+                ? 'format'
+                : 'required',
         })),
       });
       busy.current = false;
@@ -261,7 +265,7 @@ export default function LeadForm() {
             inputMode={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
             autoComplete={name === 'phone' ? 'tel-national' : autocomplete}
             maxLength={name === 'phone' ? 60 : name === 'email' ? 254 : 161}
-            required={name !== 'email'}
+            required
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
             placeholder={
@@ -312,7 +316,7 @@ export default function LeadForm() {
               <div className="contact-fields">
                 {input('name', 'Full name', 'name')}
                 {input('phone', 'South African mobile number', 'tel')}
-                {input('email', 'Email address (optional)', 'email')}
+                {input('email', 'Email address', 'email')}
               </div>
               <div className="quote-confirmations">
                 <div className="honeypot" aria-hidden="true">

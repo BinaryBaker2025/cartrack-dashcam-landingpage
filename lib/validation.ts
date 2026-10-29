@@ -58,7 +58,11 @@ export function parseCallTime(value: string): Date | null {
   // Reject JS date rollover (for example 31 February).
   return new Date(date.getTime() + 7200000).toISOString().slice(0, 16) === value ? date : null;
 }
-export function validateLead(raw: unknown, now = new Date()) {
+export function validateLead(
+  raw: unknown,
+  now = new Date(),
+  options: { requireEmail?: boolean } = {},
+) {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const fullNameSupplied = r.name !== undefined;
   const fullName = cleanName(r.name);
@@ -120,13 +124,17 @@ export function validateLead(raw: unknown, now = new Date()) {
   if (!input.phone)
     errors.phone =
       'Please check your mobile number, for example 082 123 4567. Spaces and +27 are accepted.';
-  if (
+  const emailSupplied = typeof r.email === 'string' && !!r.email.trim();
+  if (options.requireEmail && !emailSupplied) {
+    errors.email = 'Please enter your email address.';
+  } else if (
     r.email !== undefined &&
     (typeof r.email !== 'string' ||
       (!!r.email.trim() &&
         (r.email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(input.email || ''))))
-  )
+  ) {
     errors.email = 'Please enter a valid email address.';
+  }
   const checks = [
     [
       'age',

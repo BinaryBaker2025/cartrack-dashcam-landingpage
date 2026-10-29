@@ -121,8 +121,10 @@ describe('qualification', () => {
     expect(result.valid).toBe(true);
     expect(result.input).toMatchObject({ firstname: 'Niel', lastname: 'Niel' });
   });
-  it('accepts an omitted optional email and validates a supplied address', () => {
-    expect(validateLead({ ...valid, email: '' }).valid).toBe(true);
+  it('requires an email for website leads and validates its format', () => {
+    expect(
+      validateLead({ ...valid, email: '' }, new Date(), { requireEmail: true }).errors.email,
+    ).toBe('Please enter your email address.');
     expect(validateLead({ ...valid, email: 'person@example.com' }).valid).toBe(true);
     expect(validateLead({ ...valid, email: 'invalid' }).errors.email).toBeTruthy();
   });

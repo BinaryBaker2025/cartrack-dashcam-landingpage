@@ -119,6 +119,7 @@ test('highlights an invalid phone field on mobile and logs its reason without se
   await page.goto('/');
   await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('123');
+  await page.getByLabel('Email address', { exact: true }).fill('person@example.com');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.locator('#phone-error')).toBeVisible();
   const phoneField = page.locator('#phone').locator('xpath=../..');
@@ -235,11 +236,11 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   expect(requests).toBe(1);
 });
 
-test('accepts a lead without email and omits the optional email from the request', async ({
-  page,
-}) => {
+test('requires email on the quote form and submits a valid address', async ({ page }) => {
   let submittedBody: Record<string, unknown> | undefined;
+  let requests = 0;
   await page.route('**/api/leads', async (route) => {
+    requests++;
     submittedBody = route.request().postDataJSON();
     await route.fulfill({
       json: {
@@ -252,12 +253,17 @@ test('accepts a lead without email and omits the optional email from the request
 
   await page.goto('/');
   await fillContact(page);
-  const email = page.getByLabel('Email address (optional)');
-  await expect(email).not.toHaveAttribute('required', '');
-  await expect(email).toHaveValue('');
+  const email = page.getByLabel('Email address', { exact: true });
+  await expect(email).toHaveAttribute('required', '');
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(email.locator('xpath=../..')).toHaveClass(/field-invalid/);
+  await expect(page.locator('#email-error')).toHaveText('Please enter your email address.');
+  expect(requests).toBe(0);
+  await email.fill('person@example.com');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
-  expect(submittedBody).not.toHaveProperty('email');
+  expect(requests).toBe(1);
+  expect(submittedBody).toMatchObject({ email: 'person@example.com' });
 });
 
 test('describes an unconfirmed request accurately and reuses its idempotency key on retry', async ({
