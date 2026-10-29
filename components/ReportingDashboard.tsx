@@ -158,8 +158,8 @@ export default function ReportingDashboard() {
   return (
     <main className={styles.dashboard}>
       <header className={styles.header}>
-        <a href="/reports" className={styles.brand}>
-          CarTrack <span>CAMERAS</span>
+        <a href="/reports" className={styles.brand} aria-label="Best Car Dash owner reporting">
+          best<span>car</span>dash.com
         </a>
         <nav className={styles.headerNav} aria-label="Owner reports">
           <a href="/reports" aria-current="page">

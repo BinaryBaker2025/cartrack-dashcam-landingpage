@@ -1,14 +1,19 @@
 .dashboard {
+  --report-surface: oklch(99.5% 0.003 260);
+  --report-border: oklch(91% 0.01 260);
+  --report-rule: oklch(94% 0.007 260);
+  --report-muted: var(--muted);
+  --report-hover: color-mix(in srgb, var(--campaign-blue) 6%, var(--report-surface));
   min-height: 100vh;
-  background: #f5f6f7;
-  color: #24272a;
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--grey);
+  color: var(--ink);
+  font-family: var(--font-montserrat), Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
 .header {
-  background: white;
-  border-bottom: 1px solid #dddfe2;
+  background: var(--campaign-blue);
+  border-bottom: 1px solid color-mix(in srgb, var(--campaign-gold) 38%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,18 +21,16 @@
 }
 .brand {
   font-weight: 700;
-  font-size: 24px;
-  color: #222;
+  font-size: 26px;
+  letter-spacing: -0.045em;
+  color: oklch(98% 0.006 260);
   text-decoration: none;
 }
 .brand span {
-  font-size: 11px;
-  letter-spacing: 2px;
-  margin-left: 12px;
-  color: #a34415;
+  color: var(--campaign-gold);
 }
 .private {
-  color: #62666b;
+  color: oklch(90% 0.018 260);
 }
 .headerNav {
   display: flex;
@@ -35,11 +38,11 @@
   gap: 20px;
 }
 .headerNav a {
-  color: #4b5056;
+  color: oklch(94% 0.008 260);
   text-decoration: none;
 }
 .headerNav a[aria-current='page'] {
-  color: #843710;
+  color: var(--campaign-gold);
   font-weight: 700;
 }
 .headerNav a:hover {
@@ -60,7 +63,7 @@
 .eyebrow {
   font-size: 11px;
   letter-spacing: 1.7px;
-  color: #8e3d14;
+  color: var(--campaign-blue);
   font-weight: 700;
 }
 .title h1 {
@@ -70,37 +73,37 @@
 }
 .title p,
 .panel > p {
-  color: #656a70;
+  color: var(--report-muted);
   margin-top: 4px;
 }
 .dashboard button {
-  border: 1px solid #c8ccd1;
-  border-radius: 5px;
+  border: 1px solid var(--report-border);
+  border-radius: 8px;
   padding: 10px 16px;
-  background: white;
-  color: #24272a;
+  background: var(--report-surface);
+  color: var(--ink);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }
 .dashboard button:hover {
-  background: #eceef0;
+  background: var(--report-hover);
 }
 .dashboard button:disabled {
   opacity: 0.5;
   cursor: default;
 }
 .dashboard :is(button, input, a):focus-visible {
-  outline: 3px solid #a34415;
+  outline: 3px solid var(--campaign-gold);
   outline-offset: 3px;
 }
 .filters {
   display: flex;
   align-items: end;
   gap: 16px;
-  background: white;
+  background: var(--report-surface);
   padding: 20px;
-  border: 1px solid #dddfe2;
+  border: 1px solid var(--report-border);
   border-radius: 8px;
 }
 .filters label {
@@ -110,49 +113,49 @@
   font-weight: 600;
 }
 .filters input {
-  border: 1px solid #c8ccd1;
+  border: 1px solid var(--report-border);
   border-radius: 4px;
   padding: 9px 10px;
   font: inherit;
   min-height: 40px;
   min-width: 0;
-  background: white;
-  color: #24272a;
+  background: var(--report-surface);
+  color: var(--ink);
 }
 .search {
   flex: 1;
 }
 .filters button {
-  background: #a34415;
-  color: white;
-  border-color: #a34415;
+  background: var(--campaign-blue);
+  color: oklch(99% 0.003 260);
+  border-color: var(--campaign-blue);
 }
 .filters button:hover {
-  background: #843710;
+  background: color-mix(in srgb, var(--campaign-blue) 86%, var(--ink));
 }
 .note {
   font-size: 12px;
-  color: #656a70;
+  color: var(--report-muted);
   margin: 14px 0 24px;
 }
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: white;
-  border: 1px solid #dddfe2;
+  background: var(--report-surface);
+  border: 1px solid var(--report-border);
   border-radius: 8px;
   margin-top: 24px;
 }
 .metrics article {
   padding: 22px 24px;
-  border-right: 1px solid #e5e7e9;
+  border-right: 1px solid var(--report-rule);
 }
 .metrics article:last-child {
   border: 0;
 }
 .metrics p {
   margin: 0 0 10px;
-  color: #62666b;
+  color: var(--report-muted);
   font-size: 13px;
 }
 .metrics strong {
@@ -166,8 +169,8 @@
   gap: 24px;
 }
 .panel {
-  background: white;
-  border: 1px solid #dddfe2;
+  background: var(--report-surface);
+  border: 1px solid var(--report-border);
   border-radius: 8px;
   padding: 24px;
   margin-bottom: 24px;
@@ -180,7 +183,7 @@
 .panel h3 {
   font-size: 12px;
   margin: 24px 0 8px;
-  color: #656a70;
+  color: var(--report-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -199,13 +202,13 @@
   font-variant-numeric: tabular-nums;
 }
 .barRow > div {
-  background: #f2f3f4;
+  background: var(--grey);
   height: 12px;
 }
 .barRow i {
   display: block;
   height: 100%;
-  background: #bb5928;
+  background: var(--campaign-blue);
 }
 .barRow strong {
   text-align: right;
@@ -214,7 +217,7 @@
   display: flex;
   justify-content: space-between;
   padding: 9px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--report-rule);
   text-transform: capitalize;
 }
 .validationFailure {
@@ -223,7 +226,7 @@
   align-items: flex-start;
   gap: 20px;
   padding: 14px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--report-rule);
 }
 .validationFailure:last-child {
   border-bottom: 0;
@@ -232,13 +235,13 @@
   min-width: 0;
 }
 .validationFailure > div strong {
-  color: #24272a;
+  color: var(--ink);
   font-size: 13px;
 }
 .validationFailure p {
   max-width: 72ch;
   margin: 4px 0 0;
-  color: #656a70;
+  color: var(--report-muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -258,11 +261,11 @@
   gap: 8px;
   text-transform: capitalize;
   font-size: 12px;
-  color: #656a70;
+  color: var(--report-muted);
 }
 .events strong {
   font-size: 23px;
-  color: #24272a;
+  color: var(--ink);
 }
 .tableTitle {
   display: flex;
@@ -271,7 +274,7 @@
   margin-bottom: 20px;
 }
 .tableTitle p {
-  color: #656a70;
+  color: var(--report-muted);
   margin: 4px 0;
 }
 .tableScroll {
@@ -285,14 +288,14 @@
 }
 .dashboard th {
   font-weight: 600;
-  color: #656a70;
-  background: #f5f6f7;
+  color: var(--report-muted);
+  background: var(--grey);
   padding: 12px;
   white-space: nowrap;
 }
 .dashboard td {
   padding: 15px 12px;
-  border-bottom: 1px solid #e5e7e9;
+  border-bottom: 1px solid var(--report-rule);
   vertical-align: top;
   min-width: 140px;
   max-width: 240px;
@@ -300,7 +303,7 @@
 }
 .dashboard small {
   display: block;
-  color: #656a70;
+  color: var(--report-muted);
   margin-top: 4px;
   font-size: 11px;
 }
@@ -318,18 +321,18 @@
 .empty,
 .placeholder {
   padding: 36px 0;
-  color: #656a70;
+  color: var(--report-muted);
 }
 .historyPanel {
   overflow: hidden;
-  border: 1px solid #dddfe2;
+  border: 1px solid var(--report-border);
   border-radius: 8px;
-  background: white;
+  background: var(--report-surface);
 }
 .historyMeta {
   margin: 0;
   padding: 16px 20px;
-  color: #656a70;
+  color: var(--report-muted);
   font-size: 12px;
 }
 .commit {
@@ -338,7 +341,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 20px;
-  border-top: 1px solid #e5e7e9;
+  border-top: 1px solid var(--report-rule);
 }
 .commitDetails {
   min-width: 0;
@@ -351,18 +354,18 @@
 }
 .commitBody {
   margin: 10px 0 0;
-  color: #4b5056;
+  color: var(--report-muted);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .commitMeta {
   margin: 8px 0 0;
-  color: #656a70;
+  color: var(--report-muted);
   font-size: 12px;
 }
 .commitLink {
   flex: 0 0 auto;
-  color: #843710;
+  color: var(--campaign-blue);
   font-family: Consolas, monospace;
   font-size: 12px;
   text-decoration: none;
@@ -372,8 +375,8 @@
 }
 .error {
   padding: 20px;
-  background: #fff1ec;
-  border: 1px solid #dca488;
+  background: oklch(97% 0.025 35);
+  border: 1px solid oklch(78% 0.08 35);
   border-radius: 6px;
   margin: 20px 0;
 }
@@ -411,7 +414,7 @@
     border: 0;
   }
   .metrics article:nth-child(-n + 2) {
-    border-bottom: 1px solid #dddfe2;
+    border-bottom: 1px solid var(--report-border);
   }
   .title {
     align-items: flex-start;
@@ -437,11 +440,6 @@
   }
   .brand {
     font-size: 20px;
-  }
-  .brand span {
-    display: block;
-    margin: 0;
-    font-size: 9px;
   }
   .private {
     font-size: 12px;

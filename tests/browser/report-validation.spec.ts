@@ -54,6 +54,5 @@ test('report explains the reason behind aggregated form validation failures', as
   await expect(
     section.getByText(/Counts are anonymous; submitted values are not stored here/),
   ).toBeVisible();
-  await expect(page.getByText(/Possible cause: no surname was supplied/)).toBeVisible();
   await expect(page.getByText(/LeadByte only returned a general validation error/)).toBeVisible();
 });

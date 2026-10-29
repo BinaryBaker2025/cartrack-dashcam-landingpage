@@ -12,6 +12,27 @@ type Commit = {
 };
 type History = { commits: Commit[]; page: number; hasNext: boolean };
 
+function isHistory(value: unknown): value is History {
+  if (!value || typeof value !== 'object') return false;
+  const history = value as Partial<History>;
+  return (
+    Number.isSafeInteger(history.page) &&
+    typeof history.hasNext === 'boolean' &&
+    Array.isArray(history.commits) &&
+    history.commits.every(
+      (commit) =>
+        commit &&
+        typeof commit === 'object' &&
+        typeof commit.sha === 'string' &&
+        typeof commit.shortSha === 'string' &&
+        typeof commit.message === 'string' &&
+        typeof commit.author === 'string' &&
+        (typeof commit.date === 'string' || commit.date === null) &&
+        typeof commit.url === 'string',
+    )
+  );
+}
+
 export default function ChangeHistory() {
   const [history, setHistory] = useState<History | null>(null);
   const [page, setPage] = useState(1);
@@ -26,10 +47,27 @@ export default function ChangeHistory() {
       signal: controller.signal,
     })
       .then(async (response) => {
-        const data = await response.json();
         if (response.status === 401)
           throw new Error('Owner sign-in required. Reload this page and sign in again.');
-        if (!response.ok) throw new Error(data.error || 'Change history could not be loaded.');
+        let data: unknown;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error(
+            response.ok
+              ? 'Change history returned an unreadable response. Please try again.'
+              : `Change history could not be loaded (HTTP ${response.status}).`,
+          );
+        }
+        if (!response.ok) {
+          const message =
+            data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+              ? data.error
+              : `Change history could not be loaded (HTTP ${response.status}).`;
+          throw new Error(message);
+        }
+        if (!isHistory(data))
+          throw new Error('Change history returned an unexpected response. Please try again.');
         setHistory(data);
       })
       .catch((reason: unknown) => {
@@ -59,8 +97,8 @@ export default function ChangeHistory() {
   return (
     <main className={styles.dashboard}>
       <header className={styles.header}>
-        <a href="/reports" className={styles.brand}>
-          CarTrack <span>CAMERAS</span>
+        <a href="/reports" className={styles.brand} aria-label="Best Car Dash owner reporting">
+          best<span>car</span>dash.com
         </a>
         <nav className={styles.headerNav} aria-label="Owner reports">
           <a href="/reports">Performance</a>
