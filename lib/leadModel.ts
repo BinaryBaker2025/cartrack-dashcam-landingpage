@@ -34,7 +34,7 @@ export function assessLead(lead: LeadRequest) {
   const result = validateLead(
     {
       firstname: lead.firstname?.trim(),
-      lastname: lead.lastname?.trim(),
+      lastname: lead.lastname,
       phone: lead.phone,
       ...(lead.email !== undefined ? { email: lead.email.trim() } : {}),
       ...lead.qualification,

@@ -161,6 +161,7 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
       firstname: 'Test',
       lastname: 'Testing',
       phone: '+27821234567',
+      email: 'person@example.com',
       age: '18_plus',
       vehicle: 'yes',
       employment: 'employed',
@@ -169,7 +170,6 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
       terms: true,
       attribution: { transaction_id: 'browser-test', offer_id: '999' },
     });
-    expect(body).not.toHaveProperty('email');
     expect(body).not.toHaveProperty('offer_id');
     await new Promise((resolve) => setTimeout(resolve, 150));
     await route.fulfill({
@@ -182,6 +182,8 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   });
   await page.goto('/?transaction_id=browser-test&offer_id=999');
   await fillContact(page);
+  await page.locator('#email').fill('person@example.com');
+  await expect(page.locator('#email')).toHaveValue('person@example.com');
   await page
     .getByRole('button', { name: 'Get Quote & Qualify' })
     .evaluate((button: HTMLButtonElement) => {
@@ -205,6 +207,7 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   }
   await page.reload();
   await fillContact(page);
+  await page.locator('#email').fill('person@example.com');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(1);

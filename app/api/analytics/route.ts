@@ -19,7 +19,7 @@ function parseFailures(value: unknown): ValidationFailure[] | null {
   for (const item of value) {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
     const { field, reason } = item as { field?: unknown; reason?: unknown };
-    if ((field === 'name' || field === 'mobile') && reason === 'format') {
+    if ((field === 'name' || field === 'mobile' || field === 'email') && reason === 'format') {
       failures.push({ field, reason });
     } else if ((field === 'eligibility' || field === 'consent') && reason === 'required') {
       failures.push({ field, reason });

@@ -90,7 +90,7 @@ describe('qualification', () => {
     ['Test O\u2019 Testing', 'Test', "O'Testing"],
     ['Test Anne \u2013 Marie', 'Test', 'Anne-Marie'],
     ['Test van der Testing', 'Test', 'van der Testing'],
-    ['Mononym', 'Mononym', ''],
+    ['Mononym', 'Mononym', ' '],
   ])(
     'accepts a single full name and maps it to the lead fields: %s',
     (name, firstname, lastname) => {
@@ -99,6 +99,23 @@ describe('qualification', () => {
       expect(result.input).toMatchObject({ firstname, lastname });
     },
   );
+  it('keeps a whitespace surname for mononyms through separate-field validation', () => {
+    const formResult = validateLead({ ...valid, name: 'Mononym' });
+    const apiResult = validateLead({
+      ...valid,
+      firstname: formResult.input.firstname,
+      lastname: formResult.input.lastname,
+    });
+    expect(formResult.valid).toBe(true);
+    expect(formResult.input.lastname).toBe(' ');
+    expect(apiResult.valid).toBe(true);
+    expect(apiResult.input.lastname).toBe(' ');
+  });
+  it('accepts an omitted optional email and validates a supplied address', () => {
+    expect(validateLead({ ...valid, email: '' }).valid).toBe(true);
+    expect(validateLead({ ...valid, email: 'person@example.com' }).valid).toBe(true);
+    expect(validateLead({ ...valid, email: 'invalid' }).errors.email).toBeTruthy();
+  });
   it('rejects invalid full names', () => {
     const result = validateLead({ ...valid, name: 'Test123 Person' });
     expect(result.valid).toBe(false);

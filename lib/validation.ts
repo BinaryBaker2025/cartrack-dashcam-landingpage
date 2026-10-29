@@ -72,9 +72,11 @@ export function validateLead(raw: unknown, now = new Date()) {
   const eligibilityConfirmationRequired = !confirmed && !eligibilityAnswersSupplied;
   const input: LeadInput = {
     firstname: fullNameSupplied ? (nameParts[0] ?? '') : cleanName(r.firstname),
-    lastname: fullNameSupplied ? nameParts.slice(1).join(' ') : cleanName(r.lastname),
+    lastname: fullNameSupplied
+      ? nameParts.slice(1).join(' ') || ' '
+      : cleanName(r.lastname) || (r.lastname === ' ' ? ' ' : ''),
     phone: cleanPhone(r.phone),
-    ...(r.email !== undefined ? { email: cleanText(r.email, 254) } : {}),
+    ...(typeof r.email === 'string' && r.email.trim() ? { email: cleanText(r.email, 254) } : {}),
     ...(r.eligibilityConfirmed !== undefined ? { eligibilityConfirmed: confirmed } : {}),
     age: cleanText(r.age ?? (confirmed ? '18_plus' : '')),
     vehicle: cleanText(r.vehicle ?? (confirmed ? 'yes' : '')),
@@ -101,7 +103,16 @@ export function validateLead(raw: unknown, now = new Date()) {
   } else {
     for (const field of ['firstname', 'lastname'] as const) {
       // Letters, combining accents and separators support real multi-part names.
-      if (typeof r[field] !== 'string' || r[field].length > 80 || !validName.test(input[field]))
+      const whitespaceSurname =
+        field === 'lastname' &&
+        r.lastname === ' ' &&
+        validName.test(input.firstname) &&
+        input.lastname === ' ';
+      if (
+        typeof r[field] !== 'string' ||
+        r[field].length > 80 ||
+        (!validName.test(input[field]) && !whitespaceSurname)
+      )
         errors[field] =
           `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
     }
@@ -109,12 +120,11 @@ export function validateLead(raw: unknown, now = new Date()) {
   if (!input.phone)
     errors.phone =
       'Please check your mobile number, for example 082 123 4567. Spaces and +27 are accepted.';
-  // Legacy API clients may still provide email; the quote form does not collect it.
   if (
     r.email !== undefined &&
     (typeof r.email !== 'string' ||
-      r.email.length > 254 ||
-      !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(input.email || ''))
+      (!!r.email.trim() &&
+        (r.email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(input.email || ''))))
   )
     errors.email = 'Please enter a valid email address.';
   const checks = [

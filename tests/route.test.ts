@@ -50,6 +50,14 @@ it('accepts one full name and maps it to the existing lead fields', async () => 
     email: undefined,
   });
 });
+it('sends a whitespace surname for a mononym', async () => {
+  const response = await POST(request({ name: 'Mononym' }));
+  expect(response.status).toBe(200);
+  expect(mocks.ingest.mock.calls[0][1]).toMatchObject({
+    firstname: 'Mononym',
+    lastname: ' ',
+  });
+});
 it.each([
   ['age', 'under_18'],
   ['vehicle', 'no'],

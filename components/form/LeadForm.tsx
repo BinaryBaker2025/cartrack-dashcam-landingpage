@@ -53,8 +53,10 @@ export default function LeadForm() {
     setMessage('');
     const form = event.currentTarget;
     const data = new FormData(form);
+    const submittedEmail = String(data.get('email') ?? '').trim();
     const raw = {
       ...Object.fromEntries(data),
+      email: submittedEmail,
       // Clicking submit affirms the disclosure displayed above the button.
       terms: true,
       eligibilityConfirmed: true,
@@ -80,8 +82,11 @@ export default function LeadForm() {
                   ? 'consent'
                   : field === 'name'
                     ? 'name'
-                    : 'eligibility',
-          reason: field === 'name' || field === 'phone' ? 'format' : 'required',
+                    : field === 'email'
+                      ? 'email'
+                      : 'eligibility',
+          reason:
+            field === 'name' || field === 'phone' || field === 'email' ? 'format' : 'required',
         })),
       });
       busy.current = false;
@@ -91,7 +96,11 @@ export default function LeadForm() {
       );
       return;
     }
-    const payload = JSON.stringify(validation.input);
+    const lead = {
+      ...validation.input,
+      ...(submittedEmail ? { email: validation.input.email || submittedEmail } : {}),
+    };
+    const payload = JSON.stringify(lead);
     // Reuse the same key after uncertain network outcomes. Changed data gets a new key.
     setState('submitting');
     try {
@@ -117,7 +126,7 @@ export default function LeadForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...validation.input,
+          ...lead,
           submissionId: submission.current.id,
           attribution: sessionAttribution(),
         }),
@@ -181,7 +190,7 @@ export default function LeadForm() {
         submission.current = { id: await submissionKey(payload, true), payload };
       if (next === 'success') {
         trackGoogleAdsLeadConversion();
-        trackMicrosoftLead(validation.input.email, validation.input.phone);
+        trackMicrosoftLead(lead.email, lead.phone);
       }
       track(
         next === 'success'
@@ -210,7 +219,7 @@ export default function LeadForm() {
       </span>
     ) : null;
   }
-  function input(name: 'name' | 'phone', label: string, autocomplete: string) {
+  function input(name: 'name' | 'phone' | 'email', label: string, autocomplete: string) {
     return (
       <div className="field contact-field">
         <label className="sr-only" htmlFor={name}>
@@ -233,14 +242,20 @@ export default function LeadForm() {
           <input
             id={name}
             name={name}
-            type={name === 'phone' ? 'tel' : 'text'}
-            inputMode={name === 'phone' ? 'tel' : 'text'}
+            type={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
+            inputMode={name === 'phone' ? 'tel' : name === 'email' ? 'email' : 'text'}
             autoComplete={name === 'phone' ? 'tel-national' : autocomplete}
-            maxLength={name === 'phone' ? 60 : 161}
-            required
+            maxLength={name === 'phone' ? 60 : name === 'email' ? 254 : 161}
+            required={name !== 'email'}
             aria-invalid={!!errors[name]}
             aria-describedby={errors[name] ? `${name}-error` : undefined}
-            placeholder={name === 'phone' ? '082 123 4567' : 'Enter your full name'}
+            placeholder={
+              name === 'phone'
+                ? '082 123 4567'
+                : name === 'email'
+                  ? 'you@example.com'
+                  : 'Enter your full name'
+            }
             onChange={() => {
               if (errors[name])
                 setErrors((current) => {
@@ -282,6 +297,7 @@ export default function LeadForm() {
               <div className="contact-fields">
                 {input('name', 'Full name', 'name')}
                 {input('phone', 'South African mobile number', 'tel')}
+                {input('email', 'Email address (optional)', 'email')}
               </div>
               <div className="quote-confirmations">
                 <div className="honeypot" aria-hidden="true">

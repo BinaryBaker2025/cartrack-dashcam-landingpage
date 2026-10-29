@@ -127,6 +127,12 @@ export default function ReportingDashboard() {
         <a href="/reports" className={styles.brand}>
           CarTrack <span>CAMERAS</span>
         </a>
+        <nav className={styles.headerNav} aria-label="Owner reports">
+          <a href="/reports" aria-current="page">
+            Performance
+          </a>
+          <a href="/reports/history">Change history</a>
+        </nav>
         <span className={styles.private}>Owner reporting</span>
       </header>
       <div className={styles.content}>

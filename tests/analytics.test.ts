@@ -30,6 +30,7 @@ it('records anonymous validation field and reason counts', async () => {
       failures: [
         { field: 'eligibility', reason: 'required' },
         { field: 'mobile', reason: 'format' },
+        { field: 'email', reason: 'format' },
         { field: 'consent', reason: 'required' },
       ],
     }),
@@ -42,6 +43,7 @@ it('records anonymous validation field and reason counts', async () => {
   ).toEqual([
     { field: 'consent', reason: 'required', count: 1 },
     { field: 'eligibility', reason: 'required', count: 1 },
+    { field: 'email', reason: 'format', count: 1 },
     { field: 'mobile', reason: 'format', count: 1 },
   ]);
   expect(db.sqlite.prepare('SELECT event, count FROM site_event_daily').all()).toEqual([

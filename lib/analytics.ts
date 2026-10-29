@@ -8,7 +8,7 @@ export type AnalyticsEvent =
   | 'lead_submit_rejected'
   | 'lead_submit_error';
 export type ValidationFailure = {
-  field: 'name' | 'mobile' | 'eligibility' | 'consent' | 'honeypot';
+  field: 'name' | 'mobile' | 'email' | 'eligibility' | 'consent' | 'honeypot';
   reason: 'format' | 'required' | 'filled';
 };
 export type AnalyticsProperties = { failures?: ValidationFailure[]; state?: string };

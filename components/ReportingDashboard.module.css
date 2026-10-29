@@ -29,6 +29,22 @@
 .private {
   color: #62666b;
 }
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.headerNav a {
+  color: #4b5056;
+  text-decoration: none;
+}
+.headerNav a[aria-current='page'] {
+  color: #843710;
+  font-weight: 700;
+}
+.headerNav a:hover {
+  text-decoration: underline;
+}
 .content {
   max-width: 1440px;
   margin: auto;
@@ -275,6 +291,56 @@
   padding: 36px 0;
   color: #656a70;
 }
+.historyPanel {
+  overflow: hidden;
+  border: 1px solid #dddfe2;
+  border-radius: 8px;
+  background: white;
+}
+.historyMeta {
+  margin: 0;
+  padding: 16px 20px;
+  color: #656a70;
+  font-size: 12px;
+}
+.commit {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border-top: 1px solid #e5e7e9;
+}
+.commitDetails {
+  min-width: 0;
+}
+.commit h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.commitBody {
+  margin: 10px 0 0;
+  color: #4b5056;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.commitMeta {
+  margin: 8px 0 0;
+  color: #656a70;
+  font-size: 12px;
+}
+.commitLink {
+  flex: 0 0 auto;
+  color: #843710;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  text-decoration: none;
+}
+.commitLink:hover {
+  text-decoration: underline;
+}
 .error {
   padding: 20px;
   background: #fff1ec;
@@ -335,6 +401,11 @@
   }
 }
 @media (max-width: 450px) {
+  .header {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 4%;
+  }
   .brand {
     font-size: 20px;
   }
@@ -344,6 +415,12 @@
     font-size: 9px;
   }
   .private {
+    font-size: 12px;
+  }
+  .headerNav {
+    order: 3;
+    width: 100%;
+    gap: 16px;
     font-size: 12px;
   }
   .title {

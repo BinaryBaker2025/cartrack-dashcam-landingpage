@@ -1,6 +1,6 @@
 # Owner reporting
 
-The owner dashboard is `/reports`, with the custom domain `reports.bestcardash.com` configured in Wrangler. The subdomain root redirects to `/reports`. It is not live until deployment.
+The owner dashboard is `/reports`, with the custom domain `reports.bestcardash.com` configured in Wrangler. The subdomain root redirects to `/reports`. The dashboard includes a Change history page at `/reports/history` showing commits on this repository's GitHub `main` branch, newest first. It reads public commit metadata directly from GitHub after owner authentication; only committed and pushed changes appear. It is not live until deployment.
 
 ## Enable
 

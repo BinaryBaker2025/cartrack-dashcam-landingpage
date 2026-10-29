@@ -216,6 +216,16 @@ it('retains email before delivery without adding it to the documented vendor pay
   expect(state.submit).toHaveBeenCalledTimes(1);
 });
 
+it('delivers a mononym with a whitespace surname', async () => {
+  state.submit.mockImplementation(async (input: { firstname: string; lastname: string }) => {
+    expect(input).toMatchObject({ firstname: 'Mononym', lastname: ' ' });
+    return { state: 'success', message: 'Received', code: 1 };
+  });
+  expect((await POST(request({ name: 'Mononym' }))).status).toBe(200);
+  await deliver();
+  expect(state.submit).toHaveBeenCalledTimes(1);
+});
+
 it('rejects invalid email before recording or delivery', async () => {
   expect((await POST(request({ email: 'invalid' }))).status).toBe(422);
   expect(state.submit).not.toHaveBeenCalled();
