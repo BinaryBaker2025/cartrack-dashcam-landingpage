@@ -34,6 +34,37 @@ type Report = {
 };
 const number = (value: number) => new Intl.NumberFormat('en-ZA').format(value);
 const label = (value: string) => value.replaceAll('_', ' ');
+const validationGuidance: Record<string, { title: string; explanation: string }> = {
+  'name:format': {
+    title: 'Name format',
+    explanation:
+      'The name must use letters. Spaces, apostrophes and hyphens are supported; numbers and other symbols are rejected.',
+  },
+  'mobile:format': {
+    title: 'Mobile number format',
+    explanation:
+      'The number must be a valid South African mobile number. Check the digits and try a common format such as 082 123 4567 or +27 82 123 4567.',
+  },
+  'email:format': {
+    title: 'Email format',
+    explanation:
+      'Email is optional, but when entered it must look like a valid address, for example name@example.com.',
+  },
+  'eligibility:required': {
+    title: 'Eligibility confirmation',
+    explanation:
+      'The visitor did not confirm the age, vehicle, employment and income requirements before continuing.',
+  },
+  'consent:required': {
+    title: 'Terms and privacy consent',
+    explanation: 'The form was submitted without confirming the terms and privacy disclosure.',
+  },
+  'honeypot:filled': {
+    title: 'Anti-spam check',
+    explanation:
+      'A hidden anti-spam field was filled. This often indicates automated traffic rather than a visitor.',
+  },
+};
 export default function ReportingDashboard() {
   const [report, setReport] = useState<Report | null>(null);
   const [query, setQuery] = useState('');
@@ -278,14 +309,28 @@ export default function ReportingDashboard() {
                 </section>
                 <section className={styles.panel}>
                   <h2>Form validation failures</h2>
-                  <p>Anonymous counts by field and reason, within the selected date range.</p>
+                  <p>
+                    Why quote requests were blocked, grouped by field and reason for the selected
+                    date range. Counts are anonymous; submitted values are not stored here.
+                  </p>
                   {report.validationFailures.length ? (
                     report.validationFailures.map((failure) => (
-                      <div className={styles.breakdown} key={`${failure.field}-${failure.reason}`}>
-                        <span>
-                          {label(failure.field)} · {label(failure.reason)}
-                        </span>
-                        <strong>{number(failure.count)}</strong>
+                      <div
+                        className={styles.validationFailure}
+                        key={`${failure.field}-${failure.reason}`}
+                      >
+                        <div>
+                          <strong>
+                            {validationGuidance[`${failure.field}:${failure.reason}`]?.title ||
+                              `${label(failure.field)} · ${label(failure.reason)}`}
+                          </strong>
+                          <p>
+                            {validationGuidance[`${failure.field}:${failure.reason}`]
+                              ?.explanation ||
+                              'The submitted field did not pass validation. Check the field value and try again.'}
+                          </p>
+                        </div>
+                        <strong className={styles.validationCount}>{number(failure.count)}</strong>
                       </div>
                     ))
                   ) : (
