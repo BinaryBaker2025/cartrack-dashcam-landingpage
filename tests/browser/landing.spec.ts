@@ -102,7 +102,10 @@ test('invalid submission shows inline messages without a network request', async
   await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);
 });
-test('logs invalid fields and reason codes without sending the lead', async ({ page }) => {
+test('highlights an invalid phone field on mobile and logs its reason without sending the lead', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   let leadRequests = 0;
   const analytics: { event: string; failures?: { field: string; reason: string }[] }[] = [];
   await page.route('**/api/leads', (route) => {
@@ -117,6 +120,14 @@ test('logs invalid fields and reason codes without sending the lead', async ({ p
   await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('123');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.locator('#phone-error')).toBeVisible();
+  const phoneField = page.locator('#phone').locator('xpath=../..');
+  await expect(phoneField).toHaveClass(/field-invalid/);
+  await expect(phoneField).toHaveCSS('animation-name', 'field-wiggle');
+  await expect(phoneField).toHaveCSS('animation-duration', '0.6s');
+  await expect(phoneField).toHaveCSS('border-top-color', 'rgb(179, 38, 30)');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(phoneField).toHaveCSS('animation-name', 'none');
   await expect(page.locator('#phone-error')).toBeVisible();
   await expect
     .poll(() => analytics.find((event) => event.event === 'form_validation_failed'))
@@ -222,6 +233,66 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(1);
+});
+
+test('accepts a lead without email and omits the optional email from the request', async ({
+  page,
+}) => {
+  let submittedBody: Record<string, unknown> | undefined;
+  await page.route('**/api/leads', async (route) => {
+    submittedBody = route.request().postDataJSON();
+    await route.fulfill({
+      json: {
+        state: 'success',
+        message: 'Accepted',
+        diagnostics: { code: 'LEAD_RECEIVED' },
+      },
+    });
+  });
+
+  await page.goto('/');
+  await fillContact(page);
+  const email = page.getByLabel('Email address (optional)');
+  await expect(email).not.toHaveAttribute('required', '');
+  await expect(email).toHaveValue('');
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
+  expect(submittedBody).not.toHaveProperty('email');
+});
+
+test('describes an unconfirmed request accurately and reuses its idempotency key on retry', async ({
+  page,
+}) => {
+  const submissionIds: string[] = [];
+  let requests = 0;
+  await page.route('**/api/leads', async (route) => {
+    requests++;
+    submissionIds.push(route.request().postDataJSON().submissionId);
+    if (requests === 1) {
+      await route.abort();
+      return;
+    }
+    await route.fulfill({
+      json: {
+        state: 'success',
+        message: 'Accepted',
+        diagnostics: { code: 'LEAD_RECEIVED' },
+      },
+    });
+  });
+
+  await page.goto('/');
+  await fillContact(page);
+  const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
+  await submit.click();
+  await expect(page.getByRole('status')).toContainText(
+    'Your request may still have been received. Please wait a moment before trying again.',
+  );
+  await expect(page.getByRole('status')).not.toContainText('Check your connection');
+  await submit.click();
+  await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
+  expect(requests).toBe(2);
+  expect(submissionIds[1]).toBe(submissionIds[0]);
 });
 
 test('single-step form requires a name', async ({ page }) => {

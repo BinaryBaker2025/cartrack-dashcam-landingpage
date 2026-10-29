@@ -326,6 +326,28 @@ fieldset {
   gap: 6px;
   min-width: 0;
 }
+@keyframes field-wiggle {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+.contact-field.field-invalid {
+  padding: 8px;
+  border: 1px solid #b3261e;
+  border-radius: 10px;
+  background: #fff0ee;
+  color: #7f1d18;
+  animation: field-wiggle 600ms ease-in-out;
+}
 .contact-field input {
   width: 100%;
   min-width: 0;
@@ -342,6 +364,10 @@ fieldset {
   opacity: 1;
 }
 .contact-field input[aria-invalid='true'] {
+  border-color: #b3261e;
+  background: #fff8f7;
+}
+.contact-field.field-invalid .phone-input {
   border-color: #b3261e;
   background: #fff8f7;
 }
@@ -777,6 +803,13 @@ fieldset {
     background: #f2f5fc;
     color: var(--ink);
   }
+  .contact-field.field-invalid input[aria-invalid='true'] {
+    border: 2px solid #b3261e;
+    background: #fff8f7;
+  }
+  .contact-field.field-invalid .phone-input input[aria-invalid='true'] {
+    border: 0;
+  }
   .phone-input {
     gap: 8px;
     border: 0;
@@ -811,7 +844,13 @@ fieldset {
     color: #f2f5fc;
   }
   .field-error {
-    color: #ffd1ce;
+    color: #8f1d16;
+  }
+  .contact-field.field-invalid > .sr-only {
+    color: #7f1d18;
+  }
+  .contact-field.field-invalid .field-hint {
+    color: #7f1d18;
   }
   .quote-panel .submit-button {
     min-height: 44px;
@@ -917,6 +956,9 @@ fieldset {
   }
   * {
     transition: none !important;
+  }
+  .contact-field.field-invalid {
+    animation: none;
   }
 }
 .advertising-consent {

@@ -103,6 +103,8 @@ export default function LeadForm() {
     const payload = JSON.stringify(lead);
     // Reuse the same key after uncertain network outcomes. Changed data gets a new key.
     setState('submitting');
+    let requestStarted = false;
+    let responseReceived = false;
     try {
       if (submission.current.payload !== payload)
         submission.current = { id: await submissionKey(payload), payload };
@@ -122,6 +124,7 @@ export default function LeadForm() {
         return;
       }
       track('lead_submit_started');
+      requestStarted = true;
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,6 +134,7 @@ export default function LeadForm() {
           attribution: sessionAttribution(),
         }),
       });
+      responseReceived = true;
       let result;
       try {
         result = await response.json();
@@ -204,9 +208,20 @@ export default function LeadForm() {
       );
       requestAnimationFrame(() => status.current?.focus());
     } catch {
-      reportDiagnostic({ code: 'BROWSER_REQUEST_FAILED' });
+      const code = !requestStarted
+        ? 'BROWSER_REQUEST_PREPARATION_FAILED'
+        : responseReceived
+          ? 'BROWSER_RESPONSE_PROCESSING_FAILED'
+          : 'BROWSER_REQUEST_FAILED';
+      reportDiagnostic({ code });
       setState('temporary_error');
-      setMessage('We couldn’t confirm your request. Check your connection, then try again.');
+      setMessage(
+        !requestStarted
+          ? 'We couldn’t prepare your request. Please refresh the page and try again.'
+          : responseReceived
+            ? 'We received a response but couldn’t finish confirming it. Please wait before trying again.'
+            : 'We haven’t received confirmation yet. Your request may still have been received. Please wait a moment before trying again.',
+      );
       track('lead_submit_error');
     } finally {
       busy.current = false;
@@ -221,7 +236,7 @@ export default function LeadForm() {
   }
   function input(name: 'name' | 'phone' | 'email', label: string, autocomplete: string) {
     return (
-      <div className="field contact-field">
+      <div className={`field contact-field${errors[name] ? ' field-invalid' : ''}`}>
         <label className="sr-only" htmlFor={name}>
           {label}
         </label>
