@@ -17,6 +17,9 @@ type Lead = {
   leadbyte_code: number | null;
   leadbyte_code_description: string | null;
   leadbyte_lead_id: string | null;
+  leadbyte_response: string | null;
+  leadbyte_details: string[];
+  diagnostic_code: string | null;
   utm_source: string | null;
   utm_campaign: string | null;
   is_test: number;
@@ -409,6 +412,40 @@ export default function ReportingDashboard() {
                                   ? 'Awaiting result'
                                   : `Code ${lead.leadbyte_code}`)}
                               <small>ID: {lead.leadbyte_lead_id ?? 'Not supplied'}</small>
+                              {lead.leadbyte_response &&
+                                lead.leadbyte_response !== lead.leadbyte_code_description && (
+                                  <small>LeadByte response: {lead.leadbyte_response}</small>
+                                )}
+                              {lead.leadbyte_details.map((detail) => (
+                                <small key={detail}>{detail}</small>
+                              ))}
+                              {lead.leadbyte_code === -5 && lead.lastname.trim().length === 0 && (
+                                <small>
+                                  Possible cause: no surname was supplied. LeadByte may reject a
+                                  blank or whitespace surname.
+                                </small>
+                              )}
+                              {lead.leadbyte_code === -5 &&
+                                !lead.leadbyte_response &&
+                                lead.leadbyte_details.length === 0 && (
+                                  <small>
+                                    LeadByte did not provide a field-specific reason. Check the
+                                    submitted fields and LeadByte validation settings.
+                                  </small>
+                                )}
+                              {lead.leadbyte_code === -5 &&
+                                lead.leadbyte_response?.trim().toLowerCase() ===
+                                  lead.leadbyte_code_description?.trim().toLowerCase() &&
+                                lead.leadbyte_details.length === 0 && (
+                                  <small>
+                                    LeadByte only returned a general validation error, with no
+                                    field-level reason. Check the submitted fields and LeadByte
+                                    validation settings.
+                                  </small>
+                                )}
+                              {lead.diagnostic_code && (
+                                <small>Diagnostic: {label(lead.diagnostic_code)}</small>
+                              )}
                             </td>
                             <td>
                               <code>{lead.request_id}</code>

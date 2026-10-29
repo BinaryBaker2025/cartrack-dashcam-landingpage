@@ -3,7 +3,7 @@ import type { D1Database } from '@cloudflare/workers-types';
 import { createTestDatabase } from './d1Fixture';
 import { reportAccess } from '../lib/reportAuth';
 import { privateReportResponse } from '../lib/reportResponse';
-import { readReport, reportFilters } from '../lib/reporting';
+import { leadbyteDetails, readReport, reportFilters } from '../lib/reporting';
 import { reportSheets } from '../lib/reportWorkbook';
 import writeExcelFile from 'write-excel-file/universal';
 import { unzipSync, strFromU8 } from 'fflate';
@@ -79,12 +79,26 @@ it('validates dates and pagination and uses inclusive South African days', () =>
   }
 });
 
+it('extracts useful LeadByte rejection details without returning contact values', () => {
+  expect(
+    leadbyteDetails(
+      JSON.stringify({
+        field: 'email',
+        message: 'Invalid email niel@example.com',
+        status: 'invalid',
+        ignored: 'unrelated vendor data',
+      }),
+    ),
+  ).toEqual(['field: email', 'message: Invalid email [email]', 'status: invalid']);
+  expect(leadbyteDetails('not-json')).toEqual([]);
+});
+
 it('executes the dashboard queries against the migrated SQL views', async () => {
   const db = createTestDatabase();
   try {
     const insert = db.sqlite.prepare(`INSERT INTO submissions
-      (submission_key,fingerprint,created_at,expires_at,consent_version,record_version,request_id,firstname,phone1,delivery_status,source)
-      VALUES (?, 'fixture', ?, 0, 'test', 1, ?, 'Synthetic', '0820000000', 'accepted', 'WEBSITE')`);
+      (submission_key,fingerprint,created_at,expires_at,consent_version,record_version,request_id,firstname,phone1,delivery_status,source,leadbyte_code,leadbyte_response,leadbyte_info_json,diagnostic_code)
+      VALUES (?, 'fixture', ?, 0, 'test', 1, ?, 'Synthetic', '0820000000', 'accepted', 'WEBSITE', -5, 'Validation error', '{"field":"lastname","message":"Required"}', 'AFFILIATE_REJECTED')`);
     const start = Date.parse('2026-09-30T22:00:00Z');
     for (let i = 0; i < 51; i++) insert.run(`lead-${i}`, start + i, `request-${i}`);
     insert.run('excluded', Date.parse('2026-10-02T22:00:00Z'), 'excluded');
@@ -107,6 +121,13 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
     expect(first.leads).toHaveLength(50);
     expect(first.statuses).toEqual([{ status: 'accepted', count: 51 }]);
     expect(first.daily).toEqual([{ day: '2026-10-01', count: 51 }]);
+    expect(first.leads[0]).toMatchObject({
+      leadbyte_code: -5,
+      leadbyte_response: 'Validation error',
+      leadbyte_details: ['field: lastname', 'message: Required'],
+      diagnostic_code: 'AFFILIATE_REJECTED',
+    });
+    expect(first.leads[0]).not.toHaveProperty('leadbyte_info_json');
     const second = await readReport(db as unknown as D1Database, {
       ...filters,
       search: '',

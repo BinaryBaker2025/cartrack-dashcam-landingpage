@@ -1,5 +1,64 @@
 import type { D1Database } from '@cloudflare/workers-types';
 
+const vendorDetailKeys = new Set([
+  'code',
+  'description',
+  'detail',
+  'details',
+  'error',
+  'errors',
+  'field',
+  'message',
+  'reason',
+  'status',
+  'validation',
+  'validation_error',
+  'validation_errors',
+]);
+type LeadReportRow = Record<string, unknown> & {
+  leadbyte_response: string | null;
+  leadbyte_details: string[];
+};
+
+function safeVendorText(value: string) {
+  return value
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, '[email]')
+    .replace(/(?<!\w)\+?\d[\d\s().-]{7,}\d(?!\w)/g, '[phone]')
+    .slice(0, 300);
+}
+
+export function leadbyteDetails(infoJson: unknown): string[] {
+  if (typeof infoJson !== 'string' || infoJson.length > 64000) return [];
+  let info: unknown;
+  try {
+    info = JSON.parse(infoJson);
+  } catch {
+    return [];
+  }
+
+  const details: string[] = [];
+  function collect(value: unknown, key = '', depth = 0) {
+    if (depth > 4 || details.length >= 8) return;
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      if (vendorDetailKeys.has(key.toLowerCase())) {
+        const text = safeVendorText(String(value).trim());
+        if (text) details.push(`${key.replaceAll('_', ' ')}: ${text}`);
+      }
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value.slice(0, 8)) collect(item, key, depth + 1);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    for (const [childKey, child] of Object.entries(value)) {
+      if (vendorDetailKeys.has(childKey.toLowerCase())) collect(child, childKey, depth + 1);
+    }
+  }
+  collect(info);
+  return [...new Set(details)];
+}
+
 export function reportFilters(url: URL) {
   const today = new Date(Date.now() + 7200000).toISOString().slice(0, 10);
   const from =
@@ -54,7 +113,7 @@ export async function readReport(
       .bind(start, end),
     db
       .prepare(
-        `SELECT request_id, submitted_at_utc, firstname, lastname, phone1, email, source, processing_status, delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id, utm_source, utm_campaign, is_test FROM lead_reporting WHERE ${match} ORDER BY created_at DESC, request_id DESC${exportAll ? '' : ' LIMIT 50 OFFSET ?'}`,
+        `SELECT request_id, submitted_at_utc, firstname, lastname, phone1, email, source, processing_status, delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id, leadbyte_response, leadbyte_info_json, diagnostic_code, utm_source, utm_campaign, is_test FROM lead_reporting WHERE ${match} ORDER BY created_at DESC, request_id DESC${exportAll ? '' : ' LIMIT 50 OFFSET ?'}`,
       )
       .bind(start, end, search, search, ...(exportAll ? [] : [(page - 1) * 50])),
     db
@@ -71,12 +130,23 @@ export async function readReport(
       )
       .bind(from, to),
   ]);
+  const leads: LeadReportRow[] = results[3].results.map((row): LeadReportRow => {
+    const { leadbyte_info_json, ...lead } = row;
+    return {
+      ...lead,
+      leadbyte_response:
+        typeof lead.leadbyte_response === 'string'
+          ? safeVendorText(lead.leadbyte_response)
+          : null,
+      leadbyte_details: leadbyteDetails(leadbyte_info_json),
+    };
+  });
   return {
     filters,
     statuses: results[0].results,
     daily: results[1].results,
     sources: results[2].results,
-    leads: results[3].results,
+    leads,
     total: results[4].results[0]?.count || 0,
     events: results[5].results,
     validationFailures: results[6].results,

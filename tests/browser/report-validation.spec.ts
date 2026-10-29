@@ -13,8 +13,29 @@ test('report explains the reason behind aggregated form validation failures', as
           { field: 'mobile', reason: 'format', count: 3 },
           { field: 'email', reason: 'format', count: 1 },
         ],
-        leads: [],
-        total: 0,
+        leads: [
+          {
+            request_id: 'sample',
+            submitted_at_utc: '2026-10-29 08:07:26',
+            firstname: 'Niel',
+            lastname: ' ',
+            phone1: '+27745766339',
+            email: 'niel@example.com',
+            source: 'WEBSITE',
+            processing_status: 'rejected',
+            delivery_status: 'rejected',
+            leadbyte_code: -5,
+            leadbyte_code_description: 'Validation error',
+            leadbyte_lead_id: null,
+            leadbyte_response: 'Validation error',
+            leadbyte_details: [],
+            diagnostic_code: 'AFFILIATE_REJECTED',
+            utm_source: null,
+            utm_campaign: null,
+            is_test: 0,
+          },
+        ],
+        total: 1,
         generatedAt: '2026-10-29T08:00:00.000Z',
       },
     }),
@@ -33,4 +54,6 @@ test('report explains the reason behind aggregated form validation failures', as
   await expect(
     section.getByText(/Counts are anonymous; submitted values are not stored here/),
   ).toBeVisible();
+  await expect(page.getByText(/Possible cause: no surname was supplied/)).toBeVisible();
+  await expect(page.getByText(/LeadByte only returned a general validation error/)).toBeVisible();
 });

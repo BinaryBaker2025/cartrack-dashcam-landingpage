@@ -24,6 +24,8 @@ const columns = [
   ['delivery_status', 'Delivery status', 24],
   ['leadbyte_code', 'LeadByte code', 16],
   ['leadbyte_code_description', 'LeadByte result', 38],
+  ['leadbyte_response', 'LeadByte response', 48],
+  ['diagnostic_code', 'Diagnostic code', 32],
   ['leadbyte_lead_id', 'LeadByte ID', 20],
   ['is_test', 'Test lead', 14],
   ['request_id', 'Request ID', 40],

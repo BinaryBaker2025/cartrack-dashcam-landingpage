@@ -23,7 +23,7 @@ For local development run `npm run setup:local`, then `npm run dev` and open `ht
 
 ## Data
 
-The dashboard reads the existing `lead_reporting` and `lead_daily_summary` views, with date filters in South African time, source and delivery summaries, searchable contact records and 50-row pagination. Test records are included and marked. Summary totals ignore contact search. Detailed payloads, consent evidence and raw upstream responses remain available in the private D1 view and existing export scripts, rather than being sent to the dashboard.
+The dashboard reads the existing `lead_reporting` and `lead_daily_summary` views, with date filters in South African time, source and delivery summaries, searchable contact records and 50-row pagination. Test records are included and marked. Summary totals ignore contact search. LeadByte responses and selected diagnostic details are shown with rejected leads to help explain failures; raw upstream responses, detailed payloads and consent evidence remain private in D1.
 
 Migration 0007 adds anonymous daily event counters. Existing form events now POST only the event name to `/api/analytics`; no contact details or visitor identifiers are stored in the analytics table. A separate IP-derived temporary rate-limit bucket limits event writes without consuming lead submission limits. These are browser event counts, not unique people, ad-platform analytics or sales. Bots and repeat visits can inflate counts; blocked requests can undercount. Historical activity cannot be reconstructed. Tracking failures never stop form submission. LeadByte acceptance comes from SQL, not browser events.
 
