@@ -314,7 +314,7 @@ export default function LeadForm() {
             <fieldset disabled={locked}>
               <legend className="sr-only">Your details and eligibility</legend>
               <div className="contact-fields">
-                {input('name', 'Full name', 'name')}
+                {input('name', 'First Name and Surname', 'name')}
                 {input('phone', 'South African mobile number', 'tel')}
                 {input('email', 'Email address', 'email')}
               </div>

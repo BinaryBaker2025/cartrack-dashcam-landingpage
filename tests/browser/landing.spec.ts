@@ -37,7 +37,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   await page.goto('/');
   const hero = page.locator('.campaign-hero');
   const photo = hero.locator('.campaign-photo img');
-  const name = page.getByLabel('Full name', { exact: true });
+  const name = page.getByLabel('First Name and Surname', { exact: true });
   await expect(hero).toContainText('R10,000');
   await expect(hero).toContainText('Get a quote to win');
   await expect(hero).toContainText('in our annual draw');
@@ -51,7 +51,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   await expect(page.getByLabel('Email address')).toBeVisible();
   const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
   await expect(submit).toBeVisible();
-  await expect(submit).toHaveCSS('background-color', 'rgb(7, 56, 143)');
+  await expect(submit).toHaveCSS('background-color', 'rgb(243, 137, 28)');
   await expect(submit).toHaveCSS('min-height', '60px');
   await expect(page.locator('.campaign-cta')).toHaveCSS('min-height', '60px');
   await expect(page.locator('.campaign-draw-badge')).toContainText('R10,000');
@@ -85,7 +85,7 @@ test('matches the supplied mobile banner layout', async ({ page }) => {
   );
   await expect(page.locator('.campaign-cta')).toBeHidden();
   await expect(page.locator('.quote-panel')).toHaveCSS('background-color', 'rgb(1, 34, 139)');
-  await expect(page.getByText('Full name', { exact: true })).toBeVisible();
+  await expect(page.getByText('First Name and Surname', { exact: true })).toBeVisible();
   await expect(page.getByText('South African mobile number', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
@@ -100,6 +100,10 @@ test('invalid submission shows inline messages without a network request', async
   await page.goto('/');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.locator('#name-error')).toBeVisible();
+  const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
+  await submit.hover();
+  await expect(submit).toBeEnabled();
+  await expect(submit).toHaveCSS('background-color', 'rgb(243, 137, 28)');
   expect(requests).toBe(0);
 });
 test('highlights an invalid phone field on mobile and logs its reason without sending the lead', async ({
@@ -117,7 +121,7 @@ test('highlights an invalid phone field on mobile and logs its reason without se
     await route.fulfill({ status: 204 });
   });
   await page.goto('/');
-  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('First Name and Surname', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('123');
   await page.getByLabel('Email address', { exact: true }).fill('person@example.com');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
@@ -139,10 +143,25 @@ test('highlights an invalid phone field on mobile and logs its reason without se
   expect(leadRequests).toBe(0);
 });
 async function fillContact(page: import('@playwright/test').Page) {
-  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('First Name and Surname', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
 }
 const thankYouHeading = /Thank you for your application/;
+
+test('submits a single name as both first name and surname', async ({ page }) => {
+  let submitted: Record<string, unknown> | undefined;
+  await page.route('**/api/leads', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ json: { state: 'success', message: 'Received' } });
+  });
+  await page.goto('/');
+  await page.getByLabel('First Name and Surname', { exact: true }).fill('Niel');
+  await page.getByLabel('South African mobile number').fill('0821234567');
+  await page.getByLabel('Email address', { exact: true }).fill('person@example.com');
+  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
+  expect(submitted).toMatchObject({ firstname: 'Niel', lastname: 'Niel' });
+});
 
 test('Bing click attribution survives navigation and reaches the website lead request', async ({
   page,
@@ -309,7 +328,7 @@ test('single-step form requires a name', async ({ page }) => {
   });
   await page.goto('/');
   await fillContact(page);
-  await page.getByLabel('Full name', { exact: true }).fill('');
+  await page.getByLabel('First Name and Surname', { exact: true }).fill('');
   await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
   await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);

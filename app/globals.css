@@ -402,13 +402,13 @@ fieldset {
   display: flex;
   width: 100%;
   margin-top: 24px;
-  background: var(--campaign-blue);
-  color: white;
+  background: #f3891c;
+  color: #01228b;
   min-height: 60px;
   font-size: 16px;
 }
 .quote-panel .submit-button:hover {
-  background: #0c4aa8;
+  background: #f3891c;
 }
 .quote-confirmations {
   display: grid;
