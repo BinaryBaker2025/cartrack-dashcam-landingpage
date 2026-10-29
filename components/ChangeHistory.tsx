@@ -11,6 +11,37 @@ type Commit = {
   url: string;
 };
 type History = { commits: Commit[]; page: number; hasNext: boolean };
+const maxExportPages = 50;
+
+async function fetchHistory(page: number, perPage = 30, signal?: AbortSignal): Promise<History> {
+  const response = await fetch(`/api/reports/history?page=${page}&per_page=${perPage}`, {
+    cache: 'no-store',
+    signal,
+  });
+  if (response.status === 401)
+    throw new Error('Owner sign-in required. Reload this page and sign in again.');
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      response.ok
+        ? 'Change history returned an unreadable response. Please try again.'
+        : `Change history could not be loaded (HTTP ${response.status}).`,
+    );
+  }
+  if (!response.ok) {
+    const message =
+      data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+        ? data.error
+        : `Change history could not be loaded (HTTP ${response.status}).`;
+    throw new Error(message);
+  }
+  if (!isHistory(data))
+    throw new Error('Change history returned an unexpected response. Please try again.');
+  return data;
+}
 
 function isHistory(value: unknown): value is History {
   if (!value || typeof value !== 'object') return false;
@@ -39,37 +70,14 @@ export default function ChangeHistory() {
   const [revision, setRevision] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportPage, setExportPage] = useState(0);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/reports/history?page=${page}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (response.status === 401)
-          throw new Error('Owner sign-in required. Reload this page and sign in again.');
-        let data: unknown;
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error(
-            response.ok
-              ? 'Change history returned an unreadable response. Please try again.'
-              : `Change history could not be loaded (HTTP ${response.status}).`,
-          );
-        }
-        if (!response.ok) {
-          const message =
-            data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
-              ? data.error
-              : `Change history could not be loaded (HTTP ${response.status}).`;
-          throw new Error(message);
-        }
-        if (!isHistory(data))
-          throw new Error('Change history returned an unexpected response. Please try again.');
-        setHistory(data);
-      })
+    fetchHistory(page, 30, controller.signal)
+      .then(setHistory)
       .catch((reason: unknown) => {
         if (!controller.signal.aborted)
           setError(
@@ -81,6 +89,48 @@ export default function ChangeHistory() {
       });
     return () => controller.abort();
   }, [page, revision]);
+
+  async function exportExcel() {
+    if (exporting) return;
+    setExporting(true);
+    setExportPage(0);
+    setExportError('');
+    try {
+      const commits: Commit[] = [];
+      let pageToLoad = 1;
+      let hasNext = true;
+      while (hasNext && pageToLoad <= maxExportPages) {
+        setExportPage(pageToLoad);
+        const result = await fetchHistory(pageToLoad, 100);
+        commits.push(...result.commits);
+        hasNext = result.hasNext;
+        pageToLoad++;
+      }
+      if (hasNext)
+        throw new Error(
+          `The history exceeds the ${(maxExportPages * 100).toLocaleString('en-ZA')}-commit export limit. No partial file was downloaded.`,
+        );
+
+      const [{ default: writeExcelFile }, { historySheets }] = await Promise.all([
+        import('write-excel-file/universal'),
+        import('@/lib/historyWorkbook'),
+      ]);
+      const blob = await writeExcelFile(historySheets(commits)).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'bestcardash-change-history.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (reason) {
+      setExportError(reason instanceof Error ? reason.message : 'Excel export failed.');
+    } finally {
+      setExporting(false);
+      setExportPage(0);
+    }
+  }
 
   function showPage(next: number) {
     setLoading(true);
@@ -114,6 +164,16 @@ export default function ChangeHistory() {
             <p className={styles.eyebrow}>BESTCARDASH.COM</p>
             <h1>Change history</h1>
             <p>Changes committed to the project’s GitHub main branch.</p>
+          </div>
+          <div className={styles.titleActions}>
+            <button className={styles.exportButton} onClick={exportExcel} disabled={exporting}>
+              {exporting ? `Preparing Excel (page ${exportPage})…` : 'Export Excel'}
+            </button>
+            {exportError && (
+              <p className={styles.exportError} role="alert">
+                {exportError}
+              </p>
+            )}
           </div>
         </div>
         <p className={styles.note}>

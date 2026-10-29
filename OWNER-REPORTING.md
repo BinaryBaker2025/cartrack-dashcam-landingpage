@@ -32,3 +32,5 @@ Reports and API responses are private/no-store and noindex. The dashboard is rea
 ## Excel export
 
 Use **Export Excel** beside the lead records after applying the desired date range and search. The `.xlsx` download includes every matching lead across all pages, an overview of delivery/source/activity counts and daily lead totals. Summary sheets use the full date range; search applies to the Leads sheet only. Phone numbers and identifiers remain text, and contact values cannot become spreadsheet formulas. Exports contain private contact information. They are live reads, not historical snapshots; the download records its generation time. Large exports that exceed database or workbook limits fail visibly; use a shorter date range in that case.
+
+On `/reports/history`, **Export Excel** downloads the GitHub commit history, including each commit date and time in SAST, message, author, SHA and GitHub link. The export includes all pages up to 5,000 commits. Larger histories fail visibly rather than downloading a partial workbook.

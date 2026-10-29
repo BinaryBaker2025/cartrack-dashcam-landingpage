@@ -3,6 +3,7 @@ import { reportAccess } from '@/lib/reportAuth';
 const owner = 'BinaryBaker2025';
 const repository = 'cartrack-dashcam-landingpage';
 const pageSize = 30;
+const exportPageSize = 100;
 
 type GitHubCommit = {
   sha?: unknown;
@@ -21,17 +22,24 @@ export async function GET(request: Request) {
   const denied = reportAccess(request);
   if (denied) return denied;
 
-  const requestedPage = new URL(request.url).searchParams.get('page') || '1';
+  const searchParams = new URL(request.url).searchParams;
+  const requestedPage = searchParams.get('page') || '1';
   const page = Number(requestedPage);
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000)
     return Response.json(
       { error: 'Choose a valid history page.' },
       { status: 400, headers: { 'Cache-Control': 'private, no-store' } },
     );
+  const requestedPageSize = Number(searchParams.get('per_page') || pageSize);
+  if (![pageSize, exportPageSize].includes(requestedPageSize))
+    return Response.json(
+      { error: 'Choose a valid history page size.' },
+      { status: 400, headers: { 'Cache-Control': 'private, no-store' } },
+    );
 
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${owner}/${repository}/commits?sha=main&per_page=${pageSize}&page=${page}`,
+      `https://api.github.com/repos/${owner}/${repository}/commits?sha=main&per_page=${requestedPageSize}&page=${page}`,
       {
         headers: {
           Accept: 'application/vnd.github+json',

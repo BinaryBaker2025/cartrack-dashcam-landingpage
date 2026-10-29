@@ -71,6 +71,25 @@
   letter-spacing: -0.8px;
   margin: 4px 0;
 }
+.titleActions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+.dashboard button.exportButton {
+  background: var(--campaign-blue);
+  color: oklch(99% 0.003 260);
+  border-color: var(--campaign-blue);
+}
+.dashboard button.exportButton:hover {
+  background: color-mix(in srgb, var(--campaign-blue) 86%, var(--ink));
+}
+.exportError {
+  max-width: 38ch;
+  margin: 0;
+  color: oklch(48% 0.14 28);
+  font-size: 12px;
+}
 .title p,
 .panel > p {
   color: var(--report-muted);
@@ -419,6 +438,9 @@
   .title {
     align-items: flex-start;
   }
+  .titleActions {
+    justify-items: start;
+  }
   .title h1 {
     font-size: 25px;
   }
@@ -453,7 +475,7 @@
   .title {
     display: block;
   }
-  .title button {
+  .titleActions {
     margin-top: 12px;
   }
   .panel {

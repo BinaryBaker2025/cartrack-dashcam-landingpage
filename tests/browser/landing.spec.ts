@@ -39,7 +39,8 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   const photo = hero.locator('.campaign-photo img');
   const name = page.getByLabel('Full name', { exact: true });
   await expect(hero).toContainText('R10,000');
-  await expect(hero).toContainText('on our annual draw');
+  await expect(hero).toContainText('Get a quote to win');
+  await expect(hero).toContainText('in our annual draw');
   await expect(hero.locator('.campaign-partner')).toHaveCount(0);
   await expect(page.locator('.footer')).toContainText('In association with LeadByte.');
   await expect(page.locator('body')).not.toContainText(/cartrack/i);
@@ -47,7 +48,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   await expect(name).toBeVisible();
   await expect(page.getByLabel('South African mobile number')).toBeVisible();
   await expect(page.getByLabel('Last name', { exact: true })).toHaveCount(0);
-  await expect(page.getByLabel('Email address')).toHaveCount(0);
+  await expect(page.getByLabel('Email address')).toBeVisible();
   const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
   await expect(submit).toBeVisible();
   await expect(submit).toHaveCSS('background-color', 'rgb(7, 56, 143)');
@@ -67,6 +68,16 @@ test('matches the supplied mobile banner layout', async ({ page }) => {
     'bestcardash.com',
   );
   await expect(page.locator('.campaign-draw-badge')).toBeVisible();
+  await expect(page.locator('.campaign-draw-badge')).toContainText('Get a quote to win');
+  const badgeWidth = await page
+    .locator('.campaign-draw-badge')
+    .evaluate((badge) => badge.getBoundingClientRect().width);
+  const prizeFontSize = await page
+    .locator('.campaign-prize')
+    .evaluate((prize) => Number.parseFloat(getComputedStyle(prize).fontSize));
+  expect(badgeWidth).toBeGreaterThanOrEqual(148);
+  expect(prizeFontSize).toBeGreaterThanOrEqual(34);
+  await expect(page.locator('.campaign-draw-badge')).not.toHaveCSS('box-shadow', 'none');
   await expect(page.locator('.campaign-pill')).toContainText('Record it. Prove it.');
   await expect(page.locator('.campaign-headline-chip')).toHaveCSS(
     'background-color',

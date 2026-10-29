@@ -21,10 +21,10 @@ export default function Home() {
             <div className="campaign-hero-inner">
               <div className="campaign-copy">
                 <div className="campaign-draw-badge">
-                  <p className="campaign-draw-intro">Stand a chance to win your share of</p>
+                  <p className="campaign-draw-intro">Get a quote to win</p>
                   <div className="campaign-prize-panel">
                     <p className="campaign-prize">R10,000</p>
-                    <p className="campaign-draw-label">on our annual draw</p>
+                    <p className="campaign-draw-label">in our annual draw</p>
                   </div>
                 </div>
                 <div className="campaign-hero-top">

@@ -33,6 +33,27 @@ describe('GitHub change history endpoint', () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  it('allows the larger GitHub page size used by Excel exports', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json([]));
+    vi.stubGlobal('fetch', fetcher);
+
+    const response = await GET(request('?page=1&per_page=100'));
+
+    expect(response.status).toBe(200);
+    expect(fetcher).toHaveBeenCalledWith(
+      expect.stringContaining('commits?sha=main&per_page=100&page=1'),
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
+
+  it('rejects unsupported GitHub page sizes', async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal('fetch', fetcher);
+    const response = await GET(request('?page=1&per_page=101'));
+    expect(response.status).toBe(400);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it('returns sanitized commit details and follows GitHub pagination', async () => {
     const fetcher = vi.fn().mockResolvedValue(
       Response.json(
