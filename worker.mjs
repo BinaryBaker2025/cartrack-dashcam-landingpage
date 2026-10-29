@@ -1,4 +1,5 @@
 import nextWorker from './.open-next/worker.js';
+import { httpsRedirect } from './lib/httpsRedirect.mjs';
 import { cleanupDatabase } from './lib/databaseMaintenance';
 import { consumeLeads } from './lib/leadConsumer';
 import { recoverOutbox } from './lib/leadService';
@@ -8,6 +9,8 @@ import { privateReportResponse } from './lib/reportResponse';
 
 const worker = {
   async fetch(request, env, ctx) {
+    const secureRedirect = httpsRedirect(request);
+    if (secureRedirect) return secureRedirect;
     const url = new URL(request.url);
     const reportingHost = url.hostname === 'reports.bestcardash.com';
     if (reportingHost || /^\/(reports|api\/reports)(\/|$)/.test(url.pathname)) {
