@@ -101,6 +101,20 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
       VALUES (?, 'fixture', ?, 0, 'test', 1, ?, 'Synthetic', '0820000000', 'accepted', 'WEBSITE', -5, 'Validation error', '{"field":"lastname","message":"Required"}', 'AFFILIATE_REJECTED')`);
     const start = Date.parse('2026-09-30T22:00:00Z');
     for (let i = 0; i < 51; i++) insert.run(`lead-${i}`, start + i, `request-${i}`);
+    db.sqlite
+      .prepare(
+        `UPDATE submissions SET attribution_json = ?, metadata_json = ?
+        WHERE submission_key = 'lead-50'`,
+      )
+      .run(
+        JSON.stringify({
+          msclkid: '0123456789abcdef0123456789abcdef',
+          utm_source: 'bing',
+          utm_medium: 'cpc',
+          utm_campaign: 'bestcardash_dashcam',
+        }),
+        JSON.stringify({ acquisitionSource: 'MICROSOFT_ADS' }),
+      );
     insert.run('excluded', Date.parse('2026-10-02T22:00:00Z'), 'excluded');
     db.sqlite
       .prepare('INSERT INTO site_event_daily(day,event,count) VALUES (?,?,?)')
@@ -121,7 +135,17 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
     expect(first.leads).toHaveLength(50);
     expect(first.statuses).toEqual([{ status: 'accepted', count: 51 }]);
     expect(first.daily).toEqual([{ day: '2026-10-01', count: 51 }]);
+    expect(first.sources).toEqual([
+      { source: 'DIRECT_OR_UNTAGGED', count: 50 },
+      { source: 'MICROSOFT_ADS', count: 1 },
+    ]);
+    expect(first.ingestionSources).toEqual([{ source: 'WEBSITE', count: 51 }]);
     expect(first.leads[0]).toMatchObject({
+      source: 'WEBSITE',
+      acquisition_source: 'MICROSOFT_ADS',
+      utm_source: 'bing',
+      utm_medium: 'cpc',
+      utm_campaign: 'bestcardash_dashcam',
       leadbyte_code: -5,
       leadbyte_response: 'Validation error',
       leadbyte_details: ['field: lastname', 'message: Required'],
@@ -156,6 +180,7 @@ it('executes the dashboard queries against the migrated SQL views', async () => 
     expect(xml).toContain('=HYPERLINK(');
     expect(xml).not.toContain('<f>');
     expect(xml).toContain('request-0');
+    expect(xml).toContain('MICROSOFT_ADS');
     const searched = await readReport(
       db as unknown as D1Database,
       { ...filters, search: 'request-50' },

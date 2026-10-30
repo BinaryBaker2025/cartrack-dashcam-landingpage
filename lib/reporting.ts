@@ -95,6 +95,23 @@ export async function readReport(
   const { from, to, start, end, page, search } = filters;
   const range = 'created_at >= ? AND created_at < ?';
   const match = `${range} AND (? = '' OR instr(lower(coalesce(firstname,'') || ' ' || coalesce(lastname,'') || ' ' || coalesce(phone1,'') || ' ' || coalesce(email,'') || ' ' || request_id), lower(?)) > 0)`;
+  const acquisitionSource = `CASE
+    WHEN source <> 'WEBSITE' THEN source
+    WHEN nullif(json_extract(metadata_json, '$.acquisitionSource'), '') IS NOT NULL
+      THEN json_extract(metadata_json, '$.acquisitionSource')
+    WHEN (json_extract(attribution_json, '$.msclkid') IS NOT NULL
+        AND (json_extract(attribution_json, '$.utm_source') IS NULL
+          OR lower(json_extract(attribution_json, '$.utm_source')) IN ('bing', 'microsoft', 'microsoft_ads')))
+      OR (lower(coalesce(json_extract(attribution_json, '$.utm_source'), '')) IN ('bing', 'microsoft', 'microsoft_ads')
+        AND lower(coalesce(json_extract(attribution_json, '$.utm_medium'), '')) IN ('cpc', 'ppc', 'paidsearch', 'paid_search'))
+      THEN 'MICROSOFT_ADS'
+    WHEN lower(coalesce(json_extract(attribution_json, '$.utm_source'), '')) = 'google'
+      AND lower(coalesce(json_extract(attribution_json, '$.utm_medium'), '')) IN ('cpc', 'ppc', 'paidsearch', 'paid_search')
+      THEN 'GOOGLE_ADS'
+    WHEN nullif(trim(json_extract(attribution_json, '$.utm_source')), '') IS NOT NULL
+      THEN json_extract(attribution_json, '$.utm_source')
+    ELSE 'DIRECT_OR_UNTAGGED'
+  END`;
   const results = await db.batch<Record<string, unknown>>([
     db
       .prepare(
@@ -108,12 +125,17 @@ export async function readReport(
       .bind(from, to),
     db
       .prepare(
+        `SELECT acquisition_source AS source, COUNT(*) AS count FROM (SELECT ${acquisitionSource} AS acquisition_source FROM lead_reporting WHERE ${range}) GROUP BY acquisition_source ORDER BY count DESC`,
+      )
+      .bind(start, end),
+    db
+      .prepare(
         `SELECT source, COUNT(*) AS count FROM lead_reporting WHERE ${range} GROUP BY source ORDER BY count DESC`,
       )
       .bind(start, end),
     db
       .prepare(
-        `SELECT request_id, submitted_at_utc, firstname, lastname, phone1, email, source, processing_status, delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id, leadbyte_response, leadbyte_info_json, diagnostic_code, utm_source, utm_campaign, is_test FROM lead_reporting WHERE ${match} ORDER BY created_at DESC, request_id DESC${exportAll ? '' : ' LIMIT 50 OFFSET ?'}`,
+        `SELECT request_id, submitted_at_utc, firstname, lastname, phone1, email, source, ${acquisitionSource} AS acquisition_source, processing_status, delivery_status, leadbyte_code, leadbyte_code_description, leadbyte_lead_id, leadbyte_response, leadbyte_info_json, diagnostic_code, json_extract(attribution_json, '$.utm_source') AS utm_source, json_extract(attribution_json, '$.utm_medium') AS utm_medium, utm_campaign, is_test FROM lead_reporting WHERE ${match} ORDER BY created_at DESC, request_id DESC${exportAll ? '' : ' LIMIT 50 OFFSET ?'}`,
       )
       .bind(start, end, search, search, ...(exportAll ? [] : [(page - 1) * 50])),
     db
@@ -130,14 +152,12 @@ export async function readReport(
       )
       .bind(from, to),
   ]);
-  const leads: LeadReportRow[] = results[3].results.map((row): LeadReportRow => {
+  const leads: LeadReportRow[] = results[4].results.map((row): LeadReportRow => {
     const { leadbyte_info_json, ...lead } = row;
     return {
       ...lead,
       leadbyte_response:
-        typeof lead.leadbyte_response === 'string'
-          ? safeVendorText(lead.leadbyte_response)
-          : null,
+        typeof lead.leadbyte_response === 'string' ? safeVendorText(lead.leadbyte_response) : null,
       leadbyte_details: leadbyteDetails(leadbyte_info_json),
     };
   });
@@ -146,10 +166,11 @@ export async function readReport(
     statuses: results[0].results,
     daily: results[1].results,
     sources: results[2].results,
+    ingestionSources: results[3].results,
     leads,
-    total: results[4].results[0]?.count || 0,
-    events: results[5].results,
-    validationFailures: results[6].results,
+    total: results[5].results[0]?.count || 0,
+    events: results[6].results,
+    validationFailures: results[7].results,
     generatedAt: new Date().toISOString(),
   };
 }

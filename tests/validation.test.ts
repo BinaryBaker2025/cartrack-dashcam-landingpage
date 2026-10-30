@@ -84,6 +84,10 @@ describe('qualification', () => {
     expect(validateLead({ ...valid, firstname: 'Test123' }).valid).toBe(false));
   it('supports accented multi-part names', () =>
     expect(validateLead({ ...valid, firstname: 'Tést', lastname: 'O’Testing' }).valid).toBe(true));
+  it.each(['Zoë Nkosazana', 'Nkosazana'])(
+    'accepts accented and single-word full names: %s',
+    (name) => expect(validateLead({ ...valid, name }).valid).toBe(true),
+  );
   it.each([
     ['Test Testing', 'Test', 'Testing'],
     ['  J.   Testing  ', 'J', 'Testing'],
@@ -127,6 +131,17 @@ describe('qualification', () => {
     ).toBe('Please enter your email address.');
     expect(validateLead({ ...valid, email: 'person@example.com' }).valid).toBe(true);
     expect(validateLead({ ...valid, email: 'invalid' }).errors.email).toBeTruthy();
+  });
+  it.each([
+    [{ ...valid, phone: '1'.repeat(61) }, 'phone', 'too_long'],
+    [{ ...valid, phone: '+27123' }, 'phone', 'country_code'],
+    [{ ...valid, phone: '082abc1234' }, 'phone', 'contains_letters'],
+    [{ ...valid, email: 'personexample.com' }, 'email', 'missing_at'],
+    [{ ...valid, email: 'person@example' }, 'email', 'missing_domain'],
+    [{ ...valid, email: `${'a'.repeat(255)}@example.com` }, 'email', 'too_long'],
+  ] as const)('classifies %s failures without retaining their values', (input, field, reason) => {
+    const result = validateLead(input, new Date(), { requireEmail: true });
+    expect(result.failureReasons[field]).toBe(reason);
   });
   it('rejects invalid full names', () => {
     const result = validateLead({ ...valid, name: 'Test123 Person' });

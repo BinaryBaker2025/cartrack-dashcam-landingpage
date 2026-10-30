@@ -12,6 +12,7 @@ type Lead = {
   phone1: string;
   email: string;
   source: string;
+  acquisition_source: string;
   processing_status: string;
   delivery_status: string;
   leadbyte_code: number | null;
@@ -21,6 +22,7 @@ type Lead = {
   leadbyte_details: string[];
   diagnostic_code: string | null;
   utm_source: string | null;
+  utm_medium: string | null;
   utm_campaign: string | null;
   is_test: number;
 };
@@ -29,6 +31,7 @@ type Report = {
   statuses: Count[];
   daily: Count[];
   sources: Count[];
+  ingestionSources: Count[];
   events: Count[];
   validationFailures: ValidationFailure[];
   leads: Lead[];
@@ -37,21 +40,76 @@ type Report = {
 };
 const number = (value: number) => new Intl.NumberFormat('en-ZA').format(value);
 const label = (value: string) => value.replaceAll('_', ' ');
+function acquisitionLabel(value: string) {
+  const known: Record<string, string> = {
+    DIRECT_OR_UNTAGGED: 'Direct / untagged',
+    GOOGLE_ADS: 'Google Ads',
+    MICROSOFT_ADS: 'Microsoft Ads',
+    META_ADS: 'Meta Ads',
+    TIKTOK_ADS: 'TikTok Ads',
+  };
+  return (
+    known[value] || value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
+}
+function intakeLabel(value: string) {
+  if (value === 'WEBSITE') return 'Website form';
+  return acquisitionLabel(value);
+}
 const validationGuidance: Record<string, { title: string; explanation: string }> = {
+  'name:required': {
+    title: 'Name missing',
+    explanation: 'Enter your name. One-word and accented names are accepted.',
+  },
   'name:format': {
     title: 'Name format',
     explanation:
-      'The name must use letters. Spaces, apostrophes and hyphens are supported; numbers and other symbols are rejected.',
+      'Use letters, spaces, apostrophes or hyphens. One-word and accented names are accepted.',
+  },
+  'name:too_long': {
+    title: 'Name too long',
+    explanation: 'The name exceeded the form limit. Shorten it and try again.',
+  },
+  'mobile:required': {
+    title: 'Mobile number missing',
+    explanation: 'Enter a South African mobile number.',
   },
   'mobile:format': {
     title: 'Mobile number format',
     explanation:
       'The number must be a valid South African mobile number. Check the digits and try a common format such as 082 123 4567 or +27 82 123 4567.',
   },
+  'mobile:too_long': {
+    title: 'Mobile number too long',
+    explanation: 'The number exceeded the form limit. Check for extra digits and try again.',
+  },
+  'mobile:country_code': {
+    title: 'Mobile country code',
+    explanation: 'Check the country code and number length. Use 082 123 4567 or +27 82 123 4567.',
+  },
+  'mobile:contains_letters': {
+    title: 'Mobile number contains letters',
+    explanation: 'Enter digits only, with optional spaces or common phone-number punctuation.',
+  },
+  'email:required': {
+    title: 'Email missing',
+    explanation: 'A website quote request needs a valid email address.',
+  },
+  'email:too_long': {
+    title: 'Email too long',
+    explanation: 'The email address exceeded the form limit. Check for extra characters.',
+  },
+  'email:missing_at': {
+    title: 'Email missing @',
+    explanation: 'Enter an email address in the format name@example.com.',
+  },
+  'email:missing_domain': {
+    title: 'Email domain incomplete',
+    explanation: 'Add a complete domain after @, such as example.com.',
+  },
   'email:format': {
     title: 'Email format',
-    explanation:
-      'Email is optional, but when entered it must look like a valid address, for example name@example.com.',
+    explanation: 'Check the address and enter it in the format name@example.com.',
   },
   'eligibility:required': {
     title: 'Eligibility confirmation',
@@ -272,18 +330,25 @@ export default function ReportingDashboard() {
                     )}
                   </section>
                   <section className={styles.panel}>
-                    <h2>Delivery and sources</h2>
-                    <p>Current lead status across all channels</p>
+                    <h2>Delivery and acquisition</h2>
+                    <p>Lead processing and attributed visitor sources</p>
                     {report.statuses.map((row) => (
                       <div className={styles.breakdown} key={row.status}>
                         <span>{label(row.status || '')}</span>
                         <strong>{number(row.count)}</strong>
                       </div>
                     ))}
-                    <h3>Ingestion source</h3>
+                    <h3>Acquisition source</h3>
                     {report.sources.map((row) => (
                       <div className={styles.breakdown} key={row.source}>
-                        <span>{label(row.source || 'Unknown')}</span>
+                        <span>{acquisitionLabel(row.source || 'DIRECT_OR_UNTAGGED')}</span>
+                        <strong>{number(row.count)}</strong>
+                      </div>
+                    ))}
+                    <h3>Lead intake method</h3>
+                    {report.ingestionSources.map((row) => (
+                      <div className={styles.breakdown} key={row.source}>
+                        <span>{intakeLabel(row.source || 'Unknown')}</span>
                         <strong>{number(row.count)}</strong>
                       </div>
                     ))}
@@ -368,7 +433,7 @@ export default function ReportingDashboard() {
                           {[
                             'Submitted (SAST)',
                             'Contact',
-                            'Source / campaign',
+                            'Acquisition / intake',
                             'Processing / delivery',
                             'LeadByte result',
                             'Request ID',
@@ -396,11 +461,13 @@ export default function ReportingDashboard() {
                               <small>{lead.email}</small>
                             </td>
                             <td>
-                              {lead.source}
-                              <small>
-                                {lead.utm_source || 'No UTM source'} /{' '}
-                                {lead.utm_campaign || 'No UTM campaign'}
-                              </small>
+                              {acquisitionLabel(lead.acquisition_source)}
+                              <small>Intake: {intakeLabel(lead.source || 'Unknown')}</small>
+                              {(lead.utm_medium || lead.utm_campaign) && (
+                                <small>
+                                  {[lead.utm_medium, lead.utm_campaign].filter(Boolean).join(' / ')}
+                                </small>
+                              )}
                             </td>
                             <td>
                               {label(lead.processing_status || '')}

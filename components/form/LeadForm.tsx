@@ -2,7 +2,7 @@
 import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { validateLead, type FieldErrors } from '@/lib/validation';
 import { sessionAttribution } from '@/lib/attribution';
-import { track, type ValidationFailure } from '@/lib/analytics';
+import { parseValidationFailures, track, validationFailuresFromErrors } from '@/lib/analytics';
 import { trackMicrosoftLead } from '@/lib/uet';
 import { trackGoogleAdsLeadConversion } from '@/lib/googleTag';
 import { submissionKey } from '@/lib/submissionKey';
@@ -71,28 +71,12 @@ export default function LeadForm() {
           ? 'Unfortunately, you don’t meet the requirements for this offer.'
           : 'Please check the highlighted fields.',
       );
-      track(validation.reasons.length ? 'qualification_failed' : 'form_validation_failed', {
-        failures: Object.keys(validation.errors).map((field): ValidationFailure => ({
-          field:
-            field === 'phone'
-              ? 'mobile'
-              : field === 'eligibilityConfirmed'
-                ? 'eligibility'
-                : field === 'terms'
-                  ? 'consent'
-                  : field === 'name'
-                    ? 'name'
-                    : field === 'email'
-                      ? 'email'
-                      : 'eligibility',
-          reason:
-            field === 'email' && !submittedEmail
-              ? 'required'
-              : field === 'name' || field === 'phone' || field === 'email'
-                ? 'format'
-                : 'required',
-        })),
-      });
+      if (validation.reasons.length) track('qualification_failed');
+      const failures = validationFailuresFromErrors(validation.errors, validation.failureReasons);
+      if (failures.length)
+        track('form_validation_failed', {
+          failures,
+        });
       busy.current = false;
       const firstError = Object.keys(validation.errors)[0];
       requestAnimationFrame(() =>
@@ -154,6 +138,10 @@ export default function LeadForm() {
         track('form_validation_failed', {
           failures: [{ field: 'honeypot', reason: 'filled' }],
         });
+      if (result?.state === 'validation_failed') {
+        const failures = parseValidationFailures(result.failures);
+        if (failures?.length) track('form_validation_failed', { failures });
+      }
       const states: State[] = [
         'success',
         'qualification_failed',
@@ -309,12 +297,12 @@ export default function LeadForm() {
         </div>
       ) : (
         <>
-          <p className="quote-subtitle">Your details and eligibility</p>
+          <p className="quote-subtitle">Your details for a free quote</p>
           <form onSubmit={submit} onFocus={begin} noValidate aria-busy={state === 'submitting'}>
             <fieldset disabled={locked}>
-              <legend className="sr-only">Your details and eligibility</legend>
+              <legend className="sr-only">Your details for a free quote</legend>
               <div className="contact-fields">
-                {input('name', 'First Name and Surname', 'name')}
+                {input('name', 'Full name', 'name')}
                 {input('phone', 'South African mobile number', 'tel')}
                 {input('email', 'Email address', 'email')}
               </div>
@@ -325,7 +313,7 @@ export default function LeadForm() {
                     name="company_website"
                     id="company_website"
                     tabIndex={-1}
-                    autoComplete="new-password"
+                    autoComplete="off"
                   />
                 </div>
                 <p className="submission-agreement" id="submission-agreement">
@@ -343,7 +331,7 @@ export default function LeadForm() {
                   ? 'SENDING REQUEST…'
                   : state === 'validating'
                     ? 'CHECKING DETAILS…'
-                    : 'Get Quote & Qualify'}
+                    : 'Get a free quote'}
               </button>
             </fieldset>
             <div

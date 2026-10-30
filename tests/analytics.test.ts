@@ -29,8 +29,10 @@ it('records anonymous validation field and reason counts', async () => {
       event: 'form_validation_failed',
       failures: [
         { field: 'eligibility', reason: 'required' },
-        { field: 'mobile', reason: 'format' },
-        { field: 'email', reason: 'format' },
+        { field: 'mobile', reason: 'country_code' },
+        { field: 'mobile', reason: 'contains_letters' },
+        { field: 'email', reason: 'missing_at' },
+        { field: 'email', reason: 'missing_domain' },
         { field: 'consent', reason: 'required' },
       ],
     }),
@@ -38,13 +40,17 @@ it('records anonymous validation field and reason counts', async () => {
   expect(response.status).toBe(204);
   expect(
     db.sqlite
-      .prepare('SELECT field, reason, count FROM site_validation_failure_daily ORDER BY field')
+      .prepare(
+        'SELECT field, reason, count FROM site_validation_failure_daily ORDER BY field, reason',
+      )
       .all(),
   ).toEqual([
     { field: 'consent', reason: 'required', count: 1 },
     { field: 'eligibility', reason: 'required', count: 1 },
-    { field: 'email', reason: 'format', count: 1 },
-    { field: 'mobile', reason: 'format', count: 1 },
+    { field: 'email', reason: 'missing_at', count: 1 },
+    { field: 'email', reason: 'missing_domain', count: 1 },
+    { field: 'mobile', reason: 'contains_letters', count: 1 },
+    { field: 'mobile', reason: 'country_code', count: 1 },
   ]);
   expect(db.sqlite.prepare('SELECT event, count FROM site_event_daily').all()).toEqual([
     { event: 'form_validation_failed', count: 1 },

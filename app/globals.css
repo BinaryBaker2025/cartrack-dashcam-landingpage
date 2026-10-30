@@ -441,7 +441,9 @@ fieldset {
   border-radius: 6px;
 }
 .honeypot {
-  position: absolute;
+  position: fixed;
+  top: auto;
+  left: -10000px;
   width: 1px;
   height: 1px;
   overflow: hidden;
@@ -648,7 +650,7 @@ fieldset {
   .campaign-copy {
     position: relative;
     z-index: 2;
-    padding: 136px 16px 8px;
+    padding: 80px 16px 8px;
   }
   .campaign-hero-top {
     gap: 6px;
@@ -694,7 +696,7 @@ fieldset {
   }
   .campaign-draw-badge {
     position: absolute;
-    top: 158px;
+    top: 100px;
     right: 16px;
     bottom: auto;
     left: auto;
@@ -732,10 +734,7 @@ fieldset {
     line-height: 1.2;
   }
   .campaign-priority {
-    max-width: calc(100% - 156px);
-    margin: 6px 0 0;
-    font-size: 11px;
-    line-height: 1.4;
+    display: none;
   }
   .campaign-cta {
     display: none;
@@ -747,7 +746,7 @@ fieldset {
   .campaign-photo {
     position: absolute;
     inset: 0 0 auto;
-    height: 124px;
+    height: 88px;
     border-radius: 0;
     background: var(--campaign-blue);
   }
@@ -764,7 +763,7 @@ fieldset {
   .quote-panel {
     max-width: none;
     margin: 0;
-    padding: 14px 16px 18px;
+    padding: 12px 16px 16px;
     border: 0;
     border-radius: 0;
     background: #01228b;
@@ -772,7 +771,7 @@ fieldset {
     box-shadow: none;
   }
   .quote-panel h2 {
-    margin: 0 0 6px;
+    margin: 0 0 8px;
     color: #f2f5fc;
     font-size: 23px;
   }

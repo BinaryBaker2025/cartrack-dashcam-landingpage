@@ -8,6 +8,7 @@ import { digest, log } from '@/lib/logger';
 import { ConfigurationError } from '@/lib/diagnostics';
 import { checkDatabase } from '@/lib/database';
 import { microsoftWebsiteDetails } from '@/lib/microsoftAds';
+import { validationFailuresFromErrors } from '@/lib/analytics';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 function jsonResponse(body: unknown, status = 200, headers = {}) {
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
             : 'Please check the highlighted fields.',
           errors,
           reasons,
+          failures: validationFailuresFromErrors(errors, validation.failureReasons),
         },
         422,
       );

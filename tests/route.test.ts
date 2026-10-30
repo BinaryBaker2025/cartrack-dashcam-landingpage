@@ -50,6 +50,19 @@ it('accepts one full name and maps it to the existing lead fields', async () => 
     email: 'person@example.com',
   });
 });
+it('returns only safe reason codes for contact validation failures', async () => {
+  const response = await POST(
+    request({ name: 'Zoë', phone: '082abc1234', email: 'personexample.com' }),
+  );
+  expect(response.status).toBe(422);
+  expect(await response.json()).toMatchObject({
+    failures: [
+      { field: 'mobile', reason: 'contains_letters' },
+      { field: 'email', reason: 'missing_at' },
+    ],
+  });
+  expect(mocks.ingest).not.toHaveBeenCalled();
+});
 it('sends the first name as surname for a mononym', async () => {
   const response = await POST(request({ name: 'Mononym' }));
   expect(response.status).toBe(200);

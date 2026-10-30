@@ -1,7 +1,7 @@
 import { database } from '@/lib/database';
 import { clientAddress } from '@/lib/hosting';
 import { digest } from '@/lib/logger';
-import type { ValidationFailure } from '@/lib/analytics';
+import { parseValidationFailures, type ValidationFailure } from '@/lib/analytics';
 
 const events = new Set([
   'landing_page_view',
@@ -14,22 +14,7 @@ const events = new Set([
   'lead_submit_error',
 ]);
 function parseFailures(value: unknown): ValidationFailure[] | null {
-  if (!Array.isArray(value) || value.length > 8) return null;
-  const failures: ValidationFailure[] = [];
-  for (const item of value) {
-    if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
-    const { field, reason } = item as { field?: unknown; reason?: unknown };
-    if ((field === 'name' || field === 'mobile' || field === 'email') && reason === 'format') {
-      failures.push({ field, reason });
-    } else if ((field === 'eligibility' || field === 'consent') && reason === 'required') {
-      failures.push({ field, reason });
-    } else if (field === 'honeypot' && reason === 'filled') {
-      failures.push({ field, reason });
-    } else {
-      return null;
-    }
-  }
-  return failures;
+  return parseValidationFailures(value);
 }
 export async function POST(request: Request) {
   const response = (status: number) =>

@@ -7,7 +7,8 @@ test('report explains the reason behind aggregated form validation failures', as
         filters: { from: '2026-10-01', to: '2026-10-29', page: 1, search: '' },
         statuses: [],
         daily: [],
-        sources: [],
+        sources: [{ source: 'MICROSOFT_ADS', count: 1 }],
+        ingestionSources: [{ source: 'WEBSITE', count: 1 }],
         events: [],
         validationFailures: [
           { field: 'mobile', reason: 'format', count: 3 },
@@ -22,6 +23,7 @@ test('report explains the reason behind aggregated form validation failures', as
             phone1: '+27745766339',
             email: 'niel@example.com',
             source: 'WEBSITE',
+            acquisition_source: 'MICROSOFT_ADS',
             processing_status: 'rejected',
             delivery_status: 'rejected',
             leadbyte_code: -5,
@@ -31,6 +33,7 @@ test('report explains the reason behind aggregated form validation failures', as
             leadbyte_details: [],
             diagnostic_code: 'AFFILIATE_REJECTED',
             utm_source: null,
+            utm_medium: null,
             utm_campaign: null,
             is_test: 0,
           },
@@ -55,4 +58,8 @@ test('report explains the reason behind aggregated form validation failures', as
     section.getByText(/Counts are anonymous; submitted values are not stored here/),
   ).toBeVisible();
   await expect(page.getByText(/LeadByte only returned a general validation error/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Acquisition source' })).toBeVisible();
+  await expect(page.getByText('Microsoft Ads').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Lead intake method' })).toBeVisible();
+  await expect(page.getByText('Website form', { exact: true }).first()).toBeVisible();
 });

@@ -21,11 +21,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: 'Best Car Dash | Get a Free Quote',
   description:
-    'Protect your vehicle and capture every moment with a dashcam. Check your eligibility and request a free call back.',
+    'Protect your vehicle and capture every moment with a dashcam. Request a free quote and call back.',
   alternates: { canonical: '/' },
   openGraph: {
     title: 'Best Car Dash | Get a Free Quote',
-    description: 'Request a call about a dashcam for your vehicle.',
+    description: 'Request a free call about a dashcam for your vehicle.',
     url: '/',
     type: 'website',
     locale: 'en_ZA',

@@ -5,7 +5,7 @@ The owner dashboard is `/reports`, with the custom domain `reports.bestcardash.c
 ## Enable
 
 1. Set a unique, randomly generated password of at least 24 characters using `npx wrangler secret put REPORTING_PASSWORD`. Enter it at the hidden prompt. Keep it in the owner's password manager.
-2. Run `npm run deploy`. This applies migration 0007 and deploys the Worker and configured custom domain. The domain must belong to the configured Cloudflare account.
+2. Run `npm run deploy`. This applies migrations 0007 and 0008 and deploys the Worker and configured custom domain. The domain must belong to the configured Cloudflare account.
 3. Open `https://reports.bestcardash.com` and use username `owner` and the configured password in the browser sign-in prompt.
 
 ## Automatic deployment from GitHub
@@ -15,7 +15,7 @@ In Cloudflare, open Workers & Pages > cartrack-dashcam-landingpage > Settings > 
 - Build command: `npm run build:cloudflare`
 - Deploy command: `npm run db:migrate:remote && npx wrangler deploy`
 
-The migration command is required for the new analytics table. Commit migration 0007, `wrangler.jsonc`, the reporting UI/API, and the Worker changes together. The custom-domain entry in `wrangler.jsonc` attaches `reports.bestcardash.com` to this Worker during deployment; no separate reporting app or database is needed. Keep `NEXT_PUBLIC_SITE_URL` pointing to the public landing site.
+The migration command is required for the analytics and validation-reason tables. Commit migrations 0007 and 0008, `wrangler.jsonc`, the reporting UI/API, and the Worker changes together. The custom-domain entry in `wrangler.jsonc` attaches `reports.bestcardash.com` to this Worker during deployment; no separate reporting app or database is needed. Keep `NEXT_PUBLIC_SITE_URL` pointing to the public landing site.
 
 `REPORTING_PASSWORD` is a runtime Worker secret and persists across normal deployments. Do not put it in GitHub, Wrangler `vars`, or public build variables. After the production build succeeds, confirm `reports.bestcardash.com` appears in Worker Settings > Domains & Routes, then open it in a private browser window. It should prompt for credentials; after sign-in, verify the dashboard loads without a reporting-unavailable error. Existing conflicting DNS records for that exact subdomain must be resolved if Cloudflare reports a domain attachment conflict.
 
@@ -23,9 +23,9 @@ For local development run `npm run setup:local`, then `npm run dev` and open `ht
 
 ## Data
 
-The dashboard reads the existing `lead_reporting` and `lead_daily_summary` views, with date filters in South African time, source and delivery summaries, searchable contact records and 50-row pagination. Test records are included and marked. Summary totals ignore contact search. LeadByte responses and selected diagnostic details are shown with rejected leads to help explain failures; raw upstream responses, detailed payloads and consent evidence remain private in D1.
+The dashboard reads the existing `lead_reporting` and `lead_daily_summary` views, with date filters in South African time, acquisition and intake-method summaries, searchable contact records and 50-row pagination. Acquisition source is derived from saved campaign attribution and provider metadata; the intake method remains `WEBSITE` for a website form submission. Leads without campaign tags are shown as direct/untagged rather than implying a known ad source. Test records are included and marked. Summary totals ignore contact search. LeadByte responses and selected diagnostic details are shown with rejected leads to help explain failures; raw upstream responses, detailed payloads and consent evidence remain private in D1.
 
-Migration 0007 adds anonymous daily event counters. Existing form events now POST only the event name to `/api/analytics`; no contact details or visitor identifiers are stored in the analytics table. A separate IP-derived temporary rate-limit bucket limits event writes without consuming lead submission limits. These are browser event counts, not unique people, ad-platform analytics or sales. Bots and repeat visits can inflate counts; blocked requests can undercount. Historical activity cannot be reconstructed. Tracking failures never stop form submission. LeadByte acceptance comes from SQL, not browser events.
+Migration 0007 adds anonymous daily event counters; migration 0008 adds anonymous daily validation-failure counts. Form analytics stores only event names or allowlisted field/reason codes, never contact values or visitor identifiers. Validation reasons distinguish issues such as an overlong number, letters in a phone number, a missing `@`, or an incomplete email domain. A separate IP-derived temporary rate-limit bucket limits event writes without consuming lead submission limits. These are browser event counts, not unique people, ad-platform analytics or sales. Bots and repeat visits can inflate counts; blocked requests can undercount. Historical activity cannot be reconstructed. Tracking failures never stop form submission. LeadByte acceptance comes from SQL, not browser events.
 
 Reports and API responses are private/no-store and noindex. The dashboard is read-only. Refresh is manual. Never place the reporting password in a public environment variable or URL.
 

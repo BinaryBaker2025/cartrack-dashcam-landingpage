@@ -37,7 +37,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   await page.goto('/');
   const hero = page.locator('.campaign-hero');
   const photo = hero.locator('.campaign-photo img');
-  const name = page.getByLabel('First Name and Surname', { exact: true });
+  const name = page.getByLabel('Full name', { exact: true });
   await expect(hero).toContainText('R10,000');
   await expect(hero).toContainText('Get a quote to win');
   await expect(hero).toContainText('in our annual draw');
@@ -49,7 +49,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   await expect(page.getByLabel('South African mobile number')).toBeVisible();
   await expect(page.getByLabel('Last name', { exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Email address')).toBeVisible();
-  const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
+  const submit = page.getByRole('button', { name: 'Get a free quote' });
   await expect(submit).toBeVisible();
   await expect(submit).toHaveCSS('background-color', 'rgb(243, 137, 28)');
   await expect(submit).toHaveCSS('min-height', '60px');
@@ -62,7 +62,7 @@ test('shows the campaign hero above the name-and-phone form', async ({ page }) =
   );
 });
 test('matches the supplied mobile banner layout', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 390, height: 667 });
   await page.goto('/');
   await expect(page.getByRole('link', { name: 'Best Car Dash home' })).toContainText(
     'bestcardash.com',
@@ -85,8 +85,20 @@ test('matches the supplied mobile banner layout', async ({ page }) => {
   );
   await expect(page.locator('.campaign-cta')).toBeHidden();
   await expect(page.locator('.quote-panel')).toHaveCSS('background-color', 'rgb(1, 34, 139)');
-  await expect(page.getByText('First Name and Surname', { exact: true })).toBeVisible();
+  await expect(page.getByText('Full name', { exact: true })).toBeVisible();
   await expect(page.getByText('South African mobile number', { exact: true })).toBeVisible();
+  const hero = await page.locator('.campaign-hero').boundingBox();
+  const quote = await page.locator('.quote-panel').boundingBox();
+  const name = await page.locator('#name').boundingBox();
+  expect(quote!.y - hero!.y).toBeLessThan(230);
+  expect(name!.y).toBeLessThan(360);
+  const honeypot = page.locator('.honeypot');
+  await expect(honeypot).toHaveAttribute('aria-hidden', 'true');
+  await expect(honeypot.locator('input')).toHaveAttribute('autocomplete', 'off');
+  await expect(honeypot.locator('input')).toHaveAttribute('tabindex', '-1');
+  expect(
+    await honeypot.locator('input').evaluate((input) => input.getBoundingClientRect().left),
+  ).toBeLessThan(-9000);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
@@ -98,9 +110,9 @@ test('invalid submission shows inline messages without a network request', async
     return route.abort();
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.locator('#name-error')).toBeVisible();
-  const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
+  const submit = page.getByRole('button', { name: 'Get a free quote' });
   await submit.hover();
   await expect(submit).toBeEnabled();
   await expect(submit).toHaveCSS('background-color', 'rgb(243, 137, 28)');
@@ -121,11 +133,12 @@ test('highlights an invalid phone field on mobile and logs its reason without se
     await route.fulfill({ status: 204 });
   });
   await page.goto('/');
-  await page.getByLabel('First Name and Surname', { exact: true }).fill('Test Testing');
-  await page.getByLabel('South African mobile number').fill('123');
-  await page.getByLabel('Email address', { exact: true }).fill('person@example.com');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('South African mobile number').fill('082abc1234');
+  await page.getByLabel('Email address', { exact: true }).fill('personexample.com');
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.locator('#phone-error')).toBeVisible();
+  await expect(page.locator('#email-error')).toBeVisible();
   const phoneField = page.locator('#phone').locator('xpath=../..');
   await expect(phoneField).toHaveClass(/field-invalid/);
   await expect(phoneField).toHaveCSS('animation-name', 'field-wiggle');
@@ -138,12 +151,17 @@ test('highlights an invalid phone field on mobile and logs its reason without se
     .poll(() => analytics.find((event) => event.event === 'form_validation_failed'))
     .toMatchObject({
       event: 'form_validation_failed',
-      failures: [{ field: 'mobile', reason: 'format' }],
+      failures: [
+        { field: 'mobile', reason: 'contains_letters' },
+        { field: 'email', reason: 'missing_at' },
+      ],
     });
+  expect(JSON.stringify(analytics)).not.toContain('082abc1234');
+  expect(JSON.stringify(analytics)).not.toContain('personexample.com');
   expect(leadRequests).toBe(0);
 });
 async function fillContact(page: import('@playwright/test').Page) {
-  await page.getByLabel('First Name and Surname', { exact: true }).fill('Test Testing');
+  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
 }
 const thankYouHeading = /Thank you for your application/;
@@ -160,12 +178,16 @@ test('submits a single name as both first name and surname', async ({ page }) =>
     await route.fulfill({ json: { state: 'success', message: 'Received' } });
   });
   await page.goto('/');
-  await page.getByLabel('First Name and Surname', { exact: true }).fill('Niel');
-  await page.getByLabel('South African mobile number').fill('0821234567');
+  await page.getByLabel('Full name', { exact: true }).fill('Zoë');
+  await page.getByLabel('South African mobile number').fill('+27 82 123 4567');
   await page.getByLabel('Email address', { exact: true }).fill('person@example.com');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
-  expect(submitted).toMatchObject({ firstname: 'Niel', lastname: 'Niel' });
+  expect(submitted).toMatchObject({
+    firstname: 'Zoë',
+    lastname: 'Zoë',
+    phone: '+27821234567',
+  });
 });
 
 test('Bing click attribution survives navigation and reaches the website lead request', async ({
@@ -193,7 +215,7 @@ test('Bing click attribution survives navigation and reaches the website lead re
     .toContain(clickId);
   await page.goto('/');
   await fillContact(page);
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
 });
 
@@ -232,14 +254,14 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   await page.locator('#email').fill('person@example.com');
   await expect(page.locator('#email')).toHaveValue('person@example.com');
   await page
-    .getByRole('button', { name: 'Get Quote & Qualify' })
+    .getByRole('button', { name: 'Get a free quote' })
     .evaluate((button: HTMLButtonElement) => {
       button.click();
       button.click();
     });
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeFocused();
-  await expect(page.getByRole('button', { name: 'Get Quote & Qualify' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Get a free quote' })).toHaveCount(0);
   expect(requests).toBe(1);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
@@ -255,7 +277,7 @@ test('accepted submission shows reference thank-you screen and prevents repeat d
   await page.reload();
   await fillContact(page);
   await page.locator('#email').fill('person@example.com');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(1);
 });
@@ -279,12 +301,12 @@ test('requires email on the quote form and submits a valid address', async ({ pa
   await fillContact(page);
   const email = page.getByLabel('Email address', { exact: true });
   await expect(email).toHaveAttribute('required', '');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(email.locator('xpath=../..')).toHaveClass(/field-invalid/);
   await expect(page.locator('#email-error')).toHaveText('Please enter your email address.');
   expect(requests).toBe(0);
   await email.fill('person@example.com');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(1);
   expect(submittedBody).toMatchObject({ email: 'person@example.com' });
@@ -313,7 +335,7 @@ test('describes an unconfirmed request accurately and reuses its idempotency key
 
   await page.goto('/');
   await fillContact(page);
-  const submit = page.getByRole('button', { name: 'Get Quote & Qualify' });
+  const submit = page.getByRole('button', { name: 'Get a free quote' });
   await submit.click();
   await expect(page.getByRole('status')).toContainText(
     'Your request may still have been received. Please wait a moment before trying again.',
@@ -333,8 +355,8 @@ test('single-step form requires a name', async ({ page }) => {
   });
   await page.goto('/');
   await fillContact(page);
-  await page.getByLabel('First Name and Surname', { exact: true }).fill('');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByLabel('Full name', { exact: true }).fill('');
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.locator('#name-error')).toBeVisible();
   expect(requests).toBe(0);
   await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
@@ -357,13 +379,13 @@ test('duplicate response keeps the form editable and resubmits changed details',
   });
   await page.goto('/');
   await fillContact(page);
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.locator('#phone-error')).toHaveText('This detail has already been submitted.');
   await expect(page.getByLabel('South African mobile number')).toBeEnabled();
   await page.getByLabel('South African mobile number').fill('0831234567');
   await expect(page.locator('#phone-error')).toHaveCount(0);
   await expect(page.getByRole('status')).not.toContainText('Already submitted.');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect(page.getByRole('heading', { name: thankYouHeading })).toBeVisible();
   expect(requests).toBe(2);
 });
@@ -380,7 +402,7 @@ for (const result of [
     );
     await page.goto('/');
     await fillContact(page);
-    await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+    await page.getByRole('button', { name: 'Get a free quote' }).click();
     await expect(page.getByRole('status')).toContainText(result.message);
     await expect(page.getByRole('heading', { name: thankYouHeading })).toHaveCount(0);
   });

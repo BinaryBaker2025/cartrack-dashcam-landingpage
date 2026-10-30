@@ -45,14 +45,15 @@ test('enhanced conversions occur only for consented successful submissions', asy
   );
   await page.goto('/');
   await page.getByRole('button', { name: 'Accept advertising', exact: true }).click();
-  await page.getByLabel('Name', { exact: true }).fill('Test Testing');
+  await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
   await page.getByLabel('South African mobile number').fill('0821234567');
-  await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+  await page.getByLabel('Email address').fill('test@example.com');
+  await page.getByRole('button', { name: 'Get a free quote' }).click();
   await expect
     .poll(() => page.evaluate(() => window.uetq))
     .toEqual(expect.arrayContaining(['event', 'lead_submit_success']));
   expect(await page.evaluate(() => window.uetq)).toContainEqual({
-    pid: { ph: '+27821234567' },
+    pid: { em: 'test@example.com', ph: '+27821234567' },
   });
   expect(
     await page.evaluate(() =>
@@ -79,10 +80,11 @@ for (const state of ['success', 'duplicate', 'api_rejected']) {
     );
     await page.goto('/');
     await page.getByRole('button', { name: 'Decline advertising', exact: true }).click();
-    await page.getByLabel('Name', { exact: true }).fill('Test Testing');
+    await page.getByLabel('Full name', { exact: true }).fill('Test Testing');
     await page.getByLabel('South African mobile number').fill('0821234567');
+    await page.getByLabel('Email address').fill('test@example.com');
     const response = page.waitForResponse('**/api/leads');
-    await page.getByRole('button', { name: 'Get Quote & Qualify' }).click();
+    await page.getByRole('button', { name: 'Get a free quote' }).click();
     await response;
     if (state === 'success')
       await expect(

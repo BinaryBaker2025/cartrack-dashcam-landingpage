@@ -39,13 +39,13 @@ export default function Home() {
                   <span className="campaign-headline-chip">Worry less.</span>
                 </h1>
                 <p className="campaign-price-line">
-                  From as little as <strong>R6.99/day*</strong>
+                  From <strong>R6.99/day*</strong>
                 </p>
                 <p className="campaign-priority">
                   Being covered should still be your top priority.
                 </p>
                 <a className="campaign-cta" href="#quote">
-                  Get Quote &amp; Qualify <span aria-hidden="true">↓</span>
+                  Get a free quote <span aria-hidden="true">↓</span>
                 </a>
                 <p className="campaign-terms">*Terms and conditions apply.</p>
               </div>

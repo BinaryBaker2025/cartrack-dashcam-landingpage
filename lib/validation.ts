@@ -1,4 +1,5 @@
 import { parsePhoneNumberFromString } from 'libphonenumber-js/max';
+import type { ValidationFailure } from './analytics';
 
 export const employmentOptions = ['employed', 'self_employed'] as const;
 export type LeadInput = {
@@ -16,6 +17,7 @@ export type LeadInput = {
   website: string;
 };
 export type FieldErrors = Partial<Record<keyof LeadInput | 'name', string>>;
+type FailureReason = ValidationFailure['reason'];
 export function cleanText(value: unknown, max = 80): string {
   return typeof value === 'string'
     ? value
@@ -50,6 +52,25 @@ export function cleanPhone(value: unknown): string {
   return phone?.country === 'ZA' && phone.isValid() && phone.getType() === 'MOBILE'
     ? phone.number
     : '';
+}
+function phoneFailureReason(value: unknown): FailureReason {
+  if (typeof value !== 'string' || !value.trim()) return 'required';
+  if (value.length > 60) return 'too_long';
+  const normalized = value.normalize('NFKC').trim();
+  if (/[a-z]/i.test(normalized)) return 'contains_letters';
+  const compact = normalized.replace(/[\s().\u2010-\u2015-]/g, '');
+  if (compact.startsWith('+27')) return 'country_code';
+  return 'format';
+}
+function emailFailureReason(value: unknown): FailureReason {
+  if (typeof value !== 'string' || !value.trim()) return 'required';
+  if (value.length > 254) return 'too_long';
+  const email = cleanText(value, 254);
+  const separator = email.indexOf('@');
+  if (separator < 0) return 'missing_at';
+  const domain = email.slice(separator + 1);
+  if (!domain || !domain.includes('.')) return 'missing_domain';
+  return 'format';
 }
 export function parseCallTime(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
@@ -91,9 +112,12 @@ export function validateLead(
     website: cleanText(r.website),
   };
   const errors: FieldErrors = {};
+  const failureReasons: Partial<Record<keyof FieldErrors, FailureReason>> = {};
   const reasons: string[] = [];
-  if (eligibilityConfirmationRequired)
+  if (eligibilityConfirmationRequired) {
     errors.eligibilityConfirmed = 'Please confirm that you meet all four requirements.';
+    failureReasons.eligibilityConfirmed = 'required';
+  }
   const validName = /^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u;
   if (fullNameSupplied) {
     if (
@@ -102,8 +126,15 @@ export function validateLead(
       !validName.test(fullName) ||
       input.firstname.length > 80 ||
       input.lastname.length > 80
-    )
+    ) {
       errors.name = 'Please enter your name using letters.';
+      failureReasons.name =
+        typeof r.name !== 'string' || !r.name.trim()
+          ? 'required'
+          : r.name.length > 161 || input.firstname.length > 80 || input.lastname.length > 80
+            ? 'too_long'
+            : 'format';
+    }
   } else {
     for (const field of ['firstname', 'lastname'] as const) {
       // Letters, combining accents and separators support real multi-part names.
@@ -116,17 +147,27 @@ export function validateLead(
         (typeof r[field] !== 'string' && !missingSurname) ||
         (typeof r[field] === 'string' && r[field].length > 80) ||
         !validName.test(input[field])
-      )
+      ) {
         errors[field] =
           `Please enter your ${field === 'firstname' ? 'first' : 'last'} name using letters.`;
+        failureReasons[field] =
+          typeof r[field] !== 'string' || !r[field]?.trim()
+            ? 'required'
+            : r[field].length > 80
+              ? 'too_long'
+              : 'format';
+      }
     }
   }
-  if (!input.phone)
+  if (!input.phone) {
     errors.phone =
       'Please check your mobile number, for example 082 123 4567. Spaces and +27 are accepted.';
+    failureReasons.phone = phoneFailureReason(r.phone);
+  }
   const emailSupplied = typeof r.email === 'string' && !!r.email.trim();
   if (options.requireEmail && !emailSupplied) {
     errors.email = 'Please enter your email address.';
+    failureReasons.email = 'required';
   } else if (
     r.email !== undefined &&
     (typeof r.email !== 'string' ||
@@ -134,6 +175,7 @@ export function validateLead(
         (r.email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(input.email || ''))))
   ) {
     errors.email = 'Please enter a valid email address.';
+    failureReasons.email = emailFailureReason(r.email);
   }
   const checks = [
     [
@@ -175,11 +217,14 @@ export function validateLead(
       }
     }
   }
-  if (!input.terms) errors.terms = 'Please accept the terms and consent to being contacted.';
+  if (!input.terms) {
+    errors.terms = 'Please accept the terms and consent to being contacted.';
+    failureReasons.terms = 'required';
+  }
   if (input.preferredtimeofcall) {
     const date = parseCallTime(input.preferredtimeofcall);
     if (!date || date <= now || date.getTime() > now.getTime() + 30 * 86400000)
       errors.preferredtimeofcall = 'Choose a future time within 30 days (South African time).';
   }
-  return { input, errors, reasons, valid: Object.keys(errors).length === 0 };
+  return { input, errors, failureReasons, reasons, valid: Object.keys(errors).length === 0 };
 }
