@@ -302,7 +302,7 @@ Scheduled handlers exist in the live version, but I did not observe an actual sc
 
 The browser retains an allowlisted set of affiliate and UTM values plus Microsoft click/campaign identifiers. Values are sanitized server-side and are untrusted marketing metadata; they cannot change the server's actual delivery offer.
 
-Attribution is session-based. It is not a cross-device identity system or a complete long-window affiliate attribution engine. Website `gclid`, `gbraid`, `wbraid` and `fbclid` can trigger a new-touch reset but are not persisted by the website attribution allowlist. The Google native webhook separately retains `gcl_id` in metadata.
+Attribution is session-based. It is not a cross-device identity system or a complete long-window affiliate attribution engine. Website `gclid`, `gbraid` and `wbraid` are retained in session attribution and saved with leads for Google Ads reporting. `fbclid` triggers a new-touch reset but is not persisted by the website attribution allowlist. The Google native webhook separately retains `gcl_id` in metadata.
 
 `lib/analytics.ts` defines form events but has no provider/network delivery by default. I found no invocation wiring `configureAnalytics()` to an analytics destination. Defining a success event does not send a conversion to an ad platform. The restrictive browser content-security policy would also need deliberate adjustment for external analytics scripts/connections.
 

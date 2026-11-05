@@ -7,6 +7,8 @@ See [BING-ADS.md](BING-ADS.md) for click-ID capture, deployment and measurement 
 
 **Pipeline update:** New website and Google leads use asynchronous delivery. See [LEAD-PIPELINE.md](LEAD-PIPELINE.md) for migration 0004, source/consent fields, audit tables, processing states and retry semantics. `npm run report:pipeline` lists review, retry, failed and stalled records without customer details. The original states below describe historical synchronous submissions; new retryable failures are no longer classified as final rejections.
 
+**Google website attribution:** Google Ads automatic click tags (`gclid`, `gbraid`, `wbraid`) are retained for the browser session and saved with submissions. The dashboard and workbook classify these as `GOOGLE_ADS`, as well as Google paid-search UTMs. Ingestion remains `WEBSITE`. Older records with discarded tags cannot be recovered from the lead database alone. No database migration is needed.
+
 ## What is saved
 
 Each valid, qualified form submission with consent is written to Cloudflare D1 **before** contacting LeadByte. An atomic submission-token claim prevents double-clicks or replayed requests from creating duplicate lead records or deliveries. The database must accept the record before a lead can be sent.

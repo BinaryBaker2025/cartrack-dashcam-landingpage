@@ -82,7 +82,7 @@ it('does not carry a Microsoft click or campaign onto a later Google visit', () 
   const saved = captureAttribution(search);
   expect(
     captureAttribution('?utm_source=google&utm_medium=cpc&utm_campaign=new&gclid=opaque', saved),
-  ).toEqual({ utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'new' });
+  ).toEqual({ utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'new', gclid: 'opaque' });
 });
 it('clears stale click/campaign IDs for a new Bing campaign without MSCLKID', () => {
   expect(

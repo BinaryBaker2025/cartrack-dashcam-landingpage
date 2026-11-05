@@ -9,6 +9,9 @@ export const attributionKeys = [
   'utm_campaign',
   'utm_content',
   'utm_term',
+  'gclid',
+  'gbraid',
+  'wbraid',
   'msclkid',
   'ms_campaign_id',
   'ms_adgroup_id',
@@ -20,6 +23,8 @@ function attributionValue(key: (typeof attributionKeys)[number], value: unknown)
   if (typeof value !== 'string') return '';
   // Reject rather than truncate identifiers or accept unresolved ad URL macros.
   const trimmed = value.trim();
+  if (['gclid', 'gbraid', 'wbraid'].includes(key))
+    return /^[A-Za-z0-9_-]{1,200}$/.test(trimmed) ? trimmed : '';
   if (key === 'msclkid')
     return /^(?:[a-f0-9]{32}|[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$/i.test(trimmed)
       ? trimmed
@@ -42,7 +47,7 @@ export function captureAttribution(search: string, previous: Attribution = {}): 
     incoming.affiliate_id = cleanText(params.get('aff_id'), 200);
   const retained = sanitizeAttribution(previous);
   // Keep attribution across ordinary navigation, but never attach a previous
-  // Microsoft click/campaign to a new paid click or a different campaign.
+  // paid click/campaign to a new paid click or a different campaign.
   const newTouch = [
     'utm_source',
     'utm_campaign',
@@ -55,6 +60,9 @@ export function captureAttribution(search: string, previous: Attribution = {}): 
   if (newTouch) {
     for (const key of [
       ...microsoftKeys,
+      'gclid',
+      'gbraid',
+      'wbraid',
       'utm_source',
       'utm_medium',
       'utm_campaign',

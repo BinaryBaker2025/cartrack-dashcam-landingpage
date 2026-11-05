@@ -99,13 +99,18 @@ export async function readReport(
     WHEN source <> 'WEBSITE' THEN source
     WHEN nullif(json_extract(metadata_json, '$.acquisitionSource'), '') IS NOT NULL
       THEN json_extract(metadata_json, '$.acquisitionSource')
+    WHEN (nullif(trim(json_extract(attribution_json, '$.gclid')), '') IS NOT NULL
+        OR nullif(trim(json_extract(attribution_json, '$.gbraid')), '') IS NOT NULL
+        OR nullif(trim(json_extract(attribution_json, '$.wbraid')), '') IS NOT NULL)
+      AND lower(trim(coalesce(json_extract(attribution_json, '$.utm_source'), ''))) IN ('', 'google', 'google_ads', 'googleads', 'adwords')
+      THEN 'GOOGLE_ADS'
     WHEN (json_extract(attribution_json, '$.msclkid') IS NOT NULL
         AND (json_extract(attribution_json, '$.utm_source') IS NULL
           OR lower(json_extract(attribution_json, '$.utm_source')) IN ('bing', 'microsoft', 'microsoft_ads')))
       OR (lower(coalesce(json_extract(attribution_json, '$.utm_source'), '')) IN ('bing', 'microsoft', 'microsoft_ads')
         AND lower(coalesce(json_extract(attribution_json, '$.utm_medium'), '')) IN ('cpc', 'ppc', 'paidsearch', 'paid_search'))
       THEN 'MICROSOFT_ADS'
-    WHEN lower(coalesce(json_extract(attribution_json, '$.utm_source'), '')) = 'google'
+    WHEN lower(trim(coalesce(json_extract(attribution_json, '$.utm_source'), ''))) IN ('google', 'google_ads', 'googleads', 'adwords')
       AND lower(coalesce(json_extract(attribution_json, '$.utm_medium'), '')) IN ('cpc', 'ppc', 'paidsearch', 'paid_search')
       THEN 'GOOGLE_ADS'
     WHEN nullif(trim(json_extract(attribution_json, '$.utm_source')), '') IS NOT NULL
