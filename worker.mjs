@@ -13,9 +13,14 @@ const worker = {
     if (secureRedirect) return secureRedirect;
     const url = new URL(request.url);
     const reportingHost = url.hostname === 'reports.bestcardash.com';
+    if (url.pathname === '/reports/sign-in')
+      return privateReportResponse(await nextWorker.fetch(request, env, ctx));
     if (reportingHost || /^\/(reports|api\/reports)(\/|$)/.test(url.pathname)) {
       const denied = reportAccess(request, env.REPORTING_PASSWORD);
-      if (denied) return denied;
+      if (denied) {
+        if (denied.status !== 401 || url.pathname.startsWith('/api/')) return denied;
+        return privateReportResponse(Response.redirect(new URL('/reports/sign-in', url), 302));
+      }
       if (reportingHost && url.pathname === '/') {
         url.pathname = '/reports';
         return Response.redirect(url.toString(), 302);

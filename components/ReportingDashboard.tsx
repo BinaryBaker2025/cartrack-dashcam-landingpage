@@ -209,6 +209,14 @@ export default function ReportingDashboard() {
     params.set('page', String(next));
     reload(params.toString());
   }
+  function filterDay(day: string | undefined) {
+    if (!day) return;
+    const params = new URLSearchParams(query);
+    params.set('from', day);
+    params.set('to', day);
+    params.delete('page');
+    reload(params.toString());
+  }
   const total = report?.statuses.reduce((sum, row) => sum + row.count, 0) || 0;
   const accepted = report?.statuses.find((row) => row.status === 'accepted')?.count || 0;
   const eventCount = (name: string) => report?.events.find((row) => row.event === name)?.count || 0;
@@ -312,12 +320,23 @@ export default function ReportingDashboard() {
                 <div className={styles.panels}>
                   <section className={styles.panel}>
                     <h2>Daily lead volume</h2>
-                    <p>Recorded leads by submission date</p>
+                    <p>Select a submission date to filter the dashboard to that day.</p>
                     {report.daily.length ? (
                       <div className={styles.chart}>
                         {report.daily.map((row) => (
                           <div key={row.day} className={styles.barRow}>
-                            <span>{row.day}</span>
+                            <button
+                              type="button"
+                              className={styles.chartDate}
+                              aria-label={`Filter reports to ${row.day}`}
+                              disabled={
+                                !row.day ||
+                                (report.filters.from === row.day && report.filters.to === row.day)
+                              }
+                              onClick={() => filterDay(row.day)}
+                            >
+                              {row.day}
+                            </button>
                             <div>
                               <i style={{ width: `${Math.max(1, (row.count / max) * 100)}%` }} />
                             </div>

@@ -4,9 +4,9 @@ The owner dashboard is `/reports`, with the custom domain `reports.bestcardash.c
 
 ## Enable
 
-1. Set a unique, randomly generated password of at least 24 characters using `npx wrangler secret put REPORTING_PASSWORD`. Enter it at the hidden prompt. Keep it in the owner's password manager.
+1. Set the owner password using `npx wrangler secret put REPORTING_PASSWORD`. Enter it at the hidden prompt. Keep it in the owner's password manager.
 2. Run `npm run deploy`. This applies migrations 0007 and 0008 and deploys the Worker and configured custom domain. The domain must belong to the configured Cloudflare account.
-3. Open `https://reports.bestcardash.com` and use username `owner` and the configured password in the browser sign-in prompt.
+3. Open `https://reports.bestcardash.com` and use username `owner` and the configured password on the sign-in page.
 
 ## Automatic deployment from GitHub
 
@@ -17,9 +17,9 @@ In Cloudflare, open Workers & Pages > cartrack-dashcam-landingpage > Settings > 
 
 The migration command is required for the analytics and validation-reason tables. Commit migrations 0007 and 0008, `wrangler.jsonc`, the reporting UI/API, and the Worker changes together. The custom-domain entry in `wrangler.jsonc` attaches `reports.bestcardash.com` to this Worker during deployment; no separate reporting app or database is needed. Keep `NEXT_PUBLIC_SITE_URL` pointing to the public landing site.
 
-`REPORTING_PASSWORD` is a runtime Worker secret and persists across normal deployments. Do not put it in GitHub, Wrangler `vars`, or public build variables. After the production build succeeds, confirm `reports.bestcardash.com` appears in Worker Settings > Domains & Routes, then open it in a private browser window. It should prompt for credentials; after sign-in, verify the dashboard loads without a reporting-unavailable error. Existing conflicting DNS records for that exact subdomain must be resolved if Cloudflare reports a domain attachment conflict.
+`REPORTING_PASSWORD` is a runtime Worker secret and persists across normal deployments. Do not put it in GitHub, Wrangler `vars`, or public build variables. After the production build succeeds, confirm `reports.bestcardash.com` appears in Worker Settings > Domains & Routes, then open it in a private browser window. It should redirect to the sign-in page; after sign-in, verify the dashboard loads without a reporting-unavailable error. Existing conflicting DNS records for that exact subdomain must be resolved if Cloudflare reports a domain attachment conflict.
 
-For local development run `npm run setup:local`, then `npm run dev` and open `http://localhost:3000/reports`. During `next dev`, loopback hosts (`localhost`, `127.0.0.1`, and `::1`) can read reports without a password. Reports use the local D1 database, so production leads will not appear. Other hosts and production builds still require owner credentials. For the Cloudflare preview set `REPORTING_PASSWORD` in the ignored `.env.local` as well as `.dev.vars` and apply `npm run db:migrate:local`. The API independently checks credentials; the production Worker also protects the reporting page, API and all requests on the reporting hostname. Missing or short passwords disable access outside local development. Use HTTPS in production. Browser Basic authentication persists until the browser session is closed; this shared owner credential does not provide per-user audit history or MFA.
+For local development run `npm run setup:local`, then `npm run dev` and open `http://localhost:3000/reports`. During `next dev`, loopback hosts (`localhost`, `127.0.0.1`, and `::1`) can read reports without a password. Reports use the local D1 database, so production leads will not appear. Other hosts and production builds still require owner credentials. For the Cloudflare preview set `REPORTING_PASSWORD` in the ignored `.env.local` as well as `.dev.vars` and apply `npm run db:migrate:local`. The API independently checks credentials; the production Worker also protects the reporting page, API and all requests on the reporting hostname. A missing password disables access outside local development. Use HTTPS in production. The browser session expires after eight hours; this shared owner credential does not provide per-user audit history or MFA.
 
 ## Data
 

@@ -33,7 +33,7 @@ it('preserves streamed report content, status and headers instead of stringifyin
 it('fails closed and only accepts the owner credentials', () => {
   const password = 'a-long-test-password-for-owner';
   const request = (value: string) =>
-    new Request('https://reports.example.com', {
+    new Request('https://reports.example.com/api/reports', {
       headers: { Authorization: `Basic ${btoa(value)}` },
     });
   expect(reportAccess(request('owner:wrong'), password)?.status).toBe(401);

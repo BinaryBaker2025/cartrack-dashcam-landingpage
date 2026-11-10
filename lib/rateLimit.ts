@@ -1,7 +1,7 @@
 import { digest } from './logger';
 import { clientAddress } from './hosting';
 import { database } from './database';
-export async function rateLimit(request: Request) {
+export async function rateLimit(request: Request, scope = 'rate') {
   const configuredWindow = Number(process.env.RATE_LIMIT_WINDOW_SECONDS || 600);
   const configuredMax = Number(process.env.RATE_LIMIT_MAX || 10);
   const windowSeconds = Number.isFinite(configuredWindow)
@@ -10,7 +10,7 @@ export async function rateLimit(request: Request) {
   const max = Number.isFinite(configuredMax) ? Math.max(1, Math.floor(configuredMax)) : 10;
   const now = Date.now();
   const window = Math.floor(now / (windowSeconds * 1000));
-  const key = digest('rate:' + clientAddress(request) + ':' + window);
+  const key = digest(scope + ':' + clientAddress(request) + ':' + window);
   const expiresAt = (window + 1) * windowSeconds * 1000;
   const db = await database();
   // One SQL statement serializes concurrent requests across Worker instances.

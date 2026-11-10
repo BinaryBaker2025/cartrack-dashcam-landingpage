@@ -245,14 +245,12 @@ it('recovers a failed queue send from durable outbox without a provider retry', 
 });
 it('saves success and never sends again on concurrent or later delivery', async () => {
   await googleWebhook(request(), env);
-  const send = vi
-    .fn()
-    .mockResolvedValue({
-      state: 'success',
-      message: 'Received',
-      code: 1,
-      leadId: 'synthetic-affiliate-1',
-    });
+  const send = vi.fn().mockResolvedValue({
+    state: 'success',
+    message: 'Received',
+    code: 1,
+    leadId: 'synthetic-affiliate-1',
+  });
   const a = job(),
     b = job();
   await Promise.all([consumeLeads(a.batch, env, send), consumeLeads(b.batch, env, send)]);
@@ -266,18 +264,46 @@ it('saves success and never sends again on concurrent or later delivery', async 
     db.sqlite.prepare('SELECT processing_status FROM webhook_events').get()?.processing_status,
   ).toBe('PROCESSED');
 });
+it('holds overflow durably and recovers it after midnight in South Africa', async () => {
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-20T21:59:00Z'));
+  const send = vi.fn().mockResolvedValue({ state: 'success', message: 'Received' });
+  for (let i = 0; i < 20; i++) {
+    await googleWebhook(request(payload({ lead_id: `synthetic-cap-${i}` })), env);
+  }
+  const jobs = queue.mock.calls.map(([body]) => job(body.leadId));
+  await Promise.all(jobs.map(({ batch }) => consumeLeads(batch, env, send)));
+  expect(send).toHaveBeenCalledTimes(18);
+  expect(jobs.every(({ message }) => message.ack.mock.calls.length === 1)).toBe(true);
+  const deferred = db.sqlite
+    .prepare(
+      "SELECT submission_key, retry_count FROM submissions WHERE processing_status='deferred'",
+    )
+    .all();
+  expect(deferred).toHaveLength(2);
+  expect(deferred.every(({ retry_count }) => retry_count === 0)).toBe(true);
+
+  queue.mockClear();
+  await recoverOutbox(env);
+  expect(queue).not.toHaveBeenCalled();
+  clock.mockReturnValue(Date.parse('2026-09-20T22:00:00Z'));
+  await recoverOutbox(env);
+  expect(queue).toHaveBeenCalledTimes(2);
+  for (const { submission_key } of deferred) {
+    await consumeLeads(job(String(submission_key)).batch, env, send);
+  }
+  expect(send).toHaveBeenCalledTimes(20);
+});
+
 it.each(['LEADBYTE_TIMEOUT', 'LEADBYTE_NETWORK_ERROR', 'LEADBYTE_HTTP_ERROR'])(
   'retries temporary %s with bounded backoff',
   async (diagnosticCode) => {
     await googleWebhook(request(), env);
-    const send = vi
-      .fn()
-      .mockResolvedValue({
-        state: 'temporary_error',
-        message: 'Retry',
-        diagnosticCode,
-        uncertain: diagnosticCode !== 'LEADBYTE_HTTP_ERROR',
-      });
+    const send = vi.fn().mockResolvedValue({
+      state: 'temporary_error',
+      message: 'Retry',
+      diagnosticCode,
+      uncertain: diagnosticCode !== 'LEADBYTE_HTTP_ERROR',
+    });
     const { batch, message } = job();
     await consumeLeads(batch, env, send);
     expect(message.retry).toHaveBeenCalledWith({ delaySeconds: 60 });

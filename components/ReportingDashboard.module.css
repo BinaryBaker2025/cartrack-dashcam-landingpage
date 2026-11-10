@@ -220,6 +220,24 @@
   margin-bottom: 10px;
   font-variant-numeric: tabular-nums;
 }
+.dashboard button.chartDate {
+  padding: 3px 4px;
+  border-color: transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--campaign-blue);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dashboard button.chartDate:not(:disabled):hover {
+  background: var(--report-hover);
+}
+.dashboard button.chartDate:disabled {
+  opacity: 1;
+  color: var(--ink);
+  text-decoration: none;
+}
 .barRow > div {
   background: var(--grey);
   height: 12px;

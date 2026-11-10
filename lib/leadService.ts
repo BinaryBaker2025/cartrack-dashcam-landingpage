@@ -142,25 +142,30 @@ export async function ingestLead(
 }
 
 export async function publishLead(env: LeadBindings, leadId: string) {
+  const now = Date.now();
   const pending = await env.DB.prepare(
-    `SELECT o.lead_id FROM lead_outbox o JOIN submissions s ON s.submission_key=o.lead_id
-    WHERE o.lead_id=? AND o.published_at IS NULL AND s.processing_status IN ('pending','queued')`,
+    `SELECT o.available_at FROM lead_outbox o JOIN submissions s ON s.submission_key=o.lead_id
+    WHERE o.lead_id=? AND o.published_at IS NULL AND o.available_at<=?
+    AND s.processing_status IN ('pending','queued','deferred')`,
   )
-    .bind(leadId)
-    .first();
+    .bind(leadId, now)
+    .first<{ available_at: number }>();
   if (!pending) return;
   await env.DB.prepare('UPDATE lead_outbox SET publish_attempts=publish_attempts+1 WHERE lead_id=?')
     .bind(leadId)
     .run();
   await env.LEAD_QUEUE.send({ leadId });
   await env.DB.batch([
-    env.DB.prepare('UPDATE lead_outbox SET published_at=? WHERE lead_id=?').bind(
+    env.DB.prepare('UPDATE lead_outbox SET published_at=? WHERE lead_id=? AND available_at=?').bind(
       Date.now(),
       leadId,
+      pending.available_at,
     ),
     env.DB.prepare(
-      "UPDATE submissions SET processing_status='queued', updated_at=? WHERE submission_key=? AND processing_status='pending'",
-    ).bind(Date.now(), leadId),
+      `UPDATE submissions SET processing_status='queued', updated_at=? WHERE submission_key=?
+      AND processing_status IN ('pending','deferred')
+      AND EXISTS (SELECT 1 FROM lead_outbox WHERE lead_id=? AND available_at=?)`,
+    ).bind(Date.now(), leadId, leadId, pending.available_at),
     env.DB.prepare(
       "UPDATE webhook_events SET processing_status='QUEUED' WHERE lead_id=? AND processing_status='RECEIVED'",
     ).bind(leadId),
@@ -171,8 +176,11 @@ export async function publishLead(env: LeadBindings, leadId: string) {
 export async function recoverOutbox(env: LeadBindings) {
   const { results } = await env.DB.prepare(
     `SELECT o.lead_id FROM lead_outbox o JOIN submissions s ON s.submission_key=o.lead_id
-    WHERE o.published_at IS NULL AND s.processing_status IN ('pending','queued') ORDER BY o.created_at LIMIT 100`,
-  ).all<{ lead_id: string }>();
+    WHERE o.published_at IS NULL AND o.available_at<=? AND s.processing_status IN ('pending','queued','deferred')
+    ORDER BY o.created_at, o.lead_id LIMIT 100`,
+  )
+    .bind(Date.now())
+    .all<{ lead_id: string }>();
   for (const row of results) {
     try {
       await publishLead(env, row.lead_id);
