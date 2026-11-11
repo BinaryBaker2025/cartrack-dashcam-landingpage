@@ -112,35 +112,13 @@ export async function consumeLeads(
       }
       const attemptId = randomUUID();
       const now = Date.now();
-      const day = 86400000;
-      const offset = 7200000; // South Africa Standard Time (UTC+02:00).
-      const dayStart = Math.floor((now + offset) / day) * day - offset;
-      const nextDay = dayStart + day;
-      const dailyLeadLimit = 18;
       const [claim] = await env.DB.batch<StoredLead>([
         env.DB.prepare(
           `UPDATE submissions SET processing_status='processing', attempt_id=?, lease_until=?,
         retry_count=retry_count+1, updated_at=? WHERE submission_key=?
         AND processing_status IN ('pending','queued','retry','deferred') AND retry_count < 6
-        AND NOT EXISTS (SELECT 1 FROM lead_outbox WHERE lead_id=? AND available_at>?)
-        AND (
-          EXISTS (SELECT 1 FROM lead_attempts WHERE lead_id=? AND started_at>=? AND started_at<?)
-          OR (SELECT COUNT(DISTINCT lead_id) FROM lead_attempts WHERE started_at>=? AND started_at<?) < ?
-        ) RETURNING *`,
-        ).bind(
-          attemptId,
-          now + 120000,
-          now,
-          leadId,
-          leadId,
-          now,
-          leadId,
-          dayStart,
-          nextDay,
-          dayStart,
-          nextDay,
-          dailyLeadLimit,
-        ),
+        RETURNING *`,
+        ).bind(attemptId, now + 120000, now, leadId),
         env.DB.prepare(
           `INSERT INTO lead_attempts(id,lead_id,started_at,outcome)
           SELECT ?,submission_key,?,'started' FROM submissions WHERE submission_key=? AND attempt_id=?`,
@@ -148,25 +126,7 @@ export async function consumeLeads(
       ]);
       row = claim.results[0];
       if (!row) {
-        const [, , held] = await env.DB.batch([
-          env.DB.prepare(
-            `UPDATE submissions SET processing_status='deferred', delivery_status='pending', updated_at=?
-            WHERE submission_key=? AND processing_status IN ('pending','queued','retry','deferred')
-            AND retry_count < 6`,
-          ).bind(now, leadId),
-          env.DB.prepare(
-            `INSERT INTO lead_outbox(lead_id,created_at,available_at)
-            SELECT submission_key,created_at,? FROM submissions WHERE submission_key=? AND processing_status='deferred'
-            ON CONFLICT(lead_id) DO UPDATE SET published_at=NULL, available_at=excluded.available_at
-            WHERE lead_outbox.available_at<=?`,
-          ).bind(nextDay, leadId, now),
-          env.DB.prepare('SELECT lead_id FROM lead_outbox WHERE lead_id=? AND available_at>?').bind(
-            leadId,
-            now,
-          ),
-        ]);
-        if (held.results.length) message.ack();
-        else message.retry({ delaySeconds: 120 });
+        message.retry({ delaySeconds: 120 });
         continue;
       }
       const call = row.preferredtimeofcall?.match(/^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/);

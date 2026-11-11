@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import type { MessageBatch } from '@cloudflare/workers-types';
 import { createTestDatabase } from './d1Fixture';
@@ -264,34 +265,45 @@ it('saves success and never sends again on concurrent or later delivery', async 
     db.sqlite.prepare('SELECT processing_status FROM webhook_events').get()?.processing_status,
   ).toBe('PROCESSED');
 });
-it('holds overflow durably and recovers it after midnight in South Africa', async () => {
-  const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-20T21:59:00Z'));
+it('sends all leads immediately beyond the former daily cap', async () => {
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-20T21:59:00Z'));
   const send = vi.fn().mockResolvedValue({ state: 'success', message: 'Received' });
-  for (let i = 0; i < 20; i++) {
-    await googleWebhook(request(payload({ lead_id: `synthetic-cap-${i}` })), env);
+  for (let i = 0; i < 25; i++) {
+    await googleWebhook(request(payload({ lead_id: `synthetic-uncapped-${i}` })), env);
   }
   const jobs = queue.mock.calls.map(([body]) => job(body.leadId));
   await Promise.all(jobs.map(({ batch }) => consumeLeads(batch, env, send)));
-  expect(send).toHaveBeenCalledTimes(18);
+  expect(send).toHaveBeenCalledTimes(25);
   expect(jobs.every(({ message }) => message.ack.mock.calls.length === 1)).toBe(true);
-  const deferred = db.sqlite
-    .prepare(
-      "SELECT submission_key, retry_count FROM submissions WHERE processing_status='deferred'",
-    )
-    .all();
-  expect(deferred).toHaveLength(2);
-  expect(deferred.every(({ retry_count }) => retry_count === 0)).toBe(true);
-
+  expect(
+    db.sqlite
+      .prepare("SELECT COUNT(*) AS count FROM submissions WHERE processing_status='accepted'")
+      .get()?.count,
+  ).toBe(25);
   queue.mockClear();
   await recoverOutbox(env);
   expect(queue).not.toHaveBeenCalled();
-  clock.mockReturnValue(Date.parse('2026-09-20T22:00:00Z'));
+});
+
+it('releases previously deferred leads for immediate outbox recovery', async () => {
+  await googleWebhook(request(), env);
+  const leadId = String(row().submission_key);
+  db.sqlite
+    .prepare("UPDATE submissions SET processing_status='deferred' WHERE submission_key=?")
+    .run(leadId);
+  db.sqlite
+    .prepare('UPDATE lead_outbox SET published_at=NULL, available_at=? WHERE lead_id=?')
+    .run(Date.now() + 86400000, leadId);
+  db.sqlite.exec(
+    readFileSync(new URL('../migrations/0010_remove_daily_lead_cap.sql', import.meta.url), 'utf8'),
+  );
+  queue.mockClear();
   await recoverOutbox(env);
-  expect(queue).toHaveBeenCalledTimes(2);
-  for (const { submission_key } of deferred) {
-    await consumeLeads(job(String(submission_key)).batch, env, send);
-  }
-  expect(send).toHaveBeenCalledTimes(20);
+  expect(queue).toHaveBeenCalledWith({ leadId });
+  const send = vi.fn().mockResolvedValue({ state: 'success', message: 'Received' });
+  await consumeLeads(job(leadId).batch, env, send);
+  expect(send).toHaveBeenCalledTimes(1);
+  expect(row().processing_status).toBe('accepted');
 });
 
 it.each(['LEADBYTE_TIMEOUT', 'LEADBYTE_NETWORK_ERROR', 'LEADBYTE_HTTP_ERROR'])(
