@@ -22,6 +22,7 @@ it('preserves streamed report content, status and headers instead of stringifyin
   expect(response.headers.get('Content-Type')).toBe('text/html; charset=utf-8');
   expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+  expect(response.headers.get('Referrer-Policy')).toBe('same-origin');
   const redirect = privateReportResponse(Response.redirect('https://example.com/reports', 307));
   expect(redirect.status).toBe(307);
   expect(redirect.headers.get('Location')).toBe('https://example.com/reports');
